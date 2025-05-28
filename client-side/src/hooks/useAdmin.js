@@ -8,7 +8,7 @@ const useAdmin = (user) => {
   useEffect(() => {
     const email = user?.email;
     if (email) {
-      fetch(`http://localhost:4000/admin?email=${email}`)
+      fetch(`${process.env.REACT_APP_API_URL}/admin?email=${email}`)
         .then((res) => res.json())
         .then((data) => {
           setAdmin(data.admin);

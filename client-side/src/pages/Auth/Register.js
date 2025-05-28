@@ -13,6 +13,8 @@ import { useDropzone } from "react-dropzone";
 import auth from "../../firebase.init";
 import { toast } from "react-toastify";
 import LoadingSpinner from "../../components/Loading";
+import encryptPassword from "./EncryptPassword";
+import RegionSelector from "../../components/RegionSelector";
 
 const ToggleRadioGroup = ({ label, name, options, error, control }) => (
   <div className="flex flex-col">
@@ -210,6 +212,7 @@ const Register = () => {
   });
 
   const navigate = useNavigate();
+  const region = localStorage.getItem("region");
 
   // Firebase
   const [createUserWithEmailAndPassword, loading, error] =
@@ -337,16 +340,17 @@ const Register = () => {
         transactionId,
       } = data;
 
-      // Step 1: Create Firebase Auth user
-      const userCredential = await createUserWithEmailAndPassword(
-        email,
-        password
-      );
-      firebaseUser = userCredential.user;
-      const firebaseUid = firebaseUser.uid;
+      // Step 1: Create Firebase Auth user only if region is global
+      if (region === "global") {
+        const userCredential = await createUserWithEmailAndPassword(
+          email,
+          password
+        );
+        firebaseUser = userCredential.user;
 
-      // Step 2: Update profile
-      await updateProfile({ displayName: name });
+        // Step 2: Update profile
+        await updateProfile({ displayName: name });
+      }
 
       // Step 3: Upload document to ImgBB
       const formData = new FormData();
@@ -370,8 +374,8 @@ const Register = () => {
       uploadedDocUrl = imgResult.data.url;
 
       // Step 4: Register user in your backend database
+      const encryptedPassword = encryptPassword(password);
       const currentUser = {
-        firebaseUid,
         name,
         fatherName,
         motherName,
@@ -384,9 +388,11 @@ const Register = () => {
         document: uploadedDocUrl,
         depositTID: transactionId,
         verificationImage: capturedPhoto,
+        encryptedPassword: encryptedPassword,
+        region,
       };
 
-      const response = await fetch(`http://localhost:4000/register`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/register`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -423,8 +429,8 @@ const Register = () => {
       // Consolidated error handling
       console.error("Registration error:", error);
 
-      // Attempt rollback if needed
-      if (firebaseUser) {
+      // Attempt rollback if needed (only for global region)
+      if (firebaseUser && region === "global") {
         try {
           // If we created a Firebase user but later steps failed, delete the user
           await firebaseUser.delete();
@@ -445,6 +451,9 @@ const Register = () => {
 
   return (
     <div className="py-24 min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-950 via-primary to-indigo-900 dark:from-gray-900 dark:via-primary dark:to-gray-800">
+      <div className="absolute top-4 right-4 z-10">
+        <RegionSelector scrolled={false} />
+      </div>
       <div className="w-full max-w-5xl bg-white/10 dark:bg-white/5 rounded-xl shadow-xl p-8">
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center gap-2 mb-2">

@@ -8,11 +8,13 @@ import {
 import auth from "../../firebase.init";
 import useToken from "../../hooks/useToken";
 import LoadingSpinner from "../../components/Loading";
+import RegionSelector from "../../components/RegionSelector";
+import encryptPassword from "./EncryptPassword";
 import { toast } from "react-toastify";
 
 const Login = () => {
   const navigate = useNavigate();
-  const region = localStorage.getItem('region')
+  const region = localStorage.getItem("region");
 
   const {
     register,
@@ -65,19 +67,32 @@ const Login = () => {
   }
 
   const onSubmit = (data) => {
-    if (region === 'global') {
+    if (region === "global") {
       signInWithEmailAndPassword(data.email, data.password);
-    }
-    else {
-      toast.error("Login is not available in your region at the moment.");
-      setError("email", {
-        type: "manual",
-        message: "Login is not available in your region at the moment.",
-      });
-      setError("password", {
-        type: "manual",
-        message: "Login is not available in your region at the moment.",
-      });
+    } if (region === "china") {
+      const encryptedPassword = encryptPassword(data.password);
+      fetch(`${process.env.REACT_APP_API_URL}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: data.email,
+          encryptedPassword: encryptedPassword,
+        }),
+      })
+        .then(async (res) => {
+          const result = await res.json();
+          if (result.success && result.token) {
+            localStorage.setItem("accessToken", result.token);
+            navigate("/dashboard", { replace: true });
+          } else {
+            toast.error(result.message || "Login failed");
+          }
+        })
+        .catch(() => {
+          toast.error("Network error. Please try again.");
+        });
     }
   };
 
@@ -97,6 +112,10 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-950 via-primary to-indigo-900 dark:from-gray-900 dark:via-primary dark:to-gray-800">
+      <div className="absolute top-4 right-4 z-10">
+        <RegionSelector scrolled={false} />
+      </div>
+
       <div className="w-full max-w-md bg-white/10 dark:bg-white/5 rounded-xl shadow-xl p-8">
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center gap-2 mb-2">

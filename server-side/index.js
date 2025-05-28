@@ -9,7 +9,7 @@ var jwt = require("jsonwebtoken");
 app.use(express.json());
 // const nodemailer = require("nodemailer");
 
-const port = process.env.PORT || 4000;
+const port = process.env.PORT;
 
 const uri = `mongodb+srv://${process.env.MONGODB_USER}:${process.env.MONGODB_PASSWORD}@dmb-cluster.6bs5ltd.mongodb.net/?retryWrites=true&w=majority&appName=DMB-Cluster`;
 const client = new MongoClient(uri, {
@@ -177,6 +177,28 @@ async function run() {
       });
       await usersCollection.updateOne(filter, updateDoc, options);
       res.send({ token });
+    });
+
+    app.post("/login", async (req, res) => {
+      const { email, encryptedPassword } = req.body;
+      if (!email || !encryptedPassword) {
+        return res
+          .status(400)
+          .send({ success: false, message: "Email and password are required" });
+      }
+
+      const user = await usersCollection.findOne({ email: email });
+      if (user && user.encryptedPassword === encryptedPassword) {
+        const token = jwt.sign({ email: user.email }, process.env.SECRET_KEY, {
+          expiresIn: "7d",
+        });
+        return res.status(200).send({ success: true, token });
+      } else {
+        return res.status(401).send({
+          success: false,
+          message: "Invalid email or password",
+        });
+      }
     });
 
     //    create new user and save the user data to database
@@ -552,18 +574,24 @@ async function run() {
       try {
         const email = req.query.email;
         if (!email) {
-          return res.status(400).send({ admin: false, message: "Email is required" });
+          return res
+            .status(400)
+            .send({ admin: false, message: "Email is required" });
         }
         const getUser = await usersCollection.findOne({ email: email });
         if (getUser) {
           const isAdmin = getUser.role === "admin";
           return res.status(200).send({ admin: isAdmin });
         } else {
-          return res.status(404).send({ admin: false, message: "User not found" });
+          return res
+            .status(404)
+            .send({ admin: false, message: "User not found" });
         }
       } catch (error) {
         console.error("Error checking admin status:", error);
-        return res.status(500).send({ admin: false, message: "Internal server error" });
+        return res
+          .status(500)
+          .send({ admin: false, message: "Internal server error" });
       }
     });
 

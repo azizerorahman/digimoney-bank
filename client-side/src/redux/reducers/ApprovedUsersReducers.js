@@ -11,7 +11,7 @@ export const fetchApprovedUser = createAsyncThunk(
     if (!email) {
       return {};  
     }
-    const response = await axios.get(`http://localhost:4000/verified/${email}`);
+    const response = await axios.get(`${process.env.REACT_APP_API_URL}/verified/${email}`);
     return response.data.verified;
   }
 );

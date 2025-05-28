@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import auth from "../firebase.init";
 
 const useUserInfo = (user) => {
-  const url = `http://localhost:4000/user-details?email=${user?.email}`;
+  const url = `${process.env.REACT_APP_API_URL}/user-details?email=${user?.email}`;
   
   const {
     data: userInfo,

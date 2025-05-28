@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 import { useAuthState } from "react-firebase-hooks/auth";
 import auth from "../../firebase.init";
 import useAdmin from "../../hooks/useAdmin";
-import useUserInfo from "../../hooks/useUserInfo"; // Added import for useUserInfo
+import useUserInfo from "../../hooks/useUserInfo";
 import { signOut } from "firebase/auth";
 import { fetchApprovedUser } from "../../redux/reducers/ApprovedUsersReducers";
 import AccountUnderVerification from "./AccountUnderVerification";
@@ -26,7 +26,7 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const check = useSelector((state) => state.checkUser);
   const { admin, loadingAdmin } = useAdmin(user);
-  const { userInfo } = useUserInfo(user); // Added useUserInfo hook
+  const { userInfo } = useUserInfo(user);
   const [darkMode, setDarkMode] = useState(
     JSON.parse(localStorage.getItem("darkMode")) || false
   );
@@ -207,7 +207,7 @@ const Dashboard = () => {
                     if (admin === menu?.isAdmin || menu.dualUser) {
                       return (
                         <li key={i}>
-                          <Link
+                          <Link// Added useUserInfo hook
                             to={menu.path}
                             className={`flex items-center gap-x-3.5 py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-300
                           ${
