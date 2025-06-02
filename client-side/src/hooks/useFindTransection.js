@@ -3,7 +3,7 @@ import { useState } from "react";
 
 const useFindTransaction = (userInfo) => {
   const [pageCount, setPageCount] = useState(0);
-  const url = `http://localhost:4000/transactionCount/${userInfo?.accountNumber}`;
+  const url = `${process.env.REACT_APP_API_URL}/transactionCount/${userInfo?.accountNumber}`;
   useEffect(() => {
     fetch(url)
       .then((res) => res.json())

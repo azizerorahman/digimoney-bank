@@ -17,7 +17,7 @@ const Deposit = ({ userInfo, setInformation, refetch }) => {
     const newAmount = userInfo.amount + depositeAmount;
 
     const updatedAmount = { amount: newAmount, depositeAmount };
-    const url = `http://localhost:4000/deposite/${accountNumber}`;
+    const url = `${process.env.REACT_APP_API_URL}/deposite/${accountNumber}`;
     fetch(url, {
       method: "PATCH",
       headers: {

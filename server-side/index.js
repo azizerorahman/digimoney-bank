@@ -1,4 +1,5 @@
 const express = require("express");
+const CryptoJS = require("crypto-js");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
@@ -181,18 +182,27 @@ async function run() {
 
     app.post("/login", async (req, res) => {
       const { email, encryptedPassword } = req.body;
-      if (!email || !encryptedPassword) {
+      const password = CryptoJS.AES.decrypt(
+        encryptedPassword,
+        process.env.DECRYPTION_KEY
+      ).toString(CryptoJS.enc.Utf8);
+      if (!email || !password) {
         return res
           .status(400)
           .send({ success: false, message: "Email and password are required" });
       }
 
       const user = await usersCollection.findOne({ email: email });
-      if (user && user.encryptedPassword === encryptedPassword) {
+      const userEncryptedPassword = user?.encryptedPassword;
+      const userPassword = CryptoJS.AES.decrypt(
+        userEncryptedPassword,
+        process.env.DECRYPTION_KEY
+      ).toString(CryptoJS.enc.Utf8);
+      if (user && userPassword === password) {
         const token = jwt.sign({ email: user.email }, process.env.SECRET_KEY, {
           expiresIn: "7d",
         });
-        return res.status(200).send({ success: true, token });
+        return res.status(200).send({ success: true, token, uId: user._id });
       } else {
         return res.status(401).send({
           success: false,
@@ -282,12 +292,12 @@ async function run() {
 
     app.get("/user-details", verifyJWT, async (req, res) => {
       try {
-        const email = req.query.email;
-        if (!email) {
-          return res.status(400).send({ message: "Email is required" });
+        const uId = req.query.uId;
+        if (!uId) {
+          return res.status(400).send({ message: "User ID is required" });
         }
 
-        const result = await usersCollection.findOne({ email: email });
+        const result = await usersCollection.findOne({ _id: ObjectId(uId) });
         if (!result) {
           return res
             .status(404)

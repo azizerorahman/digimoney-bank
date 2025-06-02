@@ -26,7 +26,8 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const check = useSelector((state) => state.checkUser);
   const { admin, loadingAdmin } = useAdmin(user);
-  const { userInfo } = useUserInfo(user);
+  const uId = localStorage.getItem("userId");
+  const { userInfo } = useUserInfo(uId);
   const [darkMode, setDarkMode] = useState(
     JSON.parse(localStorage.getItem("darkMode")) || false
   );
@@ -203,11 +204,10 @@ const Dashboard = () => {
               <nav className="mt-8 px-4">
                 <ul className="space-y-2">
                   {Menus.map((menu, i) => {
-                    // Only show menu items that match user role
                     if (admin === menu?.isAdmin || menu.dualUser) {
                       return (
                         <li key={i}>
-                          <Link// Added useUserInfo hook
+                          <Link
                             to={menu.path}
                             className={`flex items-center gap-x-3.5 py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-300
                           ${

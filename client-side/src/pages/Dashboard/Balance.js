@@ -10,7 +10,9 @@ import { toast } from "react-toastify";
 const Balance = () => {
   const [user] = useAuthState(auth);
   const [error, setError] = useState("");
-  const { userInfo, refetch, isLoading } = useUserInfo(user);
+    const uId = localStorage.getItem("userId");
+  console.log("User ID from Balance:", uId);
+  const { userInfo, refetch, isLoading } = useUserInfo(uId);
 
   const { register, handleSubmit, reset } = useForm();
   const onSubmit = (data) => {
@@ -22,7 +24,7 @@ const Balance = () => {
     if (userInfo.amount > withdrawAmount) {
       const newAmount = userInfo.amount - withdrawAmount;
       const updatedAmount = { amount: newAmount, withdrawAmount };
-      const url = `http://localhost:4000/approvedUsers/${userInfo.accountNumber}`;
+      const url = `${process.env.REACT_APP_API_URL}/approvedUsers/${userInfo.accountNumber}`;
       fetch(url, {
         method: "PATCH",
         headers: {

@@ -27,7 +27,7 @@ const FoundTransfer = ({ userInfo, refetch, setInformation }) => {
       amount,
     };
 
-    const url = `http://localhost:4000/transfer?email=${email}`;
+    const url = `${process.env.REACT_APP_API_URL}/transfer?email=${email}`;
 
     fetch(url, {
       method: "PATCH",

@@ -16,10 +16,12 @@ const UserInformation = () => {
     data: userInfo,
     refetch,
   } = useQuery([`aprovedUserInfo${id}`], () =>
-    fetch(`http://localhost:4000/approvedUser/${id}`).then((res) => res.json())
+    fetch(`${process.env.REACT_APP_API_URL}/approvedUser/${id}`).then((res) =>
+      res.json()
+    )
   );
   // useEffect(() => {
-  //   const url = `http://localhost:4000/approvedUser/${id}`;
+  //   const url = `${process.env.REACT_APP_API_URL}/approvedUser/${id}`;
   //   fetch(url)
   //     .then((res) => res.json())
   //     .then((data) => setUserInfo(data));

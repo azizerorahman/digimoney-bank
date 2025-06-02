@@ -8,7 +8,9 @@ const initialState = {
 };
 
 export const fetchBankInfo = createAsyncThunk("bankinfo/fetchinfo", () => {
-  return axios.get("http://localhost:4000/bankinfo").then((res) => res.data);
+  return axios
+    .get("${process.env.REACT_APP_API_URL}/bankinfo")
+    .then((res) => res.data);
 });
 
 const BankInfoSlice = createSlice({

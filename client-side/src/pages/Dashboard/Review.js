@@ -28,7 +28,7 @@ const Review = () => {
         if (result.success) {
           const img = result.data.url;
           data["src"] = img;
-          fetch("http://localhost:4000/review", {
+          fetch("${process.env.REACT_APP_API_URL}/review", {
             method: "POST",
             headers: {
               "content-type": "application/json",

@@ -7,7 +7,7 @@ import "react-confirm-alert/src/react-confirm-alert.css";
 const AllUser = ({ user, users, index, refetch }) => {
   const { email, role, _id } = user;
   const makeAdmin = () => {
-    fetch(`http://localhost:4000/approvedUser/admin/${email}`, {
+    fetch(`${process.env.REACT_APP_API_URL}/approvedUser/admin/${email}`, {
       method: "PUT",
       headers: {
         authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -33,7 +33,7 @@ const AllUser = ({ user, users, index, refetch }) => {
           label: "Yes",
           onClick: () => {
             // send updated data to server
-            const url = `http://localhost:4000/approvedUser/${id}`;
+            const url = `${process.env.REACT_APP_API_URL}/approvedUser/${id}`;
             fetch(url, {
               method: "DELETE",
             })

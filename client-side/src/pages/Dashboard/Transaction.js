@@ -10,7 +10,9 @@ import { fetchTransaction } from "../../redux/reducers/TransactionReducer";
 
 const Transaction = () => {
   const [user] = useAuthState(auth);
-  const { userInfo } = useUserInfo(user);
+  const uId = localStorage.getItem("userId");
+  console.log("User ID from Transaction:", uId);
+  const { userInfo } = useUserInfo(uId);
   const [page, setPage] = useState(1);
   const { transaction } = useSelector((state) => state.transaction);
 

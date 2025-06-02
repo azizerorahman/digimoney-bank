@@ -11,7 +11,7 @@ const Information = ({ user, index, users, setUsers, setInformation }) => {
           label: "Yes",
           onClick: () => {
             // send updated data to server
-            const url = `http://localhost:4000/users/${id}`;
+            const url = `${process.env.REACT_APP_API_URL}/users/${id}`;
             fetch(url, {
               method: "DELETE",
             })

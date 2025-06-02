@@ -418,6 +418,7 @@ const Register = () => {
 
       // Store token
       localStorage.setItem("accessToken", result.token);
+      localStorage.setItem("userId", result.insertedId);
 
       // If everything succeeded
       toast.success("Account created successfully!");

@@ -13,7 +13,9 @@ const Profile = () => {
   } = useForm();
 
   const [user] = useAuthState(auth);
-  const { userInfo, isLoading, refetch } = useUserInfo(user);
+    const uId = localStorage.getItem("userId");
+  console.log("User ID from Profile:", uId);
+  const { userInfo, isLoading, refetch } = useUserInfo(uId);
 
   const [password, setPassword] = useState("");
   const [updatePassword, updating, error] = useUpdatePassword(auth);
@@ -41,7 +43,7 @@ const Profile = () => {
         if (result.success) {
           console.log(result.data.url);
           const profileImg = result.data.url;
-          const url = `http://localhost:4000/profile/${user.email}`;
+          const url = `${process.env.REACT_APP_API_URL}/profile/${user.email}`;
           fetch(url, {
             method: "PATCH",
             headers: {

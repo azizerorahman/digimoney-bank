@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import "./App.css";
 import "react-toastify/dist/ReactToastify.css";
 import LandingPage from "./pages/Dashboard/LandingPage";
+import User from "./pages/Auth/User";
 
 function App() {
   // Use React Router's location
@@ -40,8 +41,13 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />}>
-          <Route index element={<LandingPage />} />
+        <Route
+          path="/dashboard"
+          element={
+              <Dashboard />
+          }
+        >
+          <Route index element={<User><LandingPage /></User>} />
           <Route path="dashboard" element={<LandingPage />} />
           {/* <Route path="profile" element={<Profile />} />
           <Route path="balance" element={<Balance />} />

@@ -26,7 +26,7 @@ const CheckInformation = ({ information, users, setUsers }) => {
 
   const onSubmit = (data) => {
     console.log(data);
-    const url = `http://localhost:4000/accountNumber/${_id}`;
+    const url = `${process.env.REACT_APP_API_URL}/accountNumber/${_id}`;
     fetch(url, {
       method: "PATCH",
       headers: {
@@ -43,7 +43,7 @@ const CheckInformation = ({ information, users, setUsers }) => {
   const approved = (id, { information }, e) => {
     information["accountNumber"] = accountRef.current.value;
 
-    fetch("http://localhost:4000/approvedUsers", {
+    fetch("${process.env.REACT_APP_API_URL}/approvedUsers", {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -53,7 +53,7 @@ const CheckInformation = ({ information, users, setUsers }) => {
       .then((res) => res.json())
       .then((data) => {
         if (data.insertedId) {
-          const url = `http://localhost:4000/users/${id}`;
+          const url = `${process.env.REACT_APP_API_URL}/users/${id}`;
 
           fetch(url, {
             method: "DELETE",

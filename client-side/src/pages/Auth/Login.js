@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import {
@@ -6,7 +6,6 @@ import {
   useSignInWithEmailAndPassword,
 } from "react-firebase-hooks/auth";
 import auth from "../../firebase.init";
-import useToken from "../../hooks/useToken";
 import LoadingSpinner from "../../components/Loading";
 import RegionSelector from "../../components/RegionSelector";
 import encryptPassword from "./EncryptPassword";
@@ -15,6 +14,7 @@ import { toast } from "react-toastify";
 const Login = () => {
   const navigate = useNavigate();
   const region = localStorage.getItem("region");
+  const passwordRef = useRef(null);
 
   const {
     register,
@@ -27,11 +27,11 @@ const Login = () => {
   } = useForm();
 
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [signInWithEmailAndPassword, user, loading, error] =
+  const [signInWithEmailAndPassword, user, firebaseLoading, error] =
     useSignInWithEmailAndPassword(auth);
 
-  const [token] = useToken(user);
   const [sendPasswordResetEmail, sending] = useSendPasswordResetEmail(auth);
 
   // Focus email on mount
@@ -61,38 +61,63 @@ const Login = () => {
     }
   }, [errors.email, errors.password]);
 
-  // Redirect if login successful
-  if (token) {
-    navigate("/dashboard", { replace: true });
-  }
-
-  const onSubmit = (data) => {
-    if (region === "global") {
-      signInWithEmailAndPassword(data.email, data.password);
-    } if (region === "china") {
-      const encryptedPassword = encryptPassword(data.password);
-      fetch(`${process.env.REACT_APP_API_URL}/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: data.email,
-          encryptedPassword: encryptedPassword,
-        }),
-      })
-        .then(async (res) => {
-          const result = await res.json();
-          if (result.success && result.token) {
-            localStorage.setItem("accessToken", result.token);
-            navigate("/dashboard", { replace: true });
-          } else {
-            toast.error(result.message || "Login failed");
-          }
-        })
-        .catch(() => {
-          toast.error("Network error. Please try again.");
+  // Common function to handle backend login - memoized with useCallback
+  const handleBackendLogin = useCallback(
+    async (email, password) => {
+      setIsLoading(true);
+      try {
+        const encryptedPassword = encryptPassword(password);
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/login`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email,
+            encryptedPassword: encryptedPassword,
+          }),
         });
+
+        const result = await response.json();
+
+        if (result.success && result.token) {
+          localStorage.setItem("accessToken", result.token);
+          localStorage.setItem("userId", result.uId);
+          toast.success("Login successful!");
+          navigate("/dashboard", { replace: true });
+        } else {
+          toast.error(result.message || "Login failed");
+        }
+      } catch (err) {
+        console.error("Backend login error:", err);
+        toast.error("Network error. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [navigate]
+  );
+
+  // Handle Firebase user login success for global region
+  useEffect(() => {
+    if (user && region === "global" && passwordRef.current) {
+      handleBackendLogin(user.user.email, passwordRef.current);
+      // Clear password from ref after use for security
+      passwordRef.current = null;
+    }
+  }, [user, region, handleBackendLogin]);
+
+  const onSubmit = async (data) => {
+    if (region === "global") {
+      // Store password in ref for later use in useEffect
+      passwordRef.current = data.password;
+      await signInWithEmailAndPassword(data.email, data.password);
+      // Backend login will be handled in useEffect when user state changes
+    } else if (region === "china") {
+      // For China region, directly use backend authentication
+      await handleBackendLogin(data.email, data.password);
+    } else {
+      toast.error("Please select a valid region");
     }
   };
 
@@ -245,21 +270,24 @@ const Login = () => {
               </button>
             </div>
           </div>
-          <div className="flex items-center justify-between">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="text-accent text-sm hover:underline bg-transparent border-none p-0"
-              style={{ background: "none" }}
-            >
-              Forgot password?
-            </button>
-          </div>
+          {region === "global" && (
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="text-accent text-sm hover:underline bg-transparent border-none p-0"
+                style={{ background: "none" }}
+              >
+                Forgot password?
+              </button>
+            </div>
+          )}
           <button
             type="submit"
-            className="w-full py-2 rounded-lg bg-accent text-white font-semibold hover:bg-accent/90 transition shadow"
+            disabled={isLoading || firebaseLoading}
+            className="w-full py-2 rounded-lg bg-accent text-white font-semibold hover:bg-accent/90 transition shadow disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Login
+            {isLoading || firebaseLoading ? "Logging in..." : "Login"}
           </button>
         </form>
         <p className="mt-8 text-center text-white/70 dark:text-white/80 text-sm">
@@ -269,7 +297,9 @@ const Login = () => {
           </Link>
         </p>
       </div>
-      {(loading || sending) && <LoadingSpinner fullscreen overlay />}
+      {(isLoading || firebaseLoading || sending) && (
+        <LoadingSpinner fullscreen overlay />
+      )}
     </div>
   );
 };

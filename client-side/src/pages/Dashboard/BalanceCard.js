@@ -5,7 +5,9 @@ import { useState, useEffect } from 'react';
 
 const BalanceCard = () => {
   const [user] = useAuthState(auth);
-  const { userInfo, isLoading: dataLoading } = useUserInfo(user);
+    const uId = localStorage.getItem("userId");
+  console.log("User ID from Balance Card:", uId);
+  const { userInfo, isLoading: dataLoading } = useUserInfo(uId);
   const [isLoading, setIsLoading] = useState(true);
 
   // Extended loading state (original loading + 5 seconds)
