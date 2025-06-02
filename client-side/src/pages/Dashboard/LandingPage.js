@@ -3783,5 +3783,4 @@ const themes = {
     </section>
   );
 };
-
 export default LandingPage;
