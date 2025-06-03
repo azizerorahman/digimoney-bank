@@ -52,7 +52,7 @@ const Balance = () => {
   return (
     <div>
       {/* balance card  */}
-      <BalanceCard></BalanceCard>
+      {/* <BalanceCard></BalanceCard> */}
       {/* withdraw card */}
       <div className="card card-side bg-white shadow-xl mt-10">
         <div className="card-body bg-white ">

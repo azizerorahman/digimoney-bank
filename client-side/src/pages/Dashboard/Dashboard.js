@@ -333,10 +333,8 @@ const Dashboard = () => {
               </div>
 
               {/* Dashboard content */}
-              <main className="p-4 md:p-6 min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 md:p-6 transition-all duration-300">
-                  <Outlet />
-                </div>
+              <main className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-900 transition-colors duration-300 overflow-x-hidden">
+                <Outlet />
               </main>
             </div>
           </div>
