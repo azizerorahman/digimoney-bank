@@ -207,12 +207,10 @@
 // import { useUserInfo } from "../../hooks/useUserInfo";
 
 import React, { useState } from 'react';
-// REPLACE your existing import with this:
 import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine } from 'recharts';
 
 
 const LandingPage = () => {
-  // Current logged-in user data (this would typically come from auth context or API)
   const currentUser = {
     id: 1,
     name: "John Smith",
@@ -1128,8 +1126,151 @@ averageInterestRate: 6.42,
       { month: "Apr 2024", spending: 3100, budget: 3000 },
       { month: "May 2024", spending: 2900, budget: 3000 },
       { month: "Jun 2024", spending: 1950, budget: 3000 }
+    ],
+    // ADD THIS TO YOUR currentUser OBJECT
+comparison: {
+  spendingComparison: {
+    currentPeriod: [
+      { category: 'Housing', current: 3418, previous: 3200, avgUsers: 2800 },
+      { category: 'Transport', current: 1025, previous: 850, avgUsers: 900 },
+      { category: 'Food', current: 756, previous: 680, avgUsers: 750 },
+      { category: 'Shopping', current: 457, previous: 320, avgUsers: 400 },
+      { category: 'Entertainment', current: 343, previous: 280, avgUsers: 350 }
+    ],
+    
+    benchmarks: [
+      { 
+        metric: 'Monthly Spending', 
+        yourValue: 11248, 
+        benchmark: 9500, 
+        percentile: 75,
+        icon: '💰',
+        status: 'above'
+      },
+      { 
+        metric: 'Savings Rate', 
+        yourValue: 16.9, 
+        benchmark: 12.0, 
+        percentile: 85,
+        icon: '💰',
+        status: 'above',
+        suffix: '%'
+      },
+      { 
+        metric: 'Debt-to-Income', 
+        yourValue: 28, 
+        benchmark: 35, 
+        percentile: 25,
+        icon: '📊',
+        status: 'below',
+        suffix: '%'
+      },
+      { 
+        metric: 'Emergency Fund', 
+        yourValue: 6.2, 
+        benchmark: 3.0, 
+        percentile: 90,
+        icon: '🛡️',
+        status: 'above',
+        suffix: ' months'
+      }
     ]
-  };
+  },
+
+  recommendations: {
+    savingOpportunities: [
+      {
+        title: 'Reduce Transportation Spending',
+        description: 'You spent $74.75 over budget this month',
+        potential: 900,
+        difficulty: 'Easy',
+        icon: '🚗',
+        action: 'Consider carpooling or public transport'
+      },
+      {
+        title: 'Optimize Subscription Services',
+        description: 'Review recurring subscriptions',
+        potential: 180,
+        difficulty: 'Easy',
+        icon: '📱',
+        action: 'Cancel unused streaming services'
+      },
+      {
+        title: 'Energy Efficiency Improvements',
+        description: 'Your utility bills are 15% above average',
+        potential: 450,
+        difficulty: 'Medium',
+        icon: '⚡',
+        action: 'Switch to LED bulbs, adjust thermostat'
+      }
+    ],
+
+    investmentOpportunities: [
+      {
+        title: 'Increase 401(k) Contribution',
+        description: 'You\'re contributing 10%, consider 15%',
+        potential: 2400,
+        risk: 'Low',
+        icon: '🏦',
+        action: 'Increase by 2% to get full employer match'
+      },
+      {
+        title: 'Open High-Yield Savings',
+        description: 'Your savings earn only 0.01% interest',
+        potential: 1200,
+        risk: 'None',
+        icon: '💎',
+        action: 'Move to 4.5% APY account'
+      },
+      {
+        title: 'Diversify Portfolio',
+        description: 'Consider international exposure',
+        potential: 3600,
+        risk: 'Medium',
+        icon: '🌍',
+        action: 'Add 20% international index funds'
+      }
+    ],
+
+    financialHealthTips: [
+      {
+        title: 'Build Emergency Fund',
+        description: 'You have 6.2 months - excellent!',
+        status: 'excellent',
+        icon: '🛡️',
+        action: 'Maintain current level'
+      },
+      {
+        title: 'Pay Down High-Interest Debt',
+        description: 'Personal loan at 11.99% APR',
+        status: 'priority',
+        icon: '💳',
+        action: 'Pay extra $200/month to save $800 interest'
+      },
+      {
+        title: 'Review Insurance Coverage',
+        description: 'Last reviewed 2 years ago',
+        status: 'review',
+        icon: '📋',
+        action: 'Shop for better rates annually'
+      },
+      {
+        title: 'Estate Planning',
+        description: 'Consider updating beneficiaries',
+        status: 'consider',
+        icon: '📜',
+        action: 'Review will and beneficiary designations'
+      }
+    ],
+
+    potentialImpact: {
+      totalSavings: 1530,
+      investmentGrowth: 7200,
+      totalGain: 8730
+    }
+  }
+}
+};
 
 
   const [selectedAccount, setSelectedAccount] = useState(currentUser.accounts[0]);
@@ -1193,8 +1334,8 @@ const themes = {
     primaryLight: '#a5b4fc',   // Indigo-300
     secondary: '#4f46e5',      // Indigo-700
     accent: '#8b5cf6',         // Violet-500
-    gradient: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',           // Blue to Purple
-    lightGradient: 'linear-gradient(135deg, #a5b4fc 0%, #8b5cf6 100%)',     // Light Blue to Light Purple
+    gradient: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',           
+    lightGradient: 'linear-gradient(135deg, #a5b4fc 0%, #8b5cf6 100%)',     
     shadow: '0 4px 20px rgba(99, 102, 241, 0.3)',
     name: 'Checking'
   },
@@ -1203,8 +1344,8 @@ const themes = {
     primaryLight: '#6ee7b7',   // Emerald-300
     secondary: '#059669',      // Emerald-600
     accent: '#34d399',         // Emerald-400
-    gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',           // Green gradient
-    lightGradient: 'linear-gradient(135deg, #6ee7b7 0%, #34d399 100%)',     // Light Green gradient
+    gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',         
+    lightGradient: 'linear-gradient(135deg, #6ee7b7 0%, #34d399 100%)',     
     shadow: '0 4px 20px rgba(16, 185, 129, 0.3)',
     name: 'Savings'
   },
@@ -1213,8 +1354,8 @@ const themes = {
     primaryLight: '#c4b5fd',   // Violet-300
     secondary: '#7c3aed',      // Violet-600
     accent: '#a78bfa',         // Violet-400
-    gradient: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',           // Purple gradient
-    lightGradient: 'linear-gradient(135deg, #c4b5fd 0%, #a78bfa 100%)',     // Light Purple gradient
+    gradient: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',       
+    lightGradient: 'linear-gradient(135deg, #c4b5fd 0%, #a78bfa 100%)',    
     shadow: '0 4px 20px rgba(139, 92, 246, 0.3)',
     name: 'Credit'
   }
@@ -1655,6 +1796,42 @@ const themes = {
         </span>
       </div>
     );
+    const transactionAlerts = [
+      {
+        type: 'info',
+        title: 'Large Transaction Detected',
+        message: 'Transaction of $2,918.32 for Mortgage Payment processed',
+        date: '2025-06-01',
+        icon: '💰',
+        amount: 2918.32
+      },
+      {
+        type: 'warning',
+        title: 'Unusual Spending',
+        message: 'Your spending is 25% higher than usual this month',
+        date: '2025-05-30',
+        icon: '📊'
+      }
+    ];
+    
+    const securityAlerts = [
+      {
+        type: 'danger',
+        title: 'Suspicious Activity',
+        message: 'Login attempt from unrecognized device in New York',
+        date: '2025-06-02',
+        icon: '🔒',
+        severity: 'high'
+      },
+      {
+        type: 'warning',
+        title: 'Multiple Failed Login Attempts',
+        message: '3 failed login attempts detected on your account',
+        date: '2025-06-01',
+        icon: '🛡️'
+      }
+    ];
+    
 
   return (
     <section className="mt-8" style={{ fontFamily: 'var(--font-sans)', padding: '0', margin: '0 20px' }}>
@@ -3533,7 +3710,7 @@ const themes = {
   <h2 className="text-3xl font-bold mb-8 text-gray-800">Credit Score & Reports</h2>
   
   {/* Credit Score Trend Line Chart */}
-  <div className="grid lg:grid-cols-2 gap-8 mb-8">
+  <div className="grid lg:grid-cols-2 gap-8"style={{marginBottom:'48px'}}>
     <div className="bg-white shadow-2xl rounded-2xl p-6">
       <h3 className="text-xl font-bold mb-6 text-gray-800">Credit Score Trend</h3>
       <div className="h-80">
@@ -3618,6 +3795,7 @@ const themes = {
   </div>
 
   {/* Visual Alerts Section */}
+  <h2 className="text-3xl font-bold mb-8 text-gray-800">Alerts & Notifications</h2>
   <div className="bg-white shadow-2xl rounded-2xl p-6">
     <h3 className="text-xl font-bold mb-6 text-gray-800">Credit Alerts & Notifications</h3>
     <div className="space-y-4">
@@ -3667,6 +3845,147 @@ const themes = {
           <div className="text-sm text-gray-600">Your credit profile is stable with no recent changes</div>
         </div>
       )}
+    </div>
+  </div>
+</section>
+
+{/* COMPREHENSIVE ALERTS & NOTIFICATIONS SECTION */}
+<section className="mt-12">
+  {/* Alert Summary Cards */}
+  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+      <div className="text-2xl font-bold text-red-600">2</div>
+      <div className="text-sm text-red-700">Critical Alerts</div>
+    </div>
+    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+      <div className="text-2xl font-bold text-yellow-600">5</div>
+      <div className="text-sm text-yellow-700">Warnings</div>
+    </div>
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+      <div className="text-2xl font-bold text-blue-600">3</div>
+      <div className="text-sm text-blue-700">Info Updates</div>
+    </div>
+    <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+      <div className="text-2xl font-bold text-green-600">1</div>
+      <div className="text-sm text-green-700">Good News</div>
+    </div>
+  </div>
+
+  {/* All Alerts Combined */}
+  <div className="bg-white shadow-2xl rounded-2xl p-6">
+    <h3 className="text-xl font-bold mb-6 text-gray-800">Recent Alerts & Notifications</h3>
+    <div className="space-y-4 max-h-96 overflow-y-auto">
+      
+      {/* Low Balance Alerts */}
+      <div className="p-4 rounded-lg border-l-4 bg-yellow-50 border-yellow-400">
+        <div className="flex items-start space-x-3">
+          <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+            <span className="text-white">⚠️</span>
+          </div>
+          <div className="flex-1">
+            <h4 className="font-bold text-gray-800">Low Balance Alert</h4>
+            <p className="text-sm text-gray-600">Your Checking account balance is below $500</p>
+            <p className="text-xs text-gray-500 mt-1">Today, 7:23 AM</p>
+          </div>
+          <div className="text-right">
+            <span className="text-lg font-bold text-yellow-600">$450.25</span>
+            <p className="text-xs text-gray-500">Current Balance</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Large Transaction Alert */}
+      <div className="p-4 rounded-lg border-l-4 bg-blue-50 border-blue-400">
+        <div className="flex items-start space-x-3">
+          <div className="w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center">
+            <span className="text-white">💰</span>
+          </div>
+          <div className="flex-1">
+            <h4 className="font-bold text-gray-800">Large Transaction Detected</h4>
+            <p className="text-sm text-gray-600">Transaction of $2,918.32 for Mortgage Payment processed</p>
+            <p className="text-xs text-gray-500 mt-1">June 1, 2025</p>
+          </div>
+          <div className="text-right">
+            <span className="text-lg font-bold text-blue-600">-$2,918.32</span>
+            <p className="text-xs text-gray-500">Auto Payment</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Suspicious Activity Alert */}
+      <div className="p-4 rounded-lg border-l-4 bg-red-50 border-red-400">
+        <div className="flex items-start space-x-3">
+          <div className="w-8 h-8 bg-red-400 rounded-full flex items-center justify-center">
+            <span className="text-white">🔒</span>
+          </div>
+          <div className="flex-1">
+            <h4 className="font-bold text-gray-800">Suspicious Activity Detected</h4>
+            <p className="text-sm text-gray-600">Login attempt from unrecognized device in New York</p>
+            <p className="text-xs text-gray-500 mt-1">June 2, 2025 - 11:45 PM</p>
+          </div>
+          <div className="text-right">
+            <button className="px-3 py-1 bg-red-600 text-white text-xs rounded-full">
+              Review
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Budget Alert */}
+      <div className="p-4 rounded-lg border-l-4 bg-yellow-50 border-yellow-400">
+        <div className="flex items-start space-x-3">
+          <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+            <span className="text-white">📊</span>
+          </div>
+          <div className="flex-1">
+            <h4 className="font-bold text-gray-800">Budget Exceeded</h4>
+            <p className="text-sm text-gray-600">You've exceeded your Transportation budget by $74.75</p>
+            <p className="text-xs text-gray-500 mt-1">May 30, 2025</p>
+          </div>
+          <div className="text-right">
+            <span className="text-lg font-bold text-yellow-600">107.9%</span>
+            <p className="text-xs text-gray-500">of Budget Used</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Credit Score Improvement */}
+      <div className="p-4 rounded-lg border-l-4 bg-green-50 border-green-400">
+        <div className="flex items-start space-x-3">
+          <div className="w-8 h-8 bg-green-400 rounded-full flex items-center justify-center">
+            <span className="text-white">📈</span>
+          </div>
+          <div className="flex-1">
+            <h4 className="font-bold text-gray-800">Credit Score Improved</h4>
+            <p className="text-sm text-gray-600">Your credit score increased by 13 points this month!</p>
+            <p className="text-xs text-gray-500 mt-1">June 1, 2025</p>
+          </div>
+          <div className="text-right">
+            <span className="text-lg font-bold text-green-600">+13</span>
+            <p className="text-xs text-gray-500">Points</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Payment Reminder */}
+      <div className="p-4 rounded-lg border-l-4 bg-blue-50 border-blue-400">
+        <div className="flex items-start space-x-3">
+          <div className="w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center">
+            <span className="text-white">📅</span>
+          </div>
+          <div className="flex-1">
+            <h4 className="font-bold text-gray-800">Payment Due Reminder</h4>
+            <p className="text-sm text-gray-600">Auto loan payment of $648.50 is due in 7 days</p>
+            <p className="text-xs text-gray-500 mt-1">Due: July 10, 2025</p>
+          </div>
+          <div className="text-right">
+            <button className="px-3 py-1 bg-blue-600 text-white text-xs rounded-full">
+              Pay Now
+            </button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -3779,8 +4098,277 @@ const themes = {
             </button>
           ))}
         </div>
+
+        {/* COMPARISON AND RECOMMENDATIONS SECTION */}
+<section className="mt-12">
+  <h2 className="text-3xl font-bold mb-8 text-gray-800">Comparison & Recommendations</h2>
+  
+  {/* Spending Comparison */}
+  <div className="grid lg:grid-cols-2 gap-8 mb-8">
+    {/* Period Comparison Chart */}
+    <div className="bg-white shadow-2xl rounded-2xl p-6">
+      <h3 className="text-xl font-bold mb-6 text-gray-800">Spending Comparison</h3>
+      
+      {/* Time Period Selector */}
+      <div className="flex space-x-2 mb-6">
+        {['This Month vs Last Month', 'This Quarter vs Last Quarter', 'This Year vs Last Year'].map((period, index) => (
+          <button
+            key={index}
+            className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-300 ${
+              index === 0 ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            {period.split(' vs ')[0]}
+          </button>
+        ))}
+      </div>
+
+      {/* Comparison Chart */}
+      <div className="h-64">
+        <div className="flex items-end justify-between h-full space-x-4">
+          {currentUser.comparison.spendingComparison.currentPeriod.map((data, index) => {
+            const maxValue = Math.max(data.current, data.previous, data.avgUsers);
+            const currentHeight = (data.current / maxValue) * 100;
+            const previousHeight = (data.previous / maxValue) * 100;
+            const avgHeight = (data.avgUsers / maxValue) * 100;
+            
+            return (
+              <div key={index} className="flex-1 flex flex-col items-center space-y-2">
+                <div className="flex items-end space-x-1 h-48">
+                  {/* Current Month */}
+                  <div
+                    className="w-6 rounded-t transition-all duration-1000 bg-blue-600"
+                    style={{ height: `${currentHeight}%`, minHeight: '4px' }}
+                    title={`Current: $${data.current}`}
+                  ></div>
+                  {/* Previous Month */}
+                  <div
+                    className="w-6 rounded-t transition-all duration-1000 bg-gray-400"
+                    style={{ height: `${previousHeight}%`, minHeight: '4px' }}
+                    title={`Previous: $${data.previous}`}
+                  ></div>
+                  {/* Average Users */}
+                  <div
+                    className="w-6 rounded-t transition-all duration-1000 bg-green-500"
+                    style={{ height: `${avgHeight}%`, minHeight: '4px' }}
+                    title={`Avg Users: $${data.avgUsers}`}
+                  ></div>
+                </div>
+                <div className="text-xs text-center text-gray-600">
+                  {data.category}
+                </div>
+                <div className="text-xs text-center space-y-1">
+                  <div className="text-blue-600 font-bold">${data.current}</div>
+                  <div className={`text-xs ${data.current > data.previous ? 'text-red-500' : 'text-green-500'}`}>
+                    {data.current > data.previous ? '↗' : '↘'} {Math.abs(((data.current - data.previous) / data.previous * 100)).toFixed(0)}%
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        
+        {/* Legend */}
+        <div className="flex items-center justify-center space-x-6 mt-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 rounded bg-blue-600"></div>
+            <span className="text-sm text-gray-600">This Month</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 rounded bg-gray-400"></div>
+            <span className="text-sm text-gray-600">Last Month</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 rounded bg-green-500"></div>
+            <span className="text-sm text-gray-600">Average Users</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Benchmark Comparison */}
+    <div className="bg-white shadow-2xl rounded-2xl p-6">
+      <h3 className="text-xl font-bold mb-6 text-gray-800">How You Compare</h3>
+      
+      <div className="space-y-6">
+        {currentUser.comparison.spendingComparison.benchmarks.map((item, index) => (
+          <div key={index} className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <span className="text-2xl">{item.icon}</span>
+                <div>
+                  <div className="font-medium text-gray-800">{item.metric}</div>
+                  <div className="text-sm text-gray-600">
+                    You: <span className="font-bold">{item.yourValue.toLocaleString()}{item.suffix || ''}</span> | 
+                    Avg: <span className="font-bold">{item.benchmark.toLocaleString()}{item.suffix || ''}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className={`text-lg font-bold ${item.status === 'above' ? 'text-green-600' : 'text-blue-600'}`}>
+                  {item.percentile}th
+                </div>
+                <div className="text-xs text-gray-500">percentile</div>
+              </div>
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="w-full h-3 bg-gray-200 rounded-full">
+              <div
+                className={`h-3 rounded-full transition-all duration-1000 ${
+                  item.status === 'above' ? 'bg-green-500' : 'bg-blue-500'
+                }`}
+                style={{ width: `${item.percentile}%` }}
+              ></div>
+            </div>
+            
+            <div className={`text-sm ${item.status === 'above' ? 'text-green-600' : 'text-blue-600'}`}>
+              {item.status === 'above' 
+                ? `You're doing better than ${item.percentile}% of users` 
+                : `You're in the top ${100 - item.percentile}% for this metric`
+              }
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  {/* Personalized Recommendations */}
+  <div className="bg-white shadow-2xl rounded-2xl p-6">
+    <h3 className="text-xl font-bold mb-6 text-gray-800">Personalized Recommendations</h3>
+    
+    <div className="grid lg:grid-cols-3 gap-6">
+      {/* Saving Recommendations */}
+      <div className="space-y-4">
+        <h4 className="text-lg font-semibold text-green-600 flex items-center space-x-2">
+          <span>💰</span>
+          <span>Saving Opportunities</span>
+        </h4>
+        
+        {currentUser.comparison.recommendations.savingOpportunities.map((rec, index) => (
+          <div key={index} className="p-4 border border-green-200 rounded-lg bg-green-50">
+            <div className="flex items-start space-x-3">
+              <span className="text-2xl">{rec.icon}</span>
+              <div className="flex-1">
+                <h5 className="font-medium text-gray-800">{rec.title}</h5>
+                <p className="text-sm text-gray-600 mt-1">{rec.description}</p>
+                <p className="text-xs text-gray-500 mt-2">{rec.action}</p>
+                <div className="flex items-center justify-between mt-3">
+                  <span className="text-sm font-bold text-green-600">
+                    Save ${rec.potential}/year
+                  </span>
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    rec.difficulty === 'Easy' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                  }`}>
+                    {rec.difficulty}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Investment Recommendations */}
+      <div className="space-y-4">
+        <h4 className="text-lg font-semibold text-blue-600 flex items-center space-x-2">
+          <span>📈</span>
+          <span>Investment Opportunities</span>
+        </h4>
+        
+        {currentUser.comparison.recommendations.investmentOpportunities.map((rec, index) => (
+          <div key={index} className="p-4 border border-blue-200 rounded-lg bg-blue-50">
+            <div className="flex items-start space-x-3">
+              <span className="text-2xl">{rec.icon}</span>
+              <div className="flex-1">
+                <h5 className="font-medium text-gray-800">{rec.title}</h5>
+                <p className="text-sm text-gray-600 mt-1">{rec.description}</p>
+                <p className="text-xs text-gray-500 mt-2">{rec.action}</p>
+                <div className="flex items-center justify-between mt-3">
+                  <span className="text-sm font-bold text-blue-600">
+                    +${rec.potential}/year potential
+                  </span>
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    rec.risk === 'None' ? 'bg-green-100 text-green-700' :
+                    rec.risk === 'Low' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'
+                  }`}>
+                    {rec.risk} Risk
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Financial Health Tips */}
+      <div className="space-y-4">
+        <h4 className="text-lg font-semibold text-purple-600 flex items-center space-x-2">
+          <span>🎯</span>
+          <span>Financial Health Tips</span>
+        </h4>
+        
+        {currentUser.comparison.recommendations.financialHealthTips.map((rec, index) => (
+          <div key={index} className={`p-4 border rounded-lg ${
+            rec.status === 'excellent' ? 'border-green-200 bg-green-50' :
+            rec.status === 'priority' ? 'border-red-200 bg-red-50' :
+            rec.status === 'review' ? 'border-yellow-200 bg-yellow-50' :
+            'border-purple-200 bg-purple-50'
+          }`}>
+            <div className="flex items-start space-x-3">
+              <span className="text-2xl">{rec.icon}</span>
+              <div className="flex-1">
+                <h5 className="font-medium text-gray-800">{rec.title}</h5>
+                <p className="text-sm text-gray-600 mt-1">{rec.description}</p>
+                <p className="text-xs text-gray-500 mt-2">{rec.action}</p>
+                <div className="mt-3">
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    rec.status === 'excellent' ? 'bg-green-100 text-green-700' :
+                    rec.status === 'priority' ? 'bg-red-100 text-red-700' :
+                    rec.status === 'review' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-purple-100 text-purple-700'
+                  }`}>
+                    {rec.status === 'excellent' ? 'Excellent' :
+                     rec.status === 'priority' ? 'High Priority' :
+                     rec.status === 'review' ? 'Needs Review' : 'Consider'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  {/* Action Summary */}
+  <div className="mt-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 text-white">
+    <h3 className="text-xl font-bold mb-4">Potential Annual Impact</h3>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="text-center">
+        <div className="text-3xl font-bold">${currentUser.comparison.recommendations.potentialImpact.totalSavings.toLocaleString()}</div>
+        <div className="text-sm opacity-90">Potential Savings</div>
+      </div>
+      <div className="text-center">
+        <div className="text-3xl font-bold">${currentUser.comparison.recommendations.potentialImpact.investmentGrowth.toLocaleString()}</div>
+        <div className="text-sm opacity-90">Investment Growth</div>
+      </div>
+      <div className="text-center">
+        <div className="text-3xl font-bold">${currentUser.comparison.recommendations.potentialImpact.totalGain.toLocaleString()}</div>
+        <div className="text-sm opacity-90">Total Potential Gain</div>
+      </div>
+    </div>
+    <div className="mt-4 text-center">
+      <button className="bg-white text-blue-600 px-6 py-2 rounded-lg font-medium hover:bg-gray-100 transition-all duration-300">
+        Create Action Plan
+      </button>
+    </div>
+  </div>
+</section>
       </div>
     </section>
+  
   );
 };
 export default LandingPage;
