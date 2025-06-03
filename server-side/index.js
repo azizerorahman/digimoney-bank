@@ -582,26 +582,26 @@ async function run() {
     // ==================================================Check admin ============================================//
     app.get("/admin", async (req, res) => {
       try {
-        const email = req.query.email;
-        if (!email) {
-          return res
-            .status(400)
-            .send({ admin: false, message: "Email is required" });
-        }
-        const getUser = await usersCollection.findOne({ email: email });
-        if (getUser) {
-          const isAdmin = getUser.role === "admin";
-          return res.status(200).send({ admin: isAdmin });
-        } else {
-          return res
-            .status(404)
-            .send({ admin: false, message: "User not found" });
-        }
-      } catch (error) {
-        console.error("Error checking admin status:", error);
+      const uId = req.query.uId;
+      if (!uId) {
         return res
-          .status(500)
-          .send({ admin: false, message: "Internal server error" });
+        .status(400)
+        .send({ admin: false, message: "User ID is required" });
+      }
+      const user = await usersCollection.findOne({ _id: ObjectId(uId) });
+      if (user) {
+        const isAdmin = user.admin === true;
+        return res.status(200).send({ admin: isAdmin });
+      } else {
+        return res
+        .status(404)
+        .send({ admin: false, message: "User not found" });
+      }
+      } catch (error) {
+      console.error("Error checking admin status:", error);
+      return res
+        .status(500)
+        .send({ admin: false, message: "Internal server error" });
       }
     });
 

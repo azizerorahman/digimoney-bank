@@ -14,10 +14,10 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import auth from "../../firebase.init";
 import useAdmin from "../../hooks/useAdmin";
 import useUserInfo from "../../hooks/useUserInfo";
-import { signOut } from "firebase/auth";
 import { fetchApprovedUser } from "../../redux/reducers/ApprovedUsersReducers";
 import AccountUnderVerification from "./AccountUnderVerification";
 import LoadingSpinner from "../../components/Loading";
+import Logout from "../Auth/Logout";
 
 const Dashboard = () => {
   const [user] = useAuthState(auth);
@@ -25,8 +25,8 @@ const Dashboard = () => {
   const { pathname } = useLocation();
   const dispatch = useDispatch();
   const check = useSelector((state) => state.checkUser);
-  const { admin, loadingAdmin } = useAdmin(user);
   const uId = localStorage.getItem("userId");
+  const { admin, loadingAdmin } = useAdmin(uId);
   const { userInfo } = useUserInfo(uId);
   const [darkMode, setDarkMode] = useState(
     JSON.parse(localStorage.getItem("darkMode")) || false
@@ -55,9 +55,8 @@ const Dashboard = () => {
   }, [darkMode]);
 
   // Handle logout with toast notification
-  const logout = () => {
-    signOut(auth);
-    localStorage.removeItem("accessToken");
+  const handleLogout = () => {
+    Logout();
     toast.info("You have been logged out", {
       position: "top-right",
       autoClose: 3000,
@@ -237,7 +236,7 @@ const Dashboard = () => {
                   {/* Logout button */}
                   <li className="pt-2">
                     <button
-                      onClick={logout}
+                      onClick={handleLogout}
                       className={`flex items-center gap-x-3.5 py-2.5 px-3 rounded-lg text-sm font-medium w-full transition-all duration-300
                     text-white/90 hover:bg-red-500/20 hover:text-white
                     ${!open && "justify-center"}

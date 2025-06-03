@@ -6,47 +6,39 @@ const sizeClasses = {
 
 const LoadingSpinner = ({
   size = "md",
-  fullscreen = false,
   overlay = false,
-  label = "",
   className = "",
-  backdropBlur = false,
 }) => {
   const spinner = (
     <span
-      className={`inline-block animate-spin ${sizeClasses[size]} border-4 border-primary dark:border-accent border-t-transparent rounded-full`}
+      className={`inline-block animate-spin ${sizeClasses[size]} border-4 border-secondary border-t-transparent rounded-full`}
       aria-hidden="true"
     />
   );
 
   // Fullscreen mode (covers entire viewport)
-  if (fullscreen) {
-    return (
-      <div
-        className={`fixed inset-0 z-50 flex flex-col items-center justify-center ${
-          backdropBlur ? "backdrop-blur-sm" : ""
-        }`}
-        role="status"
-        aria-live="polite"
-      >
-        {spinner}
-        <span className="mt-4 text-white font-medium text-lg">{label}</span>
-      </div>
-    );
-  }
+  // if (fullscreen) {
+  //   return (
+  //     <div
+  //       className={`fixed inset-0 z-50 flex flex-col items-center justify-center ${
+  //         backdropBlur ? "backdrop-blur-sm" : ""
+  //       }`}
+  //       role="status"
+  //       aria-live="polite"
+  //     >
+  //       {spinner}
+  //     </div>
+  //   );
+  // }
 
-  // Overlay mode (covers parent container)
   if (overlay) {
     return (
       <div
-        className={`absolute inset-0 z-10 flex flex-col items-center justify-center ${
-          backdropBlur ? "backdrop-blur-sm" : ""
-        } ${className}`}
+        className={` z-10 flex flex-col items-center justify-center fixed inset-0 backdrop-blur-sm ${className}`}
         role="status"
         aria-live="polite"
       >
         {spinner}
-        <span className="mt-2 text-white text-sm">{label}</span>
       </div>
     );
   }
@@ -59,7 +51,6 @@ const LoadingSpinner = ({
       aria-live="polite"
     >
       {spinner}
-      <span className="mt-2 text-primary dark:text-accent text-sm">{label}</span>
     </div>
   );
 };

@@ -297,9 +297,7 @@ const Login = () => {
           </Link>
         </p>
       </div>
-      {(isLoading || firebaseLoading || sending) && (
-        <LoadingSpinner fullscreen overlay />
-      )}
+      {(isLoading || firebaseLoading || sending) && <LoadingSpinner overlay />}
     </div>
   );
 };

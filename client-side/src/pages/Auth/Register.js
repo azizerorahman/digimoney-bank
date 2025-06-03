@@ -856,7 +856,7 @@ const Register = () => {
         </form>
       </div>
       {/* Show spinner when loading */}
-      {isLoading && <LoadingSpinner fullscreen overlay size="lg" />}
+      {isLoading && <LoadingSpinner overlay />}
     </div>
   );
 };

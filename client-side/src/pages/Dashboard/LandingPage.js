@@ -25,11 +25,10 @@ import AdminDashboard from "./AdminDashboard";
 
 const LandingPage = () => {
   const [user] = useAuthState(auth);
-  const { admin, loadingAdmin } = useAdmin(user);
-    const uId = localStorage.getItem("userId");
-  console.log("User ID from Landing Page:", uId);
+
+  const uId = localStorage.getItem("userId");
+  const { admin, loadingAdmin } = useAdmin(uId);
   const { userInfo } = useUserInfo(uId);
-  console.log(userInfo);
   const { transaction } = useSelector((state) => state.transaction);
   const dispatch = useDispatch();
   useEffect(() => {
