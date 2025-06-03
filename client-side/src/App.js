@@ -14,6 +14,7 @@ import "./App.css";
 import "react-toastify/dist/ReactToastify.css";
 import LandingPage from "./pages/Dashboard/LandingPage";
 import User from "./pages/Auth/User";
+import Transactions from "./pages/Dashboard/Transactions";
 
 function App() {
   // Use React Router's location
@@ -48,7 +49,8 @@ function App() {
           }
         >
           <Route index element={<User><LandingPage /></User>} />
-          <Route path="dashboard" element={<LandingPage />} />
+          <Route path="transactions" element={<Transactions />} />
+
           {/* <Route path="profile" element={<Profile />} />
           <Route path="balance" element={<Balance />} />
           <Route path="user-request" element={<UserRequest />} />

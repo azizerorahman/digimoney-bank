@@ -6,6 +6,7 @@ const LandingPage = () => {
   const sectionRef = useRef(null);
   const headingRef = useRef(null);
   const balanceCardRef = useRef(null);
+  const actionsRef = useRef(null);
   const accountsRef = useRef(null);
   const dashboardRef = useRef(null);
 
@@ -117,6 +118,7 @@ const LandingPage = () => {
     const section = sectionRef.current;
     const heading = headingRef.current;
     const balanceCard = balanceCardRef.current;
+    const actions = actionsRef.current;
     const accounts = accountsRef.current;
     const dashboard = dashboardRef.current;
 
@@ -128,6 +130,10 @@ const LandingPage = () => {
     if (balanceCard) {
       balanceCard.style.opacity = "0";
       balanceCard.style.transform = "translateY(30px)";
+    }
+    if (actions) {
+      actions.style.opacity = "0";
+      actions.style.transform = "translateY(30px)";
     }
     if (accounts) {
       accounts.style.opacity = "0";
@@ -151,6 +157,15 @@ const LandingPage = () => {
               heading.style.transform = "translateY(0)";
             }
           }, 200);
+
+          setTimeout(() => {
+            if (actions) {
+              actions.style.transition =
+                "opacity 0.8s ease, transform 0.8s ease";
+              actions.style.opacity = "1";
+              actions.style.transform = "translateY(0)";
+            }
+          }, 500);
 
           // Animate balance card
           setTimeout(() => {
@@ -582,7 +597,7 @@ const LandingPage = () => {
           </div>
 
           {/* Quick Actions - Right Side on Desktop */}
-          <div className="h-full flex flex-col">
+          <div ref={actionsRef} className="h-full flex flex-col">
             <div className="grid grid-cols-2 gap-4 md:gap-6 flex-grow">
               {actions.map((action, index) => (
                 <button

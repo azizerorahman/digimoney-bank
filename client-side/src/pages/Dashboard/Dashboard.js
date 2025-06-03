@@ -106,7 +106,7 @@ const Dashboard = () => {
     {
       isAdmin: false,
       title: "Transactions",
-      path: "/dashboard/transaction",
+      path: "/dashboard/transactions",
       src: <FaMoneyCheck className="w-5 h-5" />,
       description: "View your transaction history",
     },
