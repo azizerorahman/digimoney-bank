@@ -30,10 +30,9 @@ const ToggleRadioGroup = ({ label, name, options, error, control }) => (
               key={opt.value}
               type="button"
               className={`px-5 py-1 font-medium rounded-lg transition-all duration-300 border-2 
-                ${
-                  field.value === opt.value
-                    ? "border-accent bg-accent text-white shadow"
-                    : error
+                ${field.value === opt.value
+                  ? "border-accent bg-accent text-white shadow"
+                  : error
                     ? "border-red-500 text-white/80 hover:bg-white/10"
                     : "border-white/80 dark:border-white/90 bg-transparent text-white/80 hover:bg-white/10"
                 }
@@ -118,10 +117,9 @@ const CustomSelect = ({
             <li
               key={opt.value}
               className={`px-4 py-2 cursor-pointer select-none transition
-                ${
-                  value === opt.value
-                    ? "bg-accent text-white"
-                    : "text-white/80 hover:bg-white/20"
+                ${value === opt.value
+                  ? "bg-accent text-white"
+                  : "text-white/80 hover:bg-white/20"
                 }
               `}
               onClick={() => {
@@ -418,7 +416,7 @@ const Register = () => {
 
       // Store token
       localStorage.setItem("accessToken", result.token);
-      localStorage.setItem("userId", result.insertedId);
+      localStorage.setItem("userId", result.result?.insertedId);
 
       // If everything succeeded
       toast.success("Account created successfully!");
@@ -797,11 +795,10 @@ const Register = () => {
                 </label>
                 <div
                   {...getRootProps()}
-                  className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 transition ${
-                    isDragActive
+                  className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 transition ${isDragActive
                       ? "border-accent bg-accent/10"
                       : "border-white/30 bg-white/10"
-                  } hover:border-accent cursor-pointer min-h-[340px] w-full h-full`}
+                    } hover:border-accent cursor-pointer min-h-[340px] w-full h-full`}
                   style={{ minHeight: 340 }}
                 >
                   <input {...getInputProps()} />
