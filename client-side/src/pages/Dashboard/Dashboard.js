@@ -8,7 +8,6 @@ import { FiLogOut } from "react-icons/fi";
 import { FaMoneyCheck, FaMoneyBill, FaUsers } from "react-icons/fa";
 import { MdRateReview, MdDashboard } from "react-icons/md";
 import { ImProfile } from "react-icons/im";
-import { Outlet } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuthState } from "react-firebase-hooks/auth";
 import auth from "../../firebase.init";
@@ -18,6 +17,9 @@ import { fetchApprovedUser } from "../../redux/reducers/ApprovedUsersReducers";
 import AccountUnderVerification from "./AccountUnderVerification";
 import LoadingSpinner from "../../components/Loading";
 import Logout from "../Auth/Logout";
+import UserDashboard from "./UserDashboard";
+import CSRDashboard from "./CSRDashboard";
+import LoanOfficerDashboard from "./LoanOfficerDashboard";
 
 const Dashboard = () => {
   const [user] = useAuthState(auth);
@@ -31,6 +33,7 @@ const Dashboard = () => {
   const [darkMode, setDarkMode] = useState(
     JSON.parse(localStorage.getItem("darkMode")) || false
   );
+  const [dashboardType, setDashboardType] = useState("User");
 
   // Get initial for avatar
   const initial = user?.displayName?.charAt(0) || user?.email?.charAt(0);
@@ -150,9 +153,8 @@ const Dashboard = () => {
           <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
             {/* Sidebar */}
             <aside
-              className={`${
-                open ? "w-64" : "w-20"
-              } transition-all duration-300 ease-in-out bg-gradient-to-br from-indigo-950 via-primary to-indigo-900 dark:from-gray-900 dark:via-primary dark:to-gray-800 shadow-xl relative`}
+              className={`${open ? "w-64" : "w-20"
+                } transition-all duration-300 ease-in-out bg-gradient-to-br from-indigo-950 via-primary to-indigo-900 dark:from-gray-900 dark:via-primary dark:to-gray-800 shadow-xl relative`}
             >
               {/* Toggle button */}
               <button
@@ -161,17 +163,15 @@ const Dashboard = () => {
                 aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
               >
                 <BsArrowLeftCircle
-                  className={`w-5 h-5 transition-transform duration-300 ${
-                    !open && "rotate-180"
-                  }`}
+                  className={`w-5 h-5 transition-transform duration-300 ${!open && "rotate-180"
+                    }`}
                 />
               </button>
 
               {/* Logo */}
               <div
-                className={`flex items-center gap-x-3 px-6 py-5 ${
-                  !open && "justify-center"
-                }`}
+                className={`flex items-center gap-x-3 px-6 py-5 ${!open && "justify-center"
+                  }`}
               >
                 <div className="relative">
                   <svg
@@ -191,9 +191,8 @@ const Dashboard = () => {
                   <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
                 </div>
                 <span
-                  className={`text-xl font-bold text-white transition-opacity duration-300 ${
-                    !open && "opacity-0 hidden"
-                  }`}
+                  className={`text-xl font-bold text-white transition-opacity duration-300 ${!open && "opacity-0 hidden"
+                    }`}
                 >
                   DigiMoney
                 </span>
@@ -209,20 +208,18 @@ const Dashboard = () => {
                           <Link
                             to={menu.path}
                             className={`flex items-center gap-x-3.5 py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-300
-                          ${
-                            pathname === menu.path
-                              ? "bg-white/20 dark:bg-white/10 text-white"
-                              : "text-white/80 dark:text-white/80 hover:bg-white/10 dark:hover:bg-white/5"
-                          }
+                          ${pathname === menu.path
+                                ? "bg-white/20 dark:bg-white/10 text-white"
+                                : "text-white/80 dark:text-white/80 hover:bg-white/10 dark:hover:bg-white/5"
+                              }
                           ${!open && "justify-center"}
                         `}
                             title={!open ? menu.title : ""}
                           >
                             <span className="text-xl">{menu.src}</span>
                             <span
-                              className={`transition-opacity duration-300 ${
-                                !open && "opacity-0 hidden"
-                              }`}
+                              className={`transition-opacity duration-300 ${!open && "opacity-0 hidden"
+                                }`}
                             >
                               {menu.title}
                             </span>
@@ -247,9 +244,8 @@ const Dashboard = () => {
                         <FiLogOut />
                       </span>
                       <span
-                        className={`transition-opacity duration-300 ${
-                          !open && "opacity-0 hidden"
-                        }`}
+                        className={`transition-opacity duration-300 ${!open && "opacity-0 hidden"
+                          }`}
                       >
                         Logout
                       </span>
@@ -260,14 +256,12 @@ const Dashboard = () => {
 
               {/* Dark mode toggle */}
               <div
-                className={`absolute bottom-4 ${
-                  open ? "left-4 right-4" : "left-0 right-0 flex justify-center"
-                }`}
+                className={`absolute bottom-4 ${open ? "left-4 right-4" : "left-0 right-0 flex justify-center"
+                  }`}
               >
                 <div
-                  className={`flex items-center ${
-                    open ? "justify-between" : "justify-center"
-                  } bg-white/10 dark:bg-white/5 rounded-lg p-2`}
+                  className={`flex items-center ${open ? "justify-between" : "justify-center"
+                    } bg-white/10 dark:bg-white/5 rounded-lg p-2`}
                 >
                   <span
                     className={`text-white/90 text-xs ${!open && "hidden"}`}
@@ -311,9 +305,21 @@ const Dashboard = () => {
                     {pathname === "/dashboard"
                       ? "Dashboard Overview"
                       : Menus.find((menu) => menu.path === pathname)?.title ||
-                        "Dashboard"}
+                      "Dashboard"}
                   </div>
 
+                  {/* Dashboard type dropdown */}
+                  <select
+                    value={dashboardType}
+                    onChange={(e) => setDashboardType(e.target.value)}
+                    className="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-800 text-gray-700 dark:text-white"
+                  >
+                    <option value="User">User</option>
+                    <option value="CSR">CSR</option>
+                    <option value="Loan Officer">Loan Officer</option>
+                  </select>
+
+                  {/* Avatar/Profile */}
                   <div className="flex items-center gap-2">
                     {userInfo?.profilePhoto ? (
                       <img
@@ -334,7 +340,9 @@ const Dashboard = () => {
 
               {/* Dashboard content */}
               <main className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-900 transition-colors duration-300 overflow-x-hidden">
-                <Outlet />
+                {dashboardType === "User" && <UserDashboard />}
+                {dashboardType === "CSR" && <CSRDashboard />}
+                {dashboardType === "Loan Officer" && <LoanOfficerDashboard />}
               </main>
             </div>
           </div>
