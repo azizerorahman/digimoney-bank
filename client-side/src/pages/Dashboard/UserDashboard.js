@@ -15,7 +15,7 @@ import {
     ReferenceLine,
 } from "recharts";
 
-const LandingPage = () => {
+const UserDashboard = () => {
     const sectionRef = useRef(null);
     const headingRef = useRef(null);
     const balanceCardRef = useRef(null);
@@ -5847,4 +5847,4 @@ const LandingPage = () => {
         </section>
     );
 };
-export default LandingPage;
+export default UserDashboard;
