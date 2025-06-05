@@ -144,7 +144,11 @@ async function run() {
   try {
     await client.connect();
     console.log("Connected to MongoDB");
-    const usersCollection = client.db("dgm-database").collection("users");
+    // Collections
+    const db = client.db("dgm-database");
+    const usersCollection = db.collection("users");
+    const accountsCollection = db.collection("accounts");
+    const transactionsCollection = db.collection("transactions");
     // const approvedUsersCollection = client
     //   .db("dgm-database")
     //   .collection("approvedUsers");
@@ -211,7 +215,6 @@ async function run() {
       }
     });
 
-    //    create new user and save the user data to database
     app.post("/register", async (req, res) => {
       try {
         const user = req.body;
@@ -237,6 +240,46 @@ async function run() {
           .send({ success: false, message: "Internal server error" });
       }
     });
+
+    app.get("/accounts", verifyJWT, async (req, res) => {
+      try {
+        const uId = req.query.uId;
+
+        if (!uId) {
+          return res.status(400).send({ success: false, message: "User ID is required" });
+        }
+
+        const accounts = await accountsCollection.find({ userId: uId }).toArray();
+        res.send({ success: true, accounts });
+      } catch (error) {
+        console.error("Error fetching accounts:", error);
+        res.status(500).send({ success: false, message: "Internal server error" });
+      }
+    });
+
+    app.get("/transactions", verifyJWT, async (req, res) => {
+      try {
+      const uId = req.query.uId;
+
+      if (!uId) {
+        return res.status(400).send({ success: false, message: "User ID is required" });
+      }
+
+      // If accountId is provided, filter by both userId and accountId
+      const query = { userId: uId };
+      if (req.query.accountId) {
+        query.accountId = req.query.accountId;
+      }
+
+      // Fetch transactions for the user (and account if provided)
+      const transactions = await transactionsCollection.find(query).toArray();
+      res.send({ success: true, transactions });
+      } catch (error) {
+      console.error("Failed to fetch transactions:", error);
+      res.status(500).send({ success: false, message: "Failed to fetch transactions" });
+      }
+    });
+
 
     app.get("/users", async (req, res) => {
       const query = {};
@@ -582,26 +625,26 @@ async function run() {
     // ==================================================Check admin ============================================//
     app.get("/admin", async (req, res) => {
       try {
-      const uId = req.query.uId;
-      if (!uId) {
-        return res
-        .status(400)
-        .send({ admin: false, message: "User ID is required" });
-      }
-      const user = await usersCollection.findOne({ _id: ObjectId(uId) });
-      if (user) {
-        const isAdmin = user.admin === true;
-        return res.status(200).send({ admin: isAdmin });
-      } else {
-        return res
-        .status(404)
-        .send({ admin: false, message: "User not found" });
-      }
+        const uId = req.query.uId;
+        if (!uId) {
+          return res
+            .status(400)
+            .send({ admin: false, message: "User ID is required" });
+        }
+        const user = await usersCollection.findOne({ _id: ObjectId(uId) });
+        if (user) {
+          const isAdmin = user.admin === true;
+          return res.status(200).send({ admin: isAdmin });
+        } else {
+          return res
+            .status(404)
+            .send({ admin: false, message: "User not found" });
+        }
       } catch (error) {
-      console.error("Error checking admin status:", error);
-      return res
-        .status(500)
-        .send({ admin: false, message: "Internal server error" });
+        console.error("Error checking admin status:", error);
+        return res
+          .status(500)
+          .send({ admin: false, message: "Internal server error" });
       }
     });
 

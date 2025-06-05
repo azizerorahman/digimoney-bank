@@ -20,7 +20,6 @@ import Logout from "../Auth/Logout";
 import UserDashboard from "./UserDashboard";
 import CSRDashboard from "./CSRDashboard";
 import LoanOfficerDashboard from "./LoanOfficerDashboard";
-
 const Dashboard = () => {
   const [user] = useAuthState(auth);
   const [open, setOpen] = useState(true);
@@ -39,11 +38,6 @@ const Dashboard = () => {
   const initial = user?.displayName?.charAt(0) || user?.email?.charAt(0);
   // Set a color for the avatar (you can adjust this logic as needed)
   const color = "bg-primary";
-
-  // Check if approved user
-  useEffect(() => {
-    dispatch(fetchApprovedUser({ email: user?.email }));
-  }, [dispatch, user?.email]);
 
   // Get user verification status
   const { verified, loading } = check;
@@ -144,6 +138,8 @@ const Dashboard = () => {
     },
   ];
 
+  
+  // Fetch accounts for the current user
   return (
     <>
       {verified ? (
@@ -308,39 +304,41 @@ const Dashboard = () => {
                       "Dashboard"}
                   </div>
 
-                  {/* Dashboard type dropdown */}
-                  <select
-                    value={dashboardType}
-                    onChange={(e) => setDashboardType(e.target.value)}
-                    className="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-800 text-gray-700 dark:text-white"
-                  >
-                    <option value="User">User</option>
-                    <option value="CSR">CSR</option>
-                    <option value="Loan Officer">Loan Officer</option>
-                  </select>
+                  <div className="flex items-center gap-x-4">
+                    {/* Dashboard type dropdown */}
+                    <select
+                      value={dashboardType}
+                      onChange={(e) => setDashboardType(e.target.value)}
+                      className="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-800 text-gray-700 dark:text-white"
+                    >
+                      <option value="User">User</option>
+                      <option value="CSR">CSR</option>
+                      <option value="Loan Officer">Loan Officer</option>
+                    </select>
 
-                  {/* Avatar/Profile */}
-                  <div className="flex items-center gap-2">
-                    {userInfo?.profilePhoto ? (
-                      <img
-                        src={userInfo.profilePhoto}
-                        alt="Profile"
-                        className="w-8 h-8 rounded-full object-cover border-2 border-primary"
-                      />
-                    ) : (
-                      <div
-                        className={`w-8 h-8 rounded-full ${color} flex items-center justify-center text-white font-bold text-sm`}
-                      >
-                        {initial}
-                      </div>
-                    )}
+                    {/* Avatar/Profile */}
+                    <div className="flex items-center gap-2">
+                      {userInfo?.profilePhoto ? (
+                        <img
+                          src={userInfo.profilePhoto}
+                          alt="Profile"
+                          className="w-8 h-8 rounded-full object-cover border-2 border-primary"
+                        />
+                      ) : (
+                        <div
+                          className={`w-8 h-8 rounded-full ${color} flex items-center justify-center text-white font-bold text-sm`}
+                        >
+                          {initial}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Dashboard content */}
-              <main className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-900 transition-colors duration-300 overflow-x-hidden">
-                {dashboardType === "User" && <UserDashboard />}
+              <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                {dashboardType === "User" && <UserDashboard userInfo={userInfo} />}
                 {dashboardType === "CSR" && <CSRDashboard />}
                 {dashboardType === "Loan Officer" && <LoanOfficerDashboard />}
               </main>

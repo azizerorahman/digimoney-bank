@@ -1,5 +1,7 @@
+import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 import {
     PieChart,
     Pie,
@@ -15,13 +17,75 @@ import {
     ReferenceLine,
 } from "recharts";
 
-const UserDashboard = () => {
+const UserDashboard = ({ userInfo }) => {
     const sectionRef = useRef(null);
     const headingRef = useRef(null);
     const balanceCardRef = useRef(null);
     const actionsRef = useRef(null);
     const accountsRef = useRef(null);
     const dashboardRef = useRef(null);
+
+    const uId = localStorage.getItem("userId");
+    const [accounts, setAccounts] = useState([]);
+    const [accountsLoading, setAccountsLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchAccounts = async () => {
+            if (!uId) return;
+            setAccountsLoading(true);
+            try {
+                const token = localStorage.getItem("accessToken");
+                const res = await axios.get(`${process.env.REACT_APP_API_URL}/accounts`, {
+                    params: { uId },
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                // The API returns { success, accounts }
+                if (res.data && res.data.success) {
+                    setAccounts(res.data.accounts);
+                } else {
+                    toast.error("Failed to fetch accounts");
+                }
+            } catch (error) {
+                toast.error("Failed to fetch accounts");
+            } finally {
+                setAccountsLoading(false);
+            }
+        };
+        fetchAccounts();
+    }, [uId]);
+
+    const [transactions, setTransactions] = useState([]);
+    const [transactionsLoading, setTransactionsLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchTransactions = async () => {
+            if (!uId) return;
+            setTransactionsLoading(true);
+            try {
+                const token = localStorage.getItem("accessToken");
+                const res = await axios.get(`${process.env.REACT_APP_API_URL}/transactions`, {
+                    params: { uId },
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                if (res.data && res.data.success) {
+                    setTransactions(res.data.transactions);
+                } else {
+                    toast.error("Failed to fetch transactions");
+                }
+            } catch (error) {
+                toast.error("Failed to fetch transactions");
+            } finally {
+                setTransactionsLoading(false);
+            }
+        };
+        fetchTransactions();
+    }, [uId]);
+
+    console.log(transactions);
 
 
 
@@ -1451,11 +1515,18 @@ const UserDashboard = () => {
         spending: "#ef4444",
     };
 
-    const [selectedAccount, setSelectedAccount] = useState(
-        currentUser.accounts[0]
-    );
+    const [selectedAccount, setSelectedAccount] = useState(null);
 
-    const currentTheme = themes[selectedAccount.type];
+    // Set selectedAccount to the first account when accounts are loaded
+    useEffect(() => {
+        if (accounts && accounts.length > 0) {
+            setSelectedAccount(accounts[0]);
+        }
+    }, [accounts]);
+
+    console.log("sfsfb",selectedAccount)
+
+    const currentTheme = themes[selectedAccount?.type];
 
     // Budget Management Functions
     const handleAddBudget = () => {
@@ -1578,7 +1649,7 @@ const UserDashboard = () => {
     };
 
     const calculateActualSpending = (category) => {
-        return currentUser.recentTransactions
+        return transactions
             .filter((t) => t.category === category && t.amount < 0)
             .reduce((sum, t) => sum + Math.abs(t.amount), 0);
     };
@@ -1615,9 +1686,10 @@ const UserDashboard = () => {
     };
 
     // Call this when component mounts or transactions change
-    React.useEffect(() => {
-        updateBudgetActuals();
-    }, [currentUser.recentTransactions]);
+    //  useEffect(() => {
+    //   console.log("Running updateBudgetActuals()");
+    //   updateBudgetActuals();
+    // }, [currentUser.recentTransactions]);
 
 
     // Get account type color
@@ -1686,17 +1758,17 @@ const UserDashboard = () => {
     };
 
     const getAccountTypeById = (accountId) => {
-        const account = currentUser.accounts.find((acc) => acc.id === accountId);
+        const account = accounts.find((acc) => acc.id === accountId);
         return account ? account.type : null;
     };
 
     const getAccountNameById = (accountId) => {
-        const account = currentUser.accounts.find((acc) => acc.id === accountId);
+        const account = accounts.find((acc) => acc.id === accountId);
         return account ? account.accountName : "Unknown Account";
     };
 
     const getFilteredTransactions = () => {
-        let filtered = currentUser.recentTransactions;
+        let filtered = transactions;
 
         if (searchTerm) {
             filtered = filtered.filter(
@@ -1747,7 +1819,7 @@ const UserDashboard = () => {
     };
 
     const getCategoryBreakdown = () => {
-        let transactions = currentUser.recentTransactions;
+        let filteredTransactions = transactions;
 
         if (
             filterAccountType !== "all" &&
@@ -1756,13 +1828,13 @@ const UserDashboard = () => {
             const accountsOfType = currentUser.accounts
                 .filter((acc) => acc.type === filterAccountType)
                 .map((acc) => acc.id);
-            transactions = transactions.filter((t) =>
+            filteredTransactions = filteredTransactions.filter((t) =>
                 accountsOfType.includes(t.accountId)
             );
         }
 
         const categories = {};
-        transactions
+        filteredTransactions
             .filter((t) => t.amount < 0)
             .forEach((transaction) => {
                 const category = transaction.category;
@@ -1835,7 +1907,7 @@ const UserDashboard = () => {
 
     // Intersection Observer for scroll animations
     useEffect(() => {
-        if (isLoading) return;
+        if (isLoading || accountsLoading) return;
 
         const section = sectionRef.current;
         const heading = headingRef.current;
@@ -2087,13 +2159,13 @@ const UserDashboard = () => {
     };
 
     const getTotalBalance = () => {
-        return currentUser.accounts
+        return accounts
             .filter((account) => account.type !== "Credit")
             .reduce((sum, account) => sum + account.balance, 0);
     };
 
     const getAccountTransactions = (accountId) => {
-        return currentUser.recentTransactions
+        return transactions
             .filter((transaction) => transaction.accountId === accountId)
             .slice(0, 4);
     };
@@ -2393,7 +2465,7 @@ const UserDashboard = () => {
                             <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 text-gray-800 dark:text-white">
                                 Welcome back,{" "}
                                 <span className="text-[#6160DC] dark:text-[#8B7EFF]">
-                                    {currentUser.name}
+                                    {userInfo.name}
                                 </span>
                             </h1>
                             <p className="text-base md:text-lg text-gray-600 dark:text-gray-300">
@@ -2447,14 +2519,14 @@ const UserDashboard = () => {
                                                     {getTotalBalance().toLocaleString()}
                                                 </h2>
                                                 <p className="text-white/80 mt-1 md:mt-2 text-sm md:text-base">
-                                                    Across {currentUser.accounts.length} accounts
+                                                    Across {accounts.length} accounts
                                                 </p>
                                             </div>
 
                                             {/* Card Number */}
                                             <div className="text-center mb-4 md:mb-6 flex-grow">
                                                 <p className="font-mono tracking-wider text-sm md:text-base lg:text-lg">
-                                                    {formatAccountNumber(selectedAccount.accountNumber)}
+                                                    {formatAccountNumber(selectedAccount?.accountNumber)}
                                                 </p>
                                             </div>
 
@@ -2465,7 +2537,7 @@ const UserDashboard = () => {
                                                         Card Holder
                                                     </p>
                                                     <p className="text-sm md:text-base font-bold truncate max-w-[120px] md:max-w-[150px]">
-                                                        {currentUser.name}
+                                                        {userInfo.name}
                                                     </p>
                                                 </div>
                                                 <div className="flex items-end">
@@ -2514,7 +2586,7 @@ const UserDashboard = () => {
                                 <span className="text-[#6160DC] dark:text-[#8B7EFF]">Accounts</span>
                             </h2>
                             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                                {currentUser.accounts.map((account) => (
+                                {accounts.map((account) => (
                                     <div
                                         key={account.id}
                                         className={`group p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 relative overflow-hidden cursor-pointer ${selectedAccount?.id === account.id
@@ -2586,10 +2658,10 @@ const UserDashboard = () => {
                                     Account Summary
                                 </h3>
                                 <div className="space-y-3 md:space-y-4">
-                                    {currentUser.accounts.map((account) => (
+                                    {accounts.map((account) => (
                                         <div
                                             key={account.id}
-                                            className={`flex items-center justify-between p-3 md:p-4 rounded-xl cursor-pointer transition-all duration-300 ${selectedAccount.id === account.id
+                                            className={`flex items-center justify-between p-3 md:p-4 rounded-xl cursor-pointer transition-all duration-300 ${selectedAccount?.id === account.id
                                                 ? "bg-[#6160DC]/10 dark:bg-[#8B7EFF]/20 ring-2 ring-[#6160DC] dark:ring-[#8B7EFF]"
                                                 : "bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600"
                                                 }`}
@@ -2640,13 +2712,13 @@ const UserDashboard = () => {
                                         Recent Transactions
                                     </h3>
                                     <div className="text-xs md:text-sm text-[#6160DC] dark:text-[#8B7EFF] font-medium">
-                                        {selectedAccount.accountName}
+                                        {selectedAccount?.accountName}
                                     </div>
                                 </div>
                                 <div className="space-y-3 md:space-y-4">
-                                    {getAccountTransactions(selectedAccount.id).map((transaction) => (
+                                    {getAccountTransactions(selectedAccount?._id).map((transaction) => (
                                         <div
-                                            key={transaction.id}
+                                            key={transaction._id}
                                             className="flex items-center justify-between p-3 md:p-4 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-300"
                                         >
                                             <div className="flex items-center space-x-3 md:space-x-4">
@@ -2715,7 +2787,7 @@ const UserDashboard = () => {
 
 
 
-                
+
 
                 {/* Budget Management Modal */}
                 {showBudgetModal && (
@@ -2724,9 +2796,9 @@ const UserDashboard = () => {
                             className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto"
                             style={{
                                 background: "var(--surface)",
-                                border: `2px solid ${currentTheme.primary}`,
+                                border: `2px solid ${currentTheme?.primary}`,
                                 borderRadius: "var(--radius-lg)",
-                                boxShadow: currentTheme.shadow,
+                                boxShadow: currentTheme?.shadow,
                             }}
                         >
                             <h3
@@ -2756,7 +2828,7 @@ const UserDashboard = () => {
                                         className="w-full px-3 py-2 rounded-lg border"
                                         style={{
                                             background: "var(--background)",
-                                            border: `1px solid ${currentTheme.primary}40`,
+                                            border: `1px solid ${currentTheme?.primary}40`,
                                             color: "var(--text-primary)",
                                         }}
                                     >
@@ -2797,7 +2869,7 @@ const UserDashboard = () => {
                                             className="w-full px-3 py-2 rounded-lg border"
                                             style={{
                                                 background: "var(--background)",
-                                                border: `1px solid ${currentTheme.primary}40`,
+                                                border: `1px solid ${currentTheme?.primary}40`,
                                                 color: "var(--text-primary)",
                                             }}
                                         />
@@ -2827,7 +2899,7 @@ const UserDashboard = () => {
                                         className="w-full px-3 py-2 rounded-lg border"
                                         style={{
                                             background: "var(--background)",
-                                            border: `1px solid ${currentTheme.primary}40`,
+                                            border: `1px solid ${currentTheme?.primary}40`,
                                             color: "var(--text-primary)",
                                         }}
                                     />
@@ -2853,7 +2925,7 @@ const UserDashboard = () => {
                                         className="w-full px-3 py-2 rounded-lg border resize-none"
                                         style={{
                                             background: "var(--background)",
-                                            border: `1px solid ${currentTheme.primary}40`,
+                                            border: `1px solid ${currentTheme?.primary}40`,
                                             color: "var(--text-primary)",
                                         }}
                                     />
@@ -2885,9 +2957,9 @@ const UserDashboard = () => {
                                                     background: color,
                                                     borderColor:
                                                         budgetForm.color === color
-                                                            ? currentTheme.primary
+                                                            ? currentTheme?.primary
                                                             : "transparent",
-                                                    ringColor: currentTheme.primary,
+                                                    ringColor: currentTheme?.primary,
                                                 }}
                                             />
                                         ))}
@@ -2901,7 +2973,7 @@ const UserDashboard = () => {
                                     className="px-4 py-2 rounded-lg font-medium"
                                     style={{
                                         background: "var(--background)",
-                                        border: `1px solid ${currentTheme.primary}40`,
+                                        border: `1px solid ${currentTheme?.primary}40`,
                                         color: "var(--text-secondary)",
                                     }}
                                 >
@@ -2911,8 +2983,8 @@ const UserDashboard = () => {
                                     onClick={handleSaveBudget}
                                     className="px-4 py-2 rounded-lg font-medium text-white"
                                     style={{
-                                        background: currentTheme.gradient,
-                                        boxShadow: currentTheme.shadow,
+                                        background: currentTheme?.gradient,
+                                        boxShadow: currentTheme?.shadow,
                                     }}
                                 >
                                     {editingBudget ? "Update Budget" : "Create Budget"}
@@ -2929,9 +3001,9 @@ const UserDashboard = () => {
                             className="bg-white rounded-lg p-6 w-full max-w-md mx-4"
                             style={{
                                 background: "var(--surface)",
-                                border: `2px solid ${currentTheme.primary}`,
+                                border: `2px solid ${currentTheme?.primary}`,
                                 borderRadius: "var(--radius-lg)",
-                                boxShadow: currentTheme.shadow,
+                                boxShadow: currentTheme?.shadow,
                             }}
                         >
                             <h3
@@ -2959,7 +3031,7 @@ const UserDashboard = () => {
                                         className="w-full px-3 py-2 rounded-lg border"
                                         style={{
                                             background: "var(--background)",
-                                            border: `1px solid ${currentTheme.primary}40`,
+                                            border: `1px solid ${currentTheme?.primary}40`,
                                             color: "var(--text-primary)",
                                         }}
                                     />
@@ -2978,7 +3050,7 @@ const UserDashboard = () => {
                                     className="px-4 py-2 rounded-lg font-medium"
                                     style={{
                                         background: "var(--background)",
-                                        border: `1px solid ${currentTheme.primary}40`,
+                                        border: `1px solid ${currentTheme?.primary}40`,
                                         color: "var(--text-secondary)",
                                     }}
                                 >
@@ -2988,8 +3060,8 @@ const UserDashboard = () => {
                                     onClick={handleSaveMonthlyBudget}
                                     className="px-4 py-2 rounded-lg font-medium text-white"
                                     style={{
-                                        background: currentTheme.gradient,
-                                        boxShadow: currentTheme.shadow,
+                                        background: currentTheme?.gradient,
+                                        boxShadow: currentTheme?.shadow,
                                     }}
                                 >
                                     Save Budget
@@ -2999,11 +3071,11 @@ const UserDashboard = () => {
                     </div>
                 )}
 
-                
 
-            
 
-            
+
+
+
 
                 {/* BUDGET MANAGEMENT SECTION */}
                 <div className="mt-12">
@@ -3020,8 +3092,8 @@ const UserDashboard = () => {
                                 className="px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:opacity-90"
                                 style={{
                                     background: "var(--background)",
-                                    border: `2px solid ${currentTheme.primary}`,
-                                    color: currentTheme.primary,
+                                    border: `2px solid ${currentTheme?.primary}`,
+                                    color: currentTheme?.primary,
                                 }}
                             >
                                 📊 Set Monthly Budget
@@ -3030,8 +3102,8 @@ const UserDashboard = () => {
                                 onClick={handleAddBudget}
                                 className="px-4 py-2 rounded-lg font-medium text-white transition-all duration-300 hover:opacity-90"
                                 style={{
-                                    background: currentTheme.gradient,
-                                    boxShadow: currentTheme.shadow,
+                                    background: currentTheme?.gradient,
+                                    boxShadow: currentTheme?.shadow,
                                 }}
                             >
                                 ➕ Add Budget Category
@@ -3086,13 +3158,13 @@ const UserDashboard = () => {
                         <div
                             className="p-4 rounded-lg text-center"
                             style={{
-                                background: `${currentTheme.primary}20`,
-                                border: `1px solid ${currentTheme.primary}40`,
+                                background: `${currentTheme?.primary}20`,
+                                border: `1px solid ${currentTheme?.primary}40`,
                             }}
                         >
                             <div
                                 className="text-2xl font-bold"
-                                style={{ color: currentTheme.primary }}
+                                style={{ color: currentTheme?.primary }}
                             >
                                 {formatCurrency(
                                     Math.abs(getTotalBudgeted() - getTotalActualSpending())
@@ -3111,13 +3183,13 @@ const UserDashboard = () => {
                         <div
                             className="p-4 rounded-lg text-center"
                             style={{
-                                background: `${currentTheme.primary}20`,
-                                border: `1px solid ${currentTheme.primary}40`,
+                                background: `${currentTheme?.primary}20`,
+                                border: `1px solid ${currentTheme?.primary}40`,
                             }}
                         >
                             <div
                                 className="text-2xl font-bold"
-                                style={{ color: currentTheme.primary }}
+                                style={{ color: currentTheme?.primary }}
                             >
                                 {formatCurrency(monthlyBudgetLimit)}
                             </div>
@@ -3136,7 +3208,7 @@ const UserDashboard = () => {
                             className="px-4 py-2 my-2 rounded-lg text-sm font-medium transition-all duration-300"
                             style={{
                                 background: "var(--surface)",
-                                border: `1px solid ${currentTheme.primary}`,
+                                border: `1px solid ${currentTheme?.primary}`,
                                 color: "var(--text-primary)",
                                 marginLeft: "auto", // This pushes it to the right
                             }}
@@ -3152,7 +3224,7 @@ const UserDashboard = () => {
                         className="p-6 rounded-lg transition-all duration-500"
                         style={{
                             background: "var(--surface)",
-                            border: `1px solid ${currentTheme.primary}`,
+                            border: `1px solid ${currentTheme?.primary}`,
                             borderRadius: "var(--radius-lg)",
                             boxShadow: "var(--shadow-md)",
                             paddingBottom: "60px",
@@ -3197,7 +3269,7 @@ const UserDashboard = () => {
                                                             className="w-8 rounded-t transition-all duration-1000 opacity-40"
                                                             style={{
                                                                 height: `${budgetHeight}%`,
-                                                                background: currentTheme.primary,
+                                                                background: currentTheme?.primary,
                                                                 minHeight: "4px",
                                                             }}
                                                             title={`Budget: ${formatCurrency(data.budget)}`}
@@ -3255,7 +3327,7 @@ const UserDashboard = () => {
                                         <div className="flex items-center space-x-2">
                                             <div
                                                 className="w-4 h-4 rounded opacity-40"
-                                                style={{ background: currentTheme.primary }}
+                                                style={{ background: currentTheme?.primary }}
                                             ></div>
                                             <span
                                                 className="text-sm"
@@ -3354,7 +3426,7 @@ const UserDashboard = () => {
                                                 </div>
                                                 <div
                                                     className="text-xl font-bold"
-                                                    style={{ color: currentTheme.primary }}
+                                                    style={{ color: currentTheme?.primary }}
                                                 >
                                                     {formatCurrency(
                                                         getCategoryWiseSpending().reduce(
@@ -3513,9 +3585,9 @@ const UserDashboard = () => {
                                                                 onClick={() => handleEditBudget(budget)}
                                                                 className="px-3 py-1 rounded-lg text-xs font-medium transition-all duration-300"
                                                                 style={{
-                                                                    background: `${currentTheme.primary}20`,
-                                                                    color: currentTheme.primary,
-                                                                    border: `1px solid ${currentTheme.primary}40`,
+                                                                    background: `${currentTheme?.primary}20`,
+                                                                    color: currentTheme?.primary,
+                                                                    border: `1px solid ${currentTheme?.primary}40`,
                                                                 }}
                                                             >
                                                                 Edit
@@ -3647,8 +3719,8 @@ const UserDashboard = () => {
                                             onClick={handleAddBudget}
                                             className="px-6 py-3 rounded-lg font-medium text-white transition-all duration-300 hover:opacity-90"
                                             style={{
-                                                background: currentTheme.gradient,
-                                                boxShadow: currentTheme.shadow,
+                                                background: currentTheme?.gradient,
+                                                boxShadow: currentTheme?.shadow,
                                             }}
                                         >
                                             Create Your First Budget
@@ -3710,13 +3782,13 @@ const UserDashboard = () => {
                                         <div
                                             className="p-4 rounded-lg text-center"
                                             style={{
-                                                background: `${currentTheme.primary}20`,
-                                                border: `1px solid ${currentTheme.primary}40`,
+                                                background: `${currentTheme?.primary}20`,
+                                                border: `1px solid ${currentTheme?.primary}40`,
                                             }}
                                         >
                                             <div
                                                 className="text-2xl font-bold"
-                                                style={{ color: currentTheme.primary }}
+                                                style={{ color: currentTheme?.primary }}
                                             >
                                                 {formatCurrency(
                                                     getBudgetVsActual().reduce(
@@ -3755,7 +3827,7 @@ const UserDashboard = () => {
                                 className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300"
                                 style={{
                                     background: "var(--surface)",
-                                    border: `1px solid ${currentTheme.primary}`,
+                                    border: `1px solid ${currentTheme?.primary}`,
                                     color: "var(--text-primary)",
                                 }}
                             >
@@ -3770,7 +3842,7 @@ const UserDashboard = () => {
                                 className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300"
                                 style={{
                                     background: "var(--surface)",
-                                    border: `1px solid ${currentTheme.primary}`,
+                                    border: `1px solid ${currentTheme?.primary}`,
                                     color: "var(--text-primary)",
                                 }}
                             >
@@ -3784,7 +3856,7 @@ const UserDashboard = () => {
                         className="p-6 rounded-lg transition-all duration-500 mb-8"
                         style={{
                             background: "var(--surface)",
-                            border: `1px solid ${currentTheme.primary}`,
+                            border: `1px solid ${currentTheme?.primary}`,
                             borderRadius: "var(--radius-lg)",
                             boxShadow: "var(--shadow-md)",
                             paddingBottom: "55px",
@@ -3983,7 +4055,7 @@ const UserDashboard = () => {
                             className="lg:col-span-2 p-6 rounded-lg transition-all duration-500 flex flex-col"
                             style={{
                                 background: "var(--surface)",
-                                border: `1px solid ${currentTheme.primary}`,
+                                border: `1px solid ${currentTheme?.primary}`,
                                 borderRadius: "var(--radius-lg)",
                                 boxShadow: "var(--shadow-md)",
                                 height: "652px",
@@ -4011,7 +4083,7 @@ const UserDashboard = () => {
                                     style={{ color: "var(--text-secondary)" }}
                                 >
                                     Showing {getFilteredTransactions().length} of{" "}
-                                    {currentUser.recentTransactions.length} transactions
+                                    {transactions.length - getFilteredTransactions().length} transactions
                                 </div>
                             </div>
 
@@ -4023,13 +4095,13 @@ const UserDashboard = () => {
                                             className="flex items-center justify-between p-4 rounded-lg transition-all duration-300 hover:scale-102"
                                             style={{
                                                 background: "var(--background)",
-                                                border: `1px solid ${currentTheme.primary}20`,
+                                                border: `1px solid ${currentTheme?.primary}20`,
                                             }}
                                         >
                                             <div className="flex items-center space-x-4">
                                                 <div
                                                     className="w-12 h-12 rounded-full flex items-center justify-center text-lg"
-                                                    style={{ background: `${currentTheme.primary}20` }}
+                                                    style={{ background: `${currentTheme?.primary}20` }}
                                                 >
                                                     {getCategoryIcon(transaction.category)}
                                                 </div>
@@ -4051,8 +4123,8 @@ const UserDashboard = () => {
                                                         <div
                                                             className="text-xs px-2 py-1 rounded-full inline-block"
                                                             style={{
-                                                                background: `${currentTheme.primary}20`,
-                                                                color: currentTheme.primary,
+                                                                background: `${currentTheme?.primary}20`,
+                                                                color: currentTheme?.primary,
                                                             }}
                                                         >
                                                             {transaction.category}
@@ -4062,12 +4134,12 @@ const UserDashboard = () => {
                                                             style={{
                                                                 background: `${themes[
                                                                     getAccountTypeById(transaction.accountId)
-                                                                ]?.primary || currentTheme.primary
+                                                                ]?.primary || currentTheme?.primary
                                                                     }20`,
                                                                 color:
                                                                     themes[
                                                                         getAccountTypeById(transaction.accountId)
-                                                                    ]?.primary || currentTheme.primary,
+                                                                    ]?.primary || currentTheme?.primary,
                                                             }}
                                                         >
                                                             {getAccountNameById(transaction.accountId)}
@@ -4129,7 +4201,7 @@ const UserDashboard = () => {
                             className="p-6 rounded-lg transition-all duration-500"
                             style={{
                                 background: "var(--surface)",
-                                border: `1px solid ${currentTheme.primary}`,
+                                border: `1px solid ${currentTheme?.primary}`,
                                 borderRadius: "var(--radius-lg)",
                                 boxShadow: "var(--shadow-md)",
                             }}
@@ -4157,7 +4229,7 @@ const UserDashboard = () => {
                                         className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300"
                                         style={{
                                             background: "var(--background)",
-                                            border: `1px solid ${currentTheme.primary}40`,
+                                            border: `1px solid ${currentTheme?.primary}40`,
                                             color: "var(--text-primary)",
                                         }}
                                     />
@@ -4176,7 +4248,7 @@ const UserDashboard = () => {
                                         className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300"
                                         style={{
                                             background: "var(--background)",
-                                            border: `1px solid ${currentTheme.primary}40`,
+                                            border: `1px solid ${currentTheme?.primary}40`,
                                             color: "var(--text-primary)",
                                         }}
                                     >
@@ -4191,7 +4263,7 @@ const UserDashboard = () => {
                                         style={{ color: "var(--text-secondary)" }}
                                     >
                                         {filterAccountType === "all" &&
-                                            `Showing transactions from: ${selectedAccount.accountName}`}
+                                            `Showing transactions from: ${selectedAccount?.accountName}`}
                                         {filterAccountType === "allTransactions" &&
                                             "Showing transactions from all accounts"}
                                         {filterAccountType !== "all" &&
@@ -4213,7 +4285,7 @@ const UserDashboard = () => {
                                         className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300"
                                         style={{
                                             background: "var(--background)",
-                                            border: `1px solid ${currentTheme.primary}40`,
+                                            border: `1px solid ${currentTheme?.primary}40`,
                                             color: "var(--text-primary)",
                                         }}
                                     >
@@ -4240,7 +4312,7 @@ const UserDashboard = () => {
                                             className="px-3 py-2 rounded-lg text-sm transition-all duration-300"
                                             style={{
                                                 background: "var(--background)",
-                                                border: `1px solid ${currentTheme.primary}40`,
+                                                border: `1px solid ${currentTheme?.primary}40`,
                                                 color: "var(--text-primary)",
                                             }}
                                         />
@@ -4251,7 +4323,7 @@ const UserDashboard = () => {
                                             className="px-3 py-2 rounded-lg text-sm transition-all duration-300"
                                             style={{
                                                 background: "var(--background)",
-                                                border: `1px solid ${currentTheme.primary}40`,
+                                                border: `1px solid ${currentTheme?.primary}40`,
                                                 color: "var(--text-primary)",
                                             }}
                                         />
@@ -4274,7 +4346,7 @@ const UserDashboard = () => {
                                             className="px-3 py-2 rounded-lg text-sm transition-all duration-300"
                                             style={{
                                                 background: "var(--background)",
-                                                border: `1px solid ${currentTheme.primary}40`,
+                                                border: `1px solid ${currentTheme?.primary}40`,
                                                 color: "var(--text-primary)",
                                             }}
                                         />
@@ -4286,7 +4358,7 @@ const UserDashboard = () => {
                                             className="px-3 py-2 rounded-lg text-sm transition-all duration-300"
                                             style={{
                                                 background: "var(--background)",
-                                                border: `1px solid ${currentTheme.primary}40`,
+                                                border: `1px solid ${currentTheme?.primary}40`,
                                                 color: "var(--text-primary)",
                                             }}
                                         />
@@ -4298,8 +4370,8 @@ const UserDashboard = () => {
                                     className="w-full py-2 px-4 rounded-lg font-medium transition-all duration-300 hover:opacity-90"
                                     style={{
                                         background: "var(--background)",
-                                        border: `2px solid ${currentTheme.primary}`,
-                                        color: currentTheme.primary,
+                                        border: `2px solid ${currentTheme?.primary}`,
+                                        color: currentTheme?.primary,
                                     }}
                                 >
                                     Clear All Filters
@@ -4308,13 +4380,13 @@ const UserDashboard = () => {
                                 <div
                                     className="p-3 rounded-lg text-center"
                                     style={{
-                                        background: `${currentTheme.primary}10`,
-                                        border: `1px solid ${currentTheme.primary}30`,
+                                        background: `${currentTheme?.primary}10`,
+                                        border: `1px solid ${currentTheme?.primary}30`,
                                     }}
                                 >
                                     <div
                                         className="text-sm font-medium"
-                                        style={{ color: currentTheme.primary }}
+                                        style={{ color: currentTheme?.primary }}
                                     >
                                         {getFilteredTransactions().length} transactions found
                                     </div>
@@ -4339,14 +4411,14 @@ const UserDashboard = () => {
                     <div
                         className="p-4 rounded-lg text-center transition-all duration-500 hover:scale-105"
                         style={{
-                            background: currentTheme.lightGradient,
+                            background: currentTheme?.lightGradient,
                             color: "white",
                             borderRadius: "var(--radius-md)",
-                            boxShadow: currentTheme.shadow,
+                            boxShadow: currentTheme?.shadow,
                         }}
                     >
                         <div className="text-2xl font-bold">
-                            {currentUser.accounts.length}
+                            {accounts.length}
                         </div>
                         <div className="text-sm opacity-90">Active Accounts</div>
                     </div>
@@ -4355,17 +4427,17 @@ const UserDashboard = () => {
                         className="p-4 rounded-lg text-center transition-all duration-500 hover:scale-105"
                         style={{
                             background: "var(--surface)",
-                            border: `2px solid ${currentTheme.primary}`,
+                            border: `2px solid ${currentTheme?.primary}`,
                             borderRadius: "var(--radius-md)",
                             boxShadow: "var(--shadow-sm)",
                         }}
                     >
                         <div
                             className="text-2xl font-bold"
-                            style={{ color: currentTheme.primary }}
+                            style={{ color: currentTheme?.primary }}
                         >
                             {
-                                currentUser.recentTransactions.filter((t) => t.amount > 0)
+                                transactions.filter((t) => t.amount > 0)
                                     .length
                             }
                         </div>
@@ -4378,17 +4450,17 @@ const UserDashboard = () => {
                         className="p-4 rounded-lg text-center transition-all duration-500 hover:scale-105"
                         style={{
                             background: "var(--surface)",
-                            border: `2px solid ${currentTheme.primary}`,
+                            border: `2px solid ${currentTheme?.primary}`,
                             borderRadius: "var(--radius-md)",
                             boxShadow: "var(--shadow-sm)",
                         }}
                     >
                         <div
                             className="text-2xl font-bold"
-                            style={{ color: currentTheme.primary }}
+                            style={{ color: currentTheme?.primary }}
                         >
                             {formatCurrency(
-                                currentUser.accounts.find((acc) => acc.type === "Credit")
+                                accounts.find((acc) => acc.type === "Credit")
                                     ?.balance || 0
                             )}
                         </div>
@@ -4400,10 +4472,10 @@ const UserDashboard = () => {
                     <div
                         className="p-4 rounded-lg text-center transition-all duration-500 hover:scale-105"
                         style={{
-                            background: currentTheme.gradient,
+                            background: currentTheme?.gradient,
                             color: "white",
                             borderRadius: "var(--radius-md)",
-                            boxShadow: currentTheme.shadow,
+                            boxShadow: currentTheme?.shadow,
                         }}
                     >
                         <div className="text-2xl font-bold">
