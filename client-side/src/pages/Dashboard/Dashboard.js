@@ -20,6 +20,7 @@ import Logout from "../Auth/Logout";
 import UserDashboard from "./UserDashboard";
 import CSRDashboard from "./CSRDashboard";
 import LoanOfficerDashboard from "./LoanOfficerDashboard";
+import SuperAdminDashboard from "./SuperAdminDashboard";
 const Dashboard = () => {
   const [user] = useAuthState(auth);
   const [open, setOpen] = useState(true);
@@ -314,6 +315,7 @@ const Dashboard = () => {
                       <option value="User">User</option>
                       <option value="CSR">CSR</option>
                       <option value="Loan Officer">Loan Officer</option>
+                      <option value="Super Admin">Super Admin</option>
                     </select>
 
                     {/* Avatar/Profile */}
@@ -341,6 +343,7 @@ const Dashboard = () => {
                 {dashboardType === "User" && <UserDashboard userInfo={userInfo} />}
                 {dashboardType === "CSR" && <CSRDashboard />}
                 {dashboardType === "Loan Officer" && <LoanOfficerDashboard />}
+                {dashboardType === "Super Admin" && <SuperAdminDashboard/>}
               </main>
             </div>
           </div>
