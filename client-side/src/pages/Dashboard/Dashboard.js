@@ -21,6 +21,7 @@ import UserDashboard from "./UserDashboard";
 import CSRDashboard from "./CSRDashboard";
 import LoanOfficerDashboard from "./LoanOfficerDashboard";
 import SuperAdminDashboard from "./SuperAdminDashboard";
+import AccountManagerDashboard from "./AccountManagerDashboard";
 const Dashboard = () => {
   const [user] = useAuthState(auth);
   const [open, setOpen] = useState(true);
@@ -315,6 +316,7 @@ const Dashboard = () => {
                       <option value="User">User</option>
                       <option value="CSR">CSR</option>
                       <option value="Loan Officer">Loan Officer</option>
+                      <option value="Account Manager">Account Manager</option>
                       <option value="Super Admin">Super Admin</option>
                     </select>
 
@@ -344,6 +346,7 @@ const Dashboard = () => {
                 {dashboardType === "CSR" && <CSRDashboard />}
                 {dashboardType === "Loan Officer" && <LoanOfficerDashboard />}
                 {dashboardType === "Super Admin" && <SuperAdminDashboard/>}
+                {dashboardType === "Account Manager" && <AccountManagerDashboard/>}
               </main>
             </div>
           </div>
