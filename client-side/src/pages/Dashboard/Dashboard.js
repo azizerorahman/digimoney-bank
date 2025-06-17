@@ -17,11 +17,11 @@ import { fetchApprovedUser } from "../../redux/reducers/ApprovedUsersReducers";
 import AccountUnderVerification from "./AccountUnderVerification";
 import LoadingSpinner from "../../components/Loading";
 import Logout from "../Auth/Logout";
-import UserDashboard from "./UserDashboard";
-import CSRDashboard from "./CSRDashboard";
-import LoanOfficerDashboard from "./LoanOfficerDashboard";
-import SuperAdminDashboard from "./SuperAdminDashboard";
-import AccountManagerDashboard from "./AccountManagerDashboard";
+import UserDashboard from "./User";
+import CSRDashboard from "./CSR";
+import LoanOfficerDashboard from "./LoanOfficer";
+import SuperAdminDashboard from "./SuperAdmin";
+import AccountManagerDashboard from "./AccountManager";
 const Dashboard = () => {
   const [user] = useAuthState(auth);
   const [open, setOpen] = useState(true);
