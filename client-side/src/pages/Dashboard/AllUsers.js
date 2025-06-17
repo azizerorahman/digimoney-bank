@@ -18,7 +18,7 @@ const AllUsers = () => {
     data: users,
     refetch,
   } = useQuery(["approvedusers"], () =>
-    fetch("http://localhost:4000/approvedUsers").then((res) => res.json())
+    fetch("${process.env.REACT_APP_API_URL}/approvedUsers").then((res) => res.json())
   );
 
   if (isLoading || error) {

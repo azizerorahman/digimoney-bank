@@ -5,7 +5,7 @@ const useTransaction = (userInfo, page) => {
 
   useEffect(() => {
     fetch(
-      `http://localhost:4000/transaction/${userInfo?.accountNumber}?page=${page}`
+      `${process.env.REACT_APP_API_URL}/transaction/${userInfo?.accountNumber}?page=${page}`
     )
       .then((res) => res.json())
       .then((data) => setTransaction(data));

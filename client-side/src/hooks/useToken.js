@@ -9,7 +9,7 @@ const useToken = (user) => {
     const signInUser = { email: email };
 
     if (email) {
-      fetch(`http://localhost:4000/token/${email}`, {
+      fetch(`${process.env.REACT_APP_API_URL}/token/${email}`, {
         method: "PUT",
         headers: {
           "content-type": "application/json",

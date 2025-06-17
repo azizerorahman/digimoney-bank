@@ -17,7 +17,7 @@ const Withdraw = ({ userInfo, refetch, setInformation }) => {
     if (userInfo.amount > withdrawAmount) {
       const newAmount = userInfo.amount - withdrawAmount;
       const updatedAmount = { amount: newAmount, withdrawAmount };
-      const url = `http://localhost:4000/approvedUsers/${accountNumber}`;
+      const url = `${process.env.REACT_APP_API_URL}/approvedUsers/${accountNumber}`;
       fetch(url, {
         method: "PATCH",
         headers: {

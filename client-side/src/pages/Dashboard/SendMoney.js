@@ -35,7 +35,7 @@ const SendMoney = () => {
       amount,
     };
 
-    const url = `http://localhost:4000/transfer?email=${user?.email}`;
+    const url = `${process.env.REACT_APP_API_URL}/transfer?email=${user?.email}`;
 
     fetch(url, {
       method: "PATCH",

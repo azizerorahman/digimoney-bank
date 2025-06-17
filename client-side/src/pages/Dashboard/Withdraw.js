@@ -9,7 +9,7 @@
 //         if (amount>data.withdrawAmount) {
 //            const newAmount = amount-data.withdrawAmount;
 //            const updatedAmount={amount:newAmount,withdrawAmount:data.withdrawAmount}
-//            const url=`http://localhost:4000/approvedUsers/${_id}`;
+//            const url=`${process.env.REACT_APP_API_URL}/approvedUsers/${_id}`;
 //           fetch(url,{
 //                method:'PATCH',
 //                 headers:{

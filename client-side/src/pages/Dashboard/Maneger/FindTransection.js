@@ -23,7 +23,7 @@ const FindTransection = () => {
     e.preventDefault();
     const accountNumber = e.target.accountNumber.value;
 
-    const url = `http://localhost:4000/findtransection${accountNumber}`;
+    const url = `${process.env.REACT_APP_API_URL}/findtransection${accountNumber}`;
     fetch(url)
       .then((res) => res.json())
       .then((data) => {

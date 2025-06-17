@@ -8,7 +8,9 @@ const initialState = {
 };
 
 export const fetchBlog = createAsyncThunk("blog/fetchblog", () => {
-  return axios.get("http://localhost:4000/blog").then((res) => res.data);
+  return axios
+    .get("${process.env.REACT_APP_API_URL}/blog")
+    .then((res) => res.data);
 });
 
 const blogSlice = createSlice({

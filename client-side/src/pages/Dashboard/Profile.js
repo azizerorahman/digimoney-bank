@@ -41,7 +41,7 @@ const Profile = () => {
         if (result.success) {
           console.log(result.data.url);
           const profileImg = result.data.url;
-          const url = `http://localhost:4000/profile/${user.email}`;
+          const url = `${process.env.REACT_APP_API_URL}/profile/${user.email}`;
           fetch(url, {
             method: "PATCH",
             headers: {

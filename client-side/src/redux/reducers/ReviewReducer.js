@@ -7,7 +7,9 @@ const initialState = {
 };
 
 export const fetchUsers = createAsyncThunk("review/fetchUsers", () => {
-  return axios.get("http://localhost:4000/review").then((res) => res.data);
+  return axios
+    .get("${process.env.REACT_APP_API_URL}/review")
+    .then((res) => res.data);
 });
 
 const userReviewSlice = createSlice({
