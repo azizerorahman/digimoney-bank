@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { BsArrowLeftCircle } from "react-icons/bs";
 import { RiBarChartHorizontalLine } from "react-icons/ri";
@@ -67,7 +67,7 @@ const Dashboard = () => {
   };
 
   // Dashboard menu items
-  const Menus = [
+  let Menus = [
     {
       isAdmin: true,
       dualUser: true,
@@ -142,6 +142,97 @@ const Dashboard = () => {
       description: "Manage your account settings",
     },
   ];
+  if (userInfo?.role?.includes("user")) {
+    Menus = [
+      {
+        isAdmin: false,
+        dualUser: true,
+        title: "Home",
+        path: "/",
+        src: <AiFillHome className="w-5 h-5" />,
+        description: "Return to homepage",
+      },
+      
+      {
+        isAdmin: false,
+        title: "Transactions",
+        path: "/dashboard/transactions",
+        src: <FaMoneyCheck className="w-5 h-5" />,
+        description: "View your transaction history",
+      },
+      {
+        isAdmin: false,
+        title: "Transaction History",
+        path: "/dashboard/transaction-history",
+        src: <FaMoneyCheck className="w-5 h-5" />,
+        description: "View detailed transaction history",
+      },
+      {
+        isAdmin: false,
+        title: "Send Money",
+        path: "/dashboard/send-money",
+        src: <FaMoneyCheck className="w-5 h-5" />,
+        description: "Transfer funds to another account",
+      },
+      {
+        isAdmin: false,
+        title: "Budget Management",
+        path: "/dashboard/budget-management",
+        src: <FaMoneyBill className="w-5 h-5" />,
+        description: "Manage your budget",
+      },
+      {
+        isAdmin: false,
+        title: "Investments",
+        path: "/dashboard/investment-portfolio",
+        src: <MdRateReview className="w-5 h-5" />,
+        description: "Manage your investment portfolio",
+      },
+      {
+        isAdmin: false,
+        title: "Loans & Mortgages",
+        path: "/dashboard/loan-and-mortgage-management",
+        src: <FaMoneyCheck className="w-5 h-5" />,
+        description: "Manage your loans and mortgages",
+      },
+      {
+        isAdmin: false,
+        title: "Credit Score",
+        path: "/dashboard/credit-score-and-reports",
+        src: <ImProfile className="w-5 h-5" />,
+        description: "View your credit score and reports",
+      },
+      {
+        isAdmin: false,
+        title: "Insurance",
+        path: "/dashboard/insurance-coverage",
+        src: <FaUsers className="w-5 h-5" />,
+        description: "Manage your insurance coverage",
+      },
+      {
+        isAdmin: false,
+        title: "Recommendations",
+        path: "/dashboard/comparison-and-recommendation",
+        src: <MdRateReview className="w-5 h-5" />,
+        description: "View financial recommendations",
+      },
+      {
+        isAdmin: false,
+        title: "Alerts",
+        path: "/dashboard/alerts-and-notifications",
+        src: <MdRateReview className="w-5 h-5" />,
+        description: "Manage your alerts and notifications",
+      },
+      {
+        isAdmin: false,
+        dualUser: true,
+        title: "Profile",
+        path: "/dashboard/profile",
+        src: <ImProfile className="w-5 h-5" />,
+        description: "Manage your account settings",
+      },
+    ];
+  }
 
   // Fetch accounts for the current user
   return (
@@ -353,7 +444,8 @@ const Dashboard = () => {
 
               {/* Dashboard content */}
               <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-                {userInfo?.role?.includes("user") && (
+                <Outlet />
+                {/* {userInfo?.role?.includes("user") && (
                   <User userInfo={userInfo} />
                 )}
                 {userInfo?.role.length > 1 && "abb"}
@@ -362,7 +454,7 @@ const Dashboard = () => {
                 {dashboardType === "Super Admin" && <SuperAdminDashboard />}
                 {dashboardType === "Account Manager" && (
                   <AccountManagerDashboard />
-                )}
+                )} */}
               </main>
             </div>
           </div>

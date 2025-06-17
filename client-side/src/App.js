@@ -15,12 +15,25 @@ import "react-toastify/dist/ReactToastify.css";
 import LandingPage from "./pages/Dashboard/LandingPage";
 import User from "./pages/Auth/User";
 import Transactions from "./pages/Dashboard/Transactions";
+import UserLanding from "./pages/Dashboard/User/UserLanding";
+import AlertsAndNotifications from "./pages/Dashboard/User/AlertsAndNotifications";
+import BudgetManagement from "./pages/Dashboard/User/BudgetManagement";
+import ComparisonAndRecommendations from "./pages/Dashboard/User/ComparisonAndRecommendations";
+import CreditScoreAndReports from "./pages/Dashboard/User/CreditScoreAndReports";
+import InsuranceCoverage from "./pages/Dashboard/User/InsuranceCoverage";
+import InvestmentPortfolio from "./pages/Dashboard/User/InvestmentPortfolio";
+import LoanAndMortgageManagement from "./pages/Dashboard/User/LoanAndMortgageManagement";
+import TransactionHistory from "./pages/Dashboard/User/TransactionHistory";
+import useUserInfo from "./hooks/useUserInfo";
 
 function App() {
   // Use React Router's location
   const location = useLocation();
   const hideNFPaths = ["/login", "/register", "/dashboard"];
   const showNF = !hideNFPaths.some((path) => location.pathname.includes(path));
+
+  const uId = localStorage.getItem("userId");
+  const { userInfo } = useUserInfo(uId);
 
   // Dark mode state management
   const [darkMode, setDarkMode] = useState(() => {
@@ -42,14 +55,38 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
-        <Route
-          path="/dashboard"
-          element={
-              <Dashboard />
-          }
-        >
-          <Route index element={<User><LandingPage /></User>} />
-          <Route path="transactions" element={<Transactions />} />
+        <Route path="/dashboard" element={<Dashboard />}>
+          <Route
+            index
+            element={
+              <User>
+                <UserLanding userInfo={userInfo} />
+              </User>
+            }
+          />
+          <Route
+            path="alerts-and-notifications"
+            element={<AlertsAndNotifications />}
+          />
+          <Route path="budget-management" element={<BudgetManagement />} />
+          <Route
+            path="comparison-and-recommendation"
+            element={<ComparisonAndRecommendations />}
+          />
+          <Route
+            path="credit-score-and-reports"
+            element={<CreditScoreAndReports />}
+          />
+          <Route path="insurance-coverage" element={<InsuranceCoverage />} />
+          <Route
+            path="investment-portfolio"
+            element={<InvestmentPortfolio />}
+          />
+          <Route
+            path="loan-and-mortgage-management"
+            element={<LoanAndMortgageManagement />}
+          />
+          <Route path="transaction-history" element={<TransactionHistory />} />
 
           {/* <Route path="profile" element={<Profile />} />
           <Route path="balance" element={<Balance />} />
