@@ -2265,8 +2265,8 @@ const UserDashboard = ({ userInfo }) => {
 
     if (isLoading) {
         return (
-            <section className="py-8 md:py-12 lg:py-16 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden">
-                <div className="container mx-auto px-4 max-w-7xl">
+            <section className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden">
+                <div className="container mx-auto max-w-7xl">
                     <div className="animate-pulse">
                         <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
                         <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
@@ -2440,26 +2440,15 @@ const UserDashboard = ({ userInfo }) => {
     ];
 
     return (
-        <section
-            className="mt-8"
-            style={{ fontFamily: "var(--font-sans)", padding: "0", margin: "0 20px" }}
-        >
+        <section>
             <div
-                className="max-w-7xl mx-auto px-4"
-                style={{ padding: "0", margin: "0" }}
+                className="max-w-7xl mx-auto"
             >
-
-
-
-
-
-
-
                 <section
                     ref={sectionRef}
-                    className="py-8 md:py-12 lg:py-16 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden"
+                    className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden"
                 >
-                    <div className="container mx-auto px-4 max-w-7xl">
+                    <div className="container mx-auto p-5 max-w-7xl">
                         {/* Welcome Header */}
                         <div ref={headingRef} className="mb-6 md:mb-8 lg:mb-10">
                             <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 text-gray-800 dark:text-white">
@@ -2545,7 +2534,7 @@ const UserDashboard = ({ userInfo }) => {
                                                         <p className="text-xs font-medium mb-1 text-white/80">
                                                             Valid Thru
                                                         </p>
-                                                        <p className="text-sm md:text-base font-bold">03/25</p>
+                                                        <p className="text-sm md:text-base font-bold">{selectedAccount?.validThru}</p>
                                                     </div>
 
                                                     <div className="flex">
@@ -3078,7 +3067,7 @@ const UserDashboard = ({ userInfo }) => {
 
 
                 {/* BUDGET MANAGEMENT SECTION */}
-                <div className="mt-12">
+                <div className="mt-12 p-5">
                     <div className="flex items-center justify-between mb-6">
                         <h2
                             className="text-2xl font-bold"
@@ -3812,7 +3801,7 @@ const UserDashboard = ({ userInfo }) => {
                 </div>
 
                 {/* Transaction History Section */}
-                <div className="mt-12">
+                <div className="mt-12 p-5">
                     <div className="flex items-center justify-between mb-6">
                         <h2
                             className="text-2xl font-bold"

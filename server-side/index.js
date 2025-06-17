@@ -246,40 +246,49 @@ async function run() {
         const uId = req.query.uId;
 
         if (!uId) {
-          return res.status(400).send({ success: false, message: "User ID is required" });
+          return res
+            .status(400)
+            .send({ success: false, message: "User ID is required" });
         }
 
-        const accounts = await accountsCollection.find({ userId: uId }).toArray();
+        const accounts = await accountsCollection
+          .find({ userId: uId })
+          .toArray();
         res.send({ success: true, accounts });
       } catch (error) {
         console.error("Error fetching accounts:", error);
-        res.status(500).send({ success: false, message: "Internal server error" });
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
       }
     });
 
     app.get("/transactions", verifyJWT, async (req, res) => {
       try {
-      const uId = req.query.uId;
+        const uId = req.query.uId;
 
-      if (!uId) {
-        return res.status(400).send({ success: false, message: "User ID is required" });
-      }
+        if (!uId) {
+          return res
+            .status(400)
+            .send({ success: false, message: "User ID is required" });
+        }
 
-      // If accountId is provided, filter by both userId and accountId
-      const query = { userId: uId };
-      if (req.query.accountId) {
-        query.accountId = req.query.accountId;
-      }
+        // If accountId is provided, filter by both userId and accountId
+        const query = { userId: uId };
+        if (req.query.accountId) {
+          query.accountId = req.query.accountId;
+        }
 
-      // Fetch transactions for the user (and account if provided)
-      const transactions = await transactionsCollection.find(query).toArray();
-      res.send({ success: true, transactions });
+        // Fetch transactions for the user (and account if provided)
+        const transactions = await transactionsCollection.find(query).toArray();
+        res.send({ success: true, transactions });
       } catch (error) {
-      console.error("Failed to fetch transactions:", error);
-      res.status(500).send({ success: false, message: "Failed to fetch transactions" });
+        console.error("Failed to fetch transactions:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Failed to fetch transactions" });
       }
     });
-
 
     app.get("/users", async (req, res) => {
       const query = {};

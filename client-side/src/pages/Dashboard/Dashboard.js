@@ -289,7 +289,7 @@ const Dashboard = () => {
             {/* Main content */}
             <div className="flex-1 overflow-auto">
               {/* Mobile menu button */}
-              <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 shadow-sm">
+              {/* <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 shadow-sm">
                 <div className="flex items-center justify-between p-4">
                   <button
                     onClick={() => setOpen(!open)}
@@ -308,7 +308,7 @@ const Dashboard = () => {
 
                   <div className="flex items-center gap-x-4">
                     {/* Dashboard type dropdown */}
-                    <select
+                    {/* <select
                       value={dashboardType}
                       onChange={(e) => setDashboardType(e.target.value)}
                       className="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-800 text-gray-700 dark:text-white"
@@ -318,10 +318,10 @@ const Dashboard = () => {
                       <option value="Loan Officer">Loan Officer</option>
                       <option value="Account Manager">Account Manager</option>
                       <option value="Super Admin">Super Admin</option>
-                    </select>
+                    </select> */}
 
                     {/* Avatar/Profile */}
-                    <div className="flex items-center gap-2">
+                    {/* <div className="flex items-center gap-2">
                       {userInfo?.profilePhoto ? (
                         <img
                           src={userInfo.profilePhoto}
@@ -338,10 +338,10 @@ const Dashboard = () => {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Dashboard content */}
-              <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
                 {dashboardType === "User" && <UserDashboard userInfo={userInfo} />}
                 {dashboardType === "CSR" && <CSRDashboard />}
                 {dashboardType === "Loan Officer" && <LoanOfficerDashboard />}
