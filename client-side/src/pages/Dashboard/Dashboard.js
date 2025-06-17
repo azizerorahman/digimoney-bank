@@ -17,11 +17,12 @@ import { fetchApprovedUser } from "../../redux/reducers/ApprovedUsersReducers";
 import AccountUnderVerification from "./AccountUnderVerification";
 import LoadingSpinner from "../../components/Loading";
 import Logout from "../Auth/Logout";
-import UserDashboard from "./User";
+import User from "./User";
 import CSRDashboard from "./CSR";
 import LoanOfficerDashboard from "./LoanOfficer";
 import SuperAdminDashboard from "./SuperAdmin";
 import AccountManagerDashboard from "./AccountManager";
+
 const Dashboard = () => {
   const [user] = useAuthState(auth);
   const [open, setOpen] = useState(true);
@@ -353,7 +354,7 @@ const Dashboard = () => {
               {/* Dashboard content */}
               <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
                 {userInfo?.role?.includes("user") && (
-                  <UserDashboard userInfo={userInfo} />
+                  <User userInfo={userInfo} />
                 )}
                 {userInfo?.role.length > 1 && "abb"}
                 {dashboardType === "CSR" && <CSRDashboard />}
