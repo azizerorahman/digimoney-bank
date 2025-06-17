@@ -1,3 +1,4 @@
+import MoneyTransferForm from './MoneyTransferForm';
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -28,6 +29,7 @@ const UserDashboard = ({ userInfo }) => {
     const uId = localStorage.getItem("userId");
     const [accounts, setAccounts] = useState([]);
     const [accountsLoading, setAccountsLoading] = useState(false);
+    const [showTransferForm, setShowTransferForm] = useState(false);
 
     useEffect(() => {
         const fetchAccounts = async () => {
@@ -2191,6 +2193,7 @@ const UserDashboard = ({ userInfo }) => {
             ),
             color:
                 "from-[#6160DC] to-[#514fbd] dark:from-[#8B7EFF] dark:to-[#6160DC]",
+            onClick: () => setShowTransferForm(true),
         },
         {
             name: "Pay Bills",
@@ -2383,6 +2386,18 @@ const UserDashboard = ({ userInfo }) => {
         }
     };
 
+        const handleTransferComplete = (transferDetails) => {
+            console.log('Transfer completed:', transferDetails);
+            // Handle successful transfer (show success message, update balances, etc.)
+            setShowTransferForm(false);
+            
+            // Optional: Show success notification using toast
+            toast.success('Transfer completed successfully!');
+            
+            // Optional: Refresh accounts data
+            // You might want to refetch accounts here to update balances
+        };
+
     // Risk indicator component
     const RiskIndicator = ({ level, score }) => (
         <div className="flex items-center space-x-2">
@@ -2551,19 +2566,20 @@ const UserDashboard = ({ userInfo }) => {
                             {/* Quick Actions - Right Side on Desktop */}
                             <div ref={actionsRef} className="h-full flex flex-col">
                                 <div className="grid grid-cols-2 gap-4 md:gap-6 flex-grow">
-                                    {actions.map((action, index) => (
-                                        <button
-                                            key={index}
-                                            className={`group p-4 md:p-6 rounded-xl bg-gradient-to-br ${action.color} text-white shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex flex-col items-center justify-center h-full`}
-                                        >
-                                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                                                {action.icon}
-                                            </div>
-                                            <div className="text-sm md:text-base font-medium text-center">
-                                                {action.name}
-                                            </div>
-                                        </button>
-                                    ))}
+                                {actions.map((action, index) => (
+    <button
+        key={index}
+        onClick={action.onClick} // Add this onClick handler
+        className={`group p-4 md:p-6 rounded-xl bg-gradient-to-br ${action.color} text-white shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex flex-col items-center justify-center h-full`}
+    >
+        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+            {action.icon}
+        </div>
+        <div className="text-sm md:text-base font-medium text-center">
+            {action.name}
+        </div>
+    </button>
+))}
                                 </div>
                             </div>
                         </div>
@@ -5904,6 +5920,13 @@ const UserDashboard = ({ userInfo }) => {
                         </div>
                     </div>
                 </section>
+                {showTransferForm && (
+                                    <MoneyTransferForm 
+                                        onClose={() => setShowTransferForm(false)}
+                                        onTransferComplete={handleTransferComplete}
+                                        userAccounts={accounts} // Pass your accounts data
+                                    />
+                                )}
             </div>
         </section>
     );
