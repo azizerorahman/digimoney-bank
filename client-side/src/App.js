@@ -25,6 +25,7 @@ import InvestmentPortfolio from "./pages/Dashboard/User/InvestmentPortfolio";
 import LoanAndMortgageManagement from "./pages/Dashboard/User/LoanAndMortgageManagement";
 import TransactionHistory from "./pages/Dashboard/User/TransactionHistory";
 import useUserInfo from "./hooks/useUserInfo";
+import SuperAdminDashboard from "./pages/Dashboard/SuperAdmin";
 
 function App() {
   // Use React Router's location
@@ -60,7 +61,8 @@ function App() {
             index
             element={
               <User>
-                <UserLanding userInfo={userInfo} />
+                {/* <UserLanding userInfo={userInfo} /> */}
+                <SuperAdminDashboard/>
               </User>
             }
           />
