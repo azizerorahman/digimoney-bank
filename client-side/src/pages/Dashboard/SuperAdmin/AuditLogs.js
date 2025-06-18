@@ -1,4 +1,3 @@
-//Spuer admin
 import { useState, useEffect } from "react";
 import {
   Search,
@@ -43,8 +42,6 @@ const AuditLogs = () => {
   const [showSecurityModal, setShowSecurityModal] = useState(false);
   const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [showSecurityEventModal, setShowSecurityEventModal] = useState(false);
-  const [selectedSecurityEvent, setSelectedSecurityEvent] = useState(null);
 
   // Mock data for Super Admin Dashboard
   const superAdminData = {
@@ -1003,125 +1000,6 @@ const AuditLogs = () => {
                     Activate User
                   </button>
                 )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Security Event Details Modal */}
-      {showSecurityEventModal && selectedSecurityEvent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl mx-4">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-black dark:text-white">
-                  Security Event Details
-                </h3>
-                <button
-                  onClick={() => setShowSecurityEventModal(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <XCircle className="h-6 w-6" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Event Type
-                  </label>
-                  <p className="mt-1 text-sm text-black dark:text-white">
-                    {selectedSecurityEvent.type}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Severity
-                  </label>
-                  <span
-                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      selectedSecurityEvent.severity === "High"
-                        ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                        : selectedSecurityEvent.severity === "Medium"
-                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                        : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                    }`}
-                  >
-                    {selectedSecurityEvent.severity}
-                  </span>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                    User
-                  </label>
-                  <p className="mt-1 text-sm text-black dark:text-white">
-                    {selectedSecurityEvent.user}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Timestamp
-                  </label>
-                  <p className="mt-1 text-sm text-black dark:text-white">
-                    {selectedSecurityEvent.timestamp}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                    IP Address
-                  </label>
-                  <p className="mt-1 text-sm text-black dark:text-white">
-                    {selectedSecurityEvent.ipAddress || "N/A"}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Status
-                  </label>
-                  <span
-                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      selectedSecurityEvent.status === "Resolved"
-                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                        : selectedSecurityEvent.status === "In Progress"
-                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                        : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                    }`}
-                  >
-                    {selectedSecurityEvent.status}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Event Description
-                </label>
-                <p className="mt-2 text-sm text-black dark:text-white bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                  {selectedSecurityEvent.description ||
-                    "No additional details available for this security event."}
-                </p>
-              </div>
-
-              <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Actions Taken
-                </label>
-                <p className="mt-2 text-sm text-black dark:text-white bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                  {selectedSecurityEvent.actionsTaken ||
-                    "No actions recorded for this event."}
-                </p>
-              </div>
-
-              <div className="flex justify-end mt-6">
-                <button
-                  onClick={() => setShowSecurityEventModal(false)}
-                  className="px-4 py-2 bg-gray-600 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600"
-                >
-                  Close
-                </button>
               </div>
             </div>
           </div>

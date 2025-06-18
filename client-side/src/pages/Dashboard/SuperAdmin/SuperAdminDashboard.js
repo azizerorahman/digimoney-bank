@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import {
   Search, User, Users, DollarSign, TrendingUp,
-  FileText, AlertTriangle,
-  XCircle, BarChart3, Target,
+  FileText, Settings, AlertTriangle,
+  XCircle, BarChart3, 
+  CreditCard,
   Edit, Download,
   ArrowUp, ArrowRight, Shield,
-  Activity, Award,
+  Activity, 
   ArrowLeft, Server, 
   UserCheck, UserX, RefreshCw,
   Key, 
@@ -13,7 +14,7 @@ import {
   UserPlus, Save
 } from 'lucide-react';
 
-const FinancialReports = () => {
+const SuperAdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -586,22 +587,22 @@ const FinancialReports = () => {
       {/* Main Content */}
       <div className="py-6">
           <div className="space-y-6">
-            {/* Financial Overview */}
+            {/* Bank-wide Metrics */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Revenue</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Deposits</p>
                     <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                      {formatCurrency(superAdminData.financialReporting.profitLoss.totalRevenue)}
+                      {formatCurrency(superAdminData.systemOverview.bankWideMetrics.totalDeposits)}
                     </p>
                   </div>
-                  <TrendingUp className="h-8 w-8 text-green-600 dark:text-green-400" />
+                  <DollarSign className="h-8 w-8 text-green-600 dark:text-green-400" />
                 </div>
                 <div className="mt-2">
                   <div className="flex items-center">
                     <ArrowUp className="h-4 w-4 text-green-600 dark:text-green-400" />
-                    <span className="text-sm text-green-600 dark:text-green-400 ml-1">+12.5% YoY</span>
+                    <span className="text-sm text-green-600 dark:text-green-400 ml-1">+5.2% from last month</span>
                   </div>
                 </div>
               </div>
@@ -609,17 +610,17 @@ const FinancialReports = () => {
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Net Income</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Loans</p>
                     <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      {formatCurrency(superAdminData.financialReporting.profitLoss.netIncome)}
+                      {formatCurrency(superAdminData.systemOverview.bankWideMetrics.totalLoans)}
                     </p>
                   </div>
-                  <DollarSign className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                  <CreditCard className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div className="mt-2">
                   <div className="flex items-center">
                     <ArrowUp className="h-4 w-4 text-green-600 dark:text-green-400" />
-                    <span className="text-sm text-green-600 dark:text-green-400 ml-1">+8.2% YoY</span>
+                    <span className="text-sm text-green-600 dark:text-green-400 ml-1">+3.8% from last month</span>
                   </div>
                 </div>
               </div>
@@ -627,168 +628,196 @@ const FinancialReports = () => {
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">ROA</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Active Accounts</p>
                     <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                      {superAdminData.financialReporting.performanceMetrics.roa}%
+                      {formatNumber(superAdminData.systemOverview.bankWideMetrics.activeAccounts)}
                     </p>
                   </div>
-                  <Target className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                  <Users className="h-8 w-8 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div className="mt-2">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Return on Assets</div>
+                  <div className="flex items-center">
+                    <ArrowUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <span className="text-sm text-green-600 dark:text-green-400 ml-1">+2.1% from last month</span>
+                  </div>
                 </div>
               </div>
 
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">ROE</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Net Profit</p>
                     <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                      {superAdminData.financialReporting.performanceMetrics.roe}%
+                      {formatCurrency(superAdminData.systemOverview.bankWideMetrics.netProfit)}
                     </p>
                   </div>
-                  <Award className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+                  <TrendingUp className="h-8 w-8 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div className="mt-2">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Return on Equity</div>
+                  <div className="flex items-center">
+                    <ArrowUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <span className="text-sm text-green-600 dark:text-green-400 ml-1">+8.5% from last month</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Profit & Loss Statement */}
+            {/* System Health Monitoring */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-black dark:text-white mb-4">System Health</h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Server Uptime</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div
+                          className="bg-green-600 dark:bg-green-400 h-2 rounded-full"
+                          style={{ width: `${superAdminData.systemOverview.systemHealth.serverUptime}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-medium text-black dark:text-white w-12">
+                        {superAdminData.systemOverview.systemHealth.serverUptime}%
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">CPU Usage</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full ${superAdminData.systemOverview.systemHealth.cpuUsage > 80
+                              ? 'bg-red-600 dark:bg-red-400'
+                              : superAdminData.systemOverview.systemHealth.cpuUsage > 60
+                                ? 'bg-yellow-600 dark:bg-yellow-400'
+                                : 'bg-green-600 dark:bg-green-400'
+                            }`}
+                          style={{ width: `${superAdminData.systemOverview.systemHealth.cpuUsage}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-medium text-black dark:text-white w-12">
+                        {superAdminData.systemOverview.systemHealth.cpuUsage}%
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Memory Usage</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full ${superAdminData.systemOverview.systemHealth.memoryUsage > 80
+                              ? 'bg-red-600 dark:bg-red-400'
+                              : superAdminData.systemOverview.systemHealth.memoryUsage > 60
+                                ? 'bg-yellow-600 dark:bg-yellow-400'
+                                : 'bg-green-600 dark:bg-green-400'
+                            }`}
+                          style={{ width: `${superAdminData.systemOverview.systemHealth.memoryUsage}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-medium text-black dark:text-white w-12">
+                        {superAdminData.systemOverview.systemHealth.memoryUsage}%
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Disk Usage</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full"
+                          style={{ width: `${superAdminData.systemOverview.systemHealth.diskUsage}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-medium text-black dark:text-white w-12">
+                        {superAdminData.systemOverview.systemHealth.diskUsage}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Performance Metrics</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      {superAdminData.systemOverview.systemHealth.avgResponseTime}ms
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Avg Response Time</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      {superAdminData.systemOverview.systemHealth.errorRate}%
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Error Rate</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                      {formatNumber(superAdminData.systemOverview.systemHealth.transactionThroughput)}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Transactions/min</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                      {superAdminData.systemOverview.systemHealth.networkLatency}ms
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Network Latency</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Activity Summary */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Profit & Loss Statement</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-medium text-green-600 dark:text-green-400 mb-3">Revenue</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Interest Income</span>
-                      <span className="text-sm font-medium text-black dark:text-white">
-                        {formatCurrency(superAdminData.financialReporting.profitLoss.interestIncome)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Fee Income</span>
-                      <span className="text-sm font-medium text-black dark:text-white">
-                        {formatCurrency(superAdminData.financialReporting.profitLoss.feeIncome)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-2">
-                      <span className="text-sm font-medium text-black dark:text-white">Total Revenue</span>
-                      <span className="text-sm font-bold text-green-600 dark:text-green-400">
-                        {formatCurrency(superAdminData.financialReporting.profitLoss.totalRevenue)}
-                      </span>
-                    </div>
+              <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Recent Activity Summary</h3>
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div className="text-center">
+                  <div className="bg-blue-100 dark:bg-blue-900/20 rounded-full p-3 w-12 h-12 mx-auto mb-2 flex items-center justify-center">
+                    <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                   </div>
+                  <p className="text-lg font-semibold text-black dark:text-white">
+                    {formatNumber(superAdminData.systemOverview.recentActivity.totalLogins)}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Logins Today</p>
                 </div>
-
-                <div>
-                  <h4 className="font-medium text-red-600 dark:text-red-400 mb-3">Expenses</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Operating Expenses</span>
-                      <span className="text-sm font-medium text-black dark:text-white">
-                        {formatCurrency(superAdminData.financialReporting.profitLoss.operatingExpenses)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Provision for Losses</span>
-                      <span className="text-sm font-medium text-black dark:text-white">
-                        {formatCurrency(superAdminData.financialReporting.profitLoss.provisionForLosses)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-2">
-                      <span className="text-sm font-medium text-black dark:text-white">Total Expenses</span>
-                      <span className="text-sm font-bold text-red-600 dark:text-red-400">
-                        {formatCurrency(superAdminData.financialReporting.profitLoss.totalExpenses)}
-                      </span>
-                    </div>
+                <div className="text-center">
+                  <div className="bg-red-100 dark:bg-red-900/20 rounded-full p-3 w-12 h-12 mx-auto mb-2 flex items-center justify-center">
+                    <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
                   </div>
+                  <p className="text-lg font-semibold text-black dark:text-white">
+                    {superAdminData.systemOverview.recentActivity.failedLogins}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Failed Logins</p>
                 </div>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold text-black dark:text-white">Net Income</span>
-                  <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                    {formatCurrency(superAdminData.financialReporting.profitLoss.netIncome)}
-                  </span>
+                <div className="text-center">
+                  <div className="bg-green-100 dark:bg-green-900/20 rounded-full p-3 w-12 h-12 mx-auto mb-2 flex items-center justify-center">
+                    <UserPlus className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <p className="text-lg font-semibold text-black dark:text-white">
+                    {superAdminData.systemOverview.recentActivity.newAccounts}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">New Accounts</p>
                 </div>
-              </div>
-            </div>
-
-            {/* Risk Management */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Credit Risk</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Total Exposure</span>
-                    <span className="text-sm font-medium text-black dark:text-white">
-                      {formatCurrency(superAdminData.financialReporting.riskManagement.creditRisk.totalExposure)}
-                    </span>
+                <div className="text-center">
+                  <div className="bg-orange-100 dark:bg-orange-900/20 rounded-full p-3 w-12 h-12 mx-auto mb-2 flex items-center justify-center">
+                    <Shield className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">NPL Ratio</span>
-                    <span className="text-sm font-medium text-red-600 dark:text-red-400">
-                      {superAdminData.financialReporting.riskManagement.creditRisk.nplRatio}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Provisioning</span>
-                    <span className="text-sm font-medium text-black dark:text-white">
-                      {formatCurrency(superAdminData.financialReporting.riskManagement.creditRisk.provisioning)}
-                    </span>
-                  </div>
+                  <p className="text-lg font-semibold text-black dark:text-white">
+                    {superAdminData.systemOverview.recentActivity.suspiciousActivities}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Security Alerts</p>
                 </div>
-              </div>
-
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Market Risk</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">VaR (95%)</span>
-                    <span className="text-sm font-medium text-black dark:text-white">
-                      {formatCurrency(superAdminData.financialReporting.riskManagement.marketRisk.var95)}
-                    </span>
+                <div className="text-center">
+                  <div className="bg-purple-100 dark:bg-purple-900/20 rounded-full p-3 w-12 h-12 mx-auto mb-2 flex items-center justify-center">
+                    <Settings className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Interest Rate Risk</span>
-                    <span className="text-sm font-medium text-black dark:text-white">
-                      {formatCurrency(superAdminData.financialReporting.riskManagement.marketRisk.interestRateRisk)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Currency Risk</span>
-                    <span className="text-sm font-medium text-black dark:text-white">
-                      {formatCurrency(superAdminData.financialReporting.riskManagement.marketRisk.currencyRisk)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Capital Adequacy</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Capital Ratio</span>
-                    <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                      {superAdminData.financialReporting.capitalAdequacy.capitalRatio}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Tier 1 Ratio</span>
-                    <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                      {superAdminData.financialReporting.capitalAdequacy.tier1Ratio}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Leverage Ratio</span>
-                    <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                      {superAdminData.financialReporting.capitalAdequacy.leverageRatio}%
-                    </span>
-                  </div>
+                  <p className="text-lg font-semibold text-black dark:text-white">
+                    {superAdminData.systemOverview.recentActivity.systemChanges}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">System Changes</p>
                 </div>
               </div>
             </div>
@@ -1548,4 +1577,4 @@ const FinancialReports = () => {
 };
 
 
-export default FinancialReports;
+export default SuperAdminDashboard;

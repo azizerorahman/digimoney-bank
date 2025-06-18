@@ -9,22 +9,25 @@ import {
   DollarSign,
   Upload,
   Download,
+  Mail,
+  Phone,
   Eye,
+  Edit,
   ArrowUp,
   ArrowDown,
-  Filter,
   CreditCard,
   Building,
   Home,
   Car,
   GraduationCap,
   Flag,
+  MessageSquare,
   MapPin,
   Briefcase,
   Users,
 } from "lucide-react";
 
-const ApplicationPipeline = () => {
+const LOCommunications = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -32,8 +35,6 @@ const ApplicationPipeline = () => {
   const [showApplicationDetails, setShowApplicationDetails] = useState(false);
   const [showDocumentViewer, setShowDocumentViewer] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState(null);
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [filterLoanType, setFilterLoanType] = useState("all");
   // Add these two new state variables after your existing useState declarations
   const [showNewApplicationModal, setShowNewApplicationModal] = useState(false);
   const [newApplicationData, setNewApplicationData] = useState({
@@ -1351,29 +1352,6 @@ const ApplicationPipeline = () => {
     alert("Export Report feature - would generate and download report");
   };
 
-  // Filter applications
-  const filteredApplications = loanOfficerData.loanApplications.filter(
-    (app) => {
-      // First filter by status and loan type
-      const statusMatch =
-        filterStatus === "all" ||
-        app.status.toLowerCase().includes(filterStatus.toLowerCase());
-      const typeMatch =
-        filterLoanType === "all" ||
-        app.loanType.toLowerCase().includes(filterLoanType.toLowerCase());
-
-      // Then filter by search query
-      const searchMatch =
-        searchQuery === "" ||
-        app.applicantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        app.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        app.applicantId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        app.loanType.toLowerCase().includes(searchQuery.toLowerCase());
-
-      return statusMatch && typeMatch && searchMatch;
-    }
-  );
-
   // Application Details Modal Component
   const ApplicationDetailsModal = ({ isOpen, onClose, application }) => {
     if (!isOpen || !application) return null;
@@ -1977,111 +1955,205 @@ const ApplicationPipeline = () => {
         {/* Navigation Tabs */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-6">
           <div className="p-6">
-            {/* Application Pipeline Tab */}
+            {/* Communications Tab */}
             <div className="space-y-6">
-              {/* Filters */}
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Filter className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                  <select
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  >
-                    <option value="all">All Status</option>
-                    <option value="in review">In Review</option>
-                    <option value="pending approval">Pending Approval</option>
-                    <option value="flagged">Flagged</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                  </select>
-                </div>
-                <select
-                  value={filterLoanType}
-                  onChange={(e) => setFilterLoanType(e.target.value)}
-                  className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                >
-                  <option value="all">All Loan Types</option>
-                  <option value="mortgage">Mortgage</option>
-                  <option value="auto">Auto Loan</option>
-                  <option value="personal">Personal Loan</option>
-                  <option value="business">Business Loan</option>
-                </select>
-              </div>
-
-              {/* Pipeline Overview Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                {[
-                  {
-                    status: "New Applications",
-                    count: 8,
-                    color:
-                      "bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400",
-                  },
-                  {
-                    status: "In Review",
-                    count: 15,
-                    color:
-                      "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400",
-                  },
-                  {
-                    status: "Pending Approval",
-                    count: 6,
-                    color:
-                      "bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-400",
-                  },
-                  {
-                    status: "Approved",
-                    count: 23,
-                    color:
-                      "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400",
-                  },
-                  {
-                    status: "Flagged",
-                    count: 3,
-                    color:
-                      "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400",
-                  },
-                ].map((item, index) => (
-                  <div
-                    key={index}
-                    className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center"
-                  >
-                    <div
-                      className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${item.color} mb-2`}
-                    >
-                      {item.status}
+              {/* Communication Summary */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-black dark:text-white">
+                        Today's Contacts
+                      </p>
+                      <p className="text-2xl font-bold text-black dark:text-white">
+                        18
+                      </p>
                     </div>
-                    <div className="text-2xl font-bold text-black dark:text-white">
-                      {item.count}
-                    </div>
+                    <Phone className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                   </div>
-                ))}
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-black dark:text-white">
+                        Pending Responses
+                      </p>
+                      <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                        5
+                      </p>
+                    </div>
+                    <Mail className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-black dark:text-white">
+                        Follow-ups Due
+                      </p>
+                      <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                        3
+                      </p>
+                    </div>
+                    <Clock className="h-8 w-8 text-red-600 dark:text-red-400" />
+                  </div>
+                </div>
               </div>
 
-              {/* Applications Table */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+              {/* Communication Tools */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                  <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
+                    Quick Communication
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                        Select Applicant
+                      </label>
+                      <select className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white">
+                        <option>John Smith - APP-2024-001</option>
+                        <option>Maria Garcia - APP-2024-002</option>
+                        <option>David Chen - APP-2024-003</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                        Communication Type
+                      </label>
+                      <div className="flex space-x-4">
+                        <button className="flex items-center space-x-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 rounded-lg">
+                          <Mail className="h-4 w-4" />
+                          <span>Email</span>
+                        </button>
+                        <button className="flex items-center space-x-2 px-4 py-2 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400 rounded-lg">
+                          <Phone className="h-4 w-4" />
+                          <span>Phone</span>
+                        </button>
+                        <button className="flex items-center space-x-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-400 rounded-lg">
+                          <MessageSquare className="h-4 w-4" />
+                          <span>SMS</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                        Template
+                      </label>
+                      <select className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white">
+                        <option>Application Status Update</option>
+                        <option>Document Request</option>
+                        <option>Approval Notification</option>
+                        <option>Additional Information Required</option>
+                        <option>Loan Agreement Ready</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                        Message
+                      </label>
+                      <textarea
+                        rows="4"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
+                        placeholder="Your message here..."
+                      />
+                    </div>
+
+                    <button className="w-full bg-blue-600 dark:bg-blue-700 text-white py-2 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600">
+                      Send Communication
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                  <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
+                    Communication Templates
+                  </h3>
+                  <div className="space-y-3">
+                    {[
+                      {
+                        title: "Application Received",
+                        description: "Confirmation of loan application receipt",
+                        usage: "12 times this week",
+                      },
+                      {
+                        title: "Document Request",
+                        description: "Request for additional documentation",
+                        usage: "8 times this week",
+                      },
+                      {
+                        title: "Approval Notification",
+                        description: "Loan approval with next steps",
+                        usage: "15 times this week",
+                      },
+                      {
+                        title: "Conditional Approval",
+                        description: "Approval pending conditions",
+                        usage: "6 times this week",
+                      },
+                      {
+                        title: "Application Declined",
+                        description: "Loan decline with explanation",
+                        usage: "3 times this week",
+                      },
+                    ].map((template, index) => (
+                      <div
+                        key={index}
+                        className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium text-black dark:text-white">
+                              {template.title}
+                            </div>
+                            <div className="text-sm text-black dark:text-white">
+                              {template.description}
+                            </div>
+                            <div className="text-xs text-black dark:text-white mt-1">
+                              {template.usage}
+                            </div>
+                          </div>
+                          <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
+                            <Edit className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button className="mt-4 w-full bg-gray-600 dark:bg-gray-700 text-white py-2 px-4 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600">
+                    Create New Template
+                  </button>
+                </div>
+              </div>
+
+              {/* Recent Communications */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
+                  Recent Communications
+                </h3>
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
+                          Date/Time
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
                           Applicant
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                          Loan Details
+                          Type
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                          Credit Score
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                          Risk Level
+                          Subject
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
                           Status
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                          SLA
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
                           Actions
@@ -2089,109 +2161,184 @@ const ApplicationPipeline = () => {
                       </tr>
                     </thead>
                     <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                      {filteredApplications.map((application) => (
+                      {[
+                        {
+                          date: "2024-06-04 09:15",
+                          applicant: "John Smith",
+                          type: "Email",
+                          subject: "Document Request - Property Appraisal",
+                          status: "Sent",
+                          direction: "Outbound",
+                        },
+                        {
+                          date: "2024-06-04 08:45",
+                          applicant: "Maria Garcia",
+                          type: "Phone",
+                          subject: "Loan Status Inquiry",
+                          status: "Completed",
+                          direction: "Inbound",
+                        },
+                        {
+                          date: "2024-06-03 16:30",
+                          applicant: "David Chen",
+                          type: "Email",
+                          subject: "Additional Income Verification Required",
+                          status: "Pending Response",
+                          direction: "Outbound",
+                        },
+                        {
+                          date: "2024-06-03 14:20",
+                          applicant: "Lisa Anderson",
+                          type: "SMS",
+                          subject: "Loan Approved - Next Steps",
+                          status: "Delivered",
+                          direction: "Outbound",
+                        },
+                        {
+                          date: "2024-06-03 11:15",
+                          applicant: "Michael Brown",
+                          type: "Phone",
+                          subject: "Payment Schedule Discussion",
+                          status: "Completed",
+                          direction: "Outbound",
+                        },
+                      ].map((comm, index) => (
                         <tr
-                          key={application.id}
+                          key={index}
                           className="hover:bg-gray-50 dark:hover:bg-gray-700"
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div>
-                                <div className="text-sm font-medium text-black dark:text-white">
-                                  {application.applicantName}
-                                </div>
-                                <div className="text-sm text-black dark:text-white">
-                                  {application.id}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center space-x-2">
-                              {getLoanTypeIcon(application.loanType)}
-                              <div>
-                                <div className="text-sm font-medium text-black dark:text-white">
-                                  {application.loanType}
-                                </div>
-                                <div className="text-sm text-black dark:text-white">
-                                  ${application.amount.toLocaleString()}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center space-x-2">
-                              <span className="text-sm font-medium text-black dark:text-white">
-                                {application.creditScore}
-                              </span>
-                              {application.creditTrend === "up" ? (
-                                <ArrowUp className="h-4 w-4 text-green-500" />
-                              ) : application.creditTrend === "down" ? (
-                                <ArrowDown className="h-4 w-4 text-red-500" />
-                              ) : null}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`text-sm font-medium ${getRiskColor(
-                                application.riskLevel
-                              )}`}
-                            >
-                              {application.riskLevel}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                                application.status
-                              )}`}
-                            >
-                              {application.status}
-                            </span>
-                            {application.flags &&
-                              application.flags.length > 0 && (
-                                <Flag className="h-4 w-4 text-red-500 ml-2 inline" />
-                              )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-black dark:text-white">
-                              <div
-                                className={`font-medium ${
-                                  application.daysInProcess >= 7
-                                    ? "text-red-600 dark:text-red-400"
-                                    : application.daysInProcess >= 5
-                                    ? "text-yellow-600 dark:text-yellow-400"
-                                    : "text-green-600 dark:text-green-400"
-                                }`}
-                              >
-                                {application.daysInProcess} days
-                              </div>
-                              <div className="text-xs">
-                                {application.slaDeadline}
-                              </div>
+                              {comm.date}
                             </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-black dark:text-white">
+                              {comm.applicant}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center space-x-2">
+                              {comm.type === "Email" && (
+                                <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                              )}
+                              {comm.type === "Phone" && (
+                                <Phone className="h-4 w-4 text-green-600 dark:text-green-400" />
+                              )}
+                              {comm.type === "SMS" && (
+                                <MessageSquare className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                              )}
+                              <span className="text-sm text-black dark:text-white">
+                                {comm.type}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-black dark:text-white">
+                              {comm.subject}
+                            </div>
+                            <div className="text-xs text-black dark:text-white">
+                              {comm.direction}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span
+                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                comm.status === "Sent" ||
+                                comm.status === "Delivered" ||
+                                comm.status === "Completed"
+                                  ? "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400"
+                                  : comm.status === "Pending Response"
+                                  ? "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400"
+                                  : "bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
+                              }`}
+                            >
+                              {comm.status}
+                            </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button
-                              onClick={() => {
-                                setSelectedApplication(application);
-                                setShowApplicationDetails(true);
-                              }}
-                              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mr-3"
-                            >
+                            <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mr-3">
                               <Eye className="h-4 w-4" />
                             </button>
-                            <button className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 mr-3">
-                              <CheckCircle className="h-4 w-4" />
-                            </button>
-                            <button className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
-                              <XCircle className="h-4 w-4" />
+                            <button className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300">
+                              Reply
                             </button>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </div>
+
+              {/* Scheduled Follow-ups */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
+                  Scheduled Follow-ups
+                </h3>
+                <div className="space-y-3">
+                  {[
+                    {
+                      applicant: "David Chen",
+                      application: "APP-2024-003",
+                      followUp: "Check on additional income documentation",
+                      dueDate: "2024-06-05",
+                      priority: "High",
+                    },
+                    {
+                      applicant: "Jennifer Wilson",
+                      application: "APP-2024-015",
+                      followUp: "Verify employment status change",
+                      dueDate: "2024-06-06",
+                      priority: "Medium",
+                    },
+                    {
+                      applicant: "Robert Johnson",
+                      application: "APP-2024-008",
+                      followUp: "Property appraisal results review",
+                      dueDate: "2024-06-07",
+                      priority: "Low",
+                    },
+                  ].map((followUp, index) => (
+                    <div
+                      key={index}
+                      className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border-l-4 border-blue-400 dark:border-blue-500"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="font-medium text-black dark:text-white">
+                            {followUp.applicant}
+                          </div>
+                          <div className="text-sm text-black dark:text-white">
+                            {followUp.application}
+                          </div>
+                          <div className="text-sm text-black dark:text-white mt-1">
+                            {followUp.followUp}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm text-black dark:text-white">
+                            {followUp.dueDate}
+                          </div>
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(
+                              followUp.priority
+                            )}`}
+                          >
+                            {followUp.priority}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex space-x-2">
+                        <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm">
+                          Complete
+                        </button>
+                        <button className="text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-sm">
+                          Reschedule
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -2249,4 +2396,4 @@ const ApplicationPipeline = () => {
   );
 };
 
-export default ApplicationPipeline;
+export default LOCommunications;

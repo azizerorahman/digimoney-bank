@@ -490,7 +490,7 @@ export const customerSearchResults = [
 ];
 
 // CSRDashboard.jsx (Updated with Dark Mode Support and New Features)
-const CustomerProfile = () => {
+const CSRCustomerProfile = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(csrDashboardData.activeCustomer);
@@ -1288,4 +1288,4 @@ const CustomerProfile = () => {
     </div>
   );
 };
-export default CustomerProfile;
+export default CSRCustomerProfile;

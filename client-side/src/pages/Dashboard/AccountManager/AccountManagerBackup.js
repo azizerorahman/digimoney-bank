@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { 
   Search, User, Users, DollarSign, TrendingUp, 
-  Calendar, Phone, Mail, FileText, 
-  XCircle, Target,
-  MessageSquare, Video, Plus, 
-  ArrowRight, MapPin, 
-  Zap, ArrowUpDown} from 'lucide-react';
+  Calendar, Phone, Mail, FileText, AlertTriangle,
+  CheckCircle, XCircle, Clock, BarChart3, Target,
+  Briefcase, 
+  MessageSquare, Video, Edit, Plus, Filter, 
+  ArrowUp, ArrowRight, MapPin, 
+  Activity, Zap, Award, ArrowUpDown,Eye,Flag,ArrowLeft
+} from 'lucide-react';
 
-const Communications = () => {
+const AccountManagerDashboard = () => {
+  const [activeTab, setActiveTab] = useState('portfolio');
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -15,6 +18,8 @@ const Communications = () => {
   const [showCustomerDetails, setShowCustomerDetails] = useState(false);
   const [showMeetingModal, setShowMeetingModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [filterTimeframe, setFilterTimeframe] = useState('1M');
+  const [filterAccountType, setFilterAccountType] = useState('all');
   const [isQuickActionsCollapsed, setIsQuickActionsCollapsed] = useState(false);
   const [showNewCustomerModal, setShowNewCustomerModal] = useState(false);
 
@@ -552,6 +557,14 @@ const [newCustomerData, setNewCustomerData] = useState({
     }
   };
 
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'High': return 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400';
+      case 'Medium': return 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400';
+      case 'Low': return 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400';
+      default: return 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white';
+    }
+  };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -622,6 +635,18 @@ const [newCustomerData, setNewCustomerData] = useState({
     });
     setShowNewCustomerModal(false);
   };  
+
+  // Add this function to handle alert actions
+  const handleAlertAction = (alertId) => {
+    console.log('Taking action on alert:', alertId);
+    // Add your alert action logic here
+  };
+  
+  // Add this function to handle alert dismissal
+  const handleDismissAlert = (alertId) => {
+    console.log('Dismissing alert:', alertId);
+    // Add your alert dismissal logic here
+  };
 
   // Search functionality
   const handleSearch = (query) => {
@@ -1033,10 +1058,476 @@ const [newCustomerData, setNewCustomerData] = useState({
         </div>
       </div>
 
+      {/* Navigation Tabs */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="px-6">
+          <nav className="flex space-x-8">
+            {[
+              { id: 'portfolio', label: 'Customer Portfolio', icon: Users },
+              { id: 'investments', label: 'Investment Performance', icon: TrendingUp },
+              { id: 'transactions', label: 'Transaction Alerts', icon: AlertTriangle },
+              { id: 'communications', label: 'Communications', icon: MessageSquare },
+              { id: 'revenue', label: 'Revenue Analytics', icon: BarChart3 },
+              { id: 'calendar', label: 'Calendar & Meetings', icon: Calendar }
+            ].map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === tab.id
+                      ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{tab.label}</span>
+                  </button>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
+
       {/* Main Content */}
       <div className="px-6 py-6">
+        {/* Customer Portfolio Tab */}
+        {activeTab === 'portfolio' && (
+          <div className="space-y-6">
+            {/* Portfolio Overview Cards */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {accountManagerData.customerPortfolio.map(customer => (
+                <div key={customer.customerId} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-black dark:text-white">{customer.name}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{customer.customerId}</p>
+                    </div>
+                    <span className={`px-2 py-1 rounded-full text-xs ${getCustomerTypeColor(customer.type)}`}>
+                      {customer.type}
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Total Value:</span>
+                      <span className="font-semibold text-black dark:text-white">{formatCurrency(customer.totalValue)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Monthly Revenue:</span>
+                      <span className="font-semibold text-green-600 dark:text-green-400">{formatCurrency(customer.monthlyRevenue)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Risk Profile:</span>
+                      <span className={`font-semibold ${getRiskColor(customer.riskProfile)}`}>{customer.riskProfile}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Accounts:</span>
+                      <span className="font-semibold text-black dark:text-white">{customer.accounts.length}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Account Summary */}
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <h4 className="text-sm font-medium text-black dark:text-white mb-2">Accounts</h4>
+                    <div className="space-y-2">
+                      {customer.accounts.slice(0, 2).map((account, idx) => (
+                        <div key={idx} className="flex justify-between text-sm">
+                          <span className="text-gray-600 dark:text-gray-400">{account.type}</span>
+                          <span className={`font-medium ${account.balance < 0 ? 'text-red-600 dark:text-red-400' : 'text-black dark:text-white'}`}>
+                            {formatCurrency(Math.abs(account.balance))}
+                          </span>
+                        </div>
+                      ))}
+                      {customer.accounts.length > 2 && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          +{customer.accounts.length - 2} more accounts
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Alerts */}
+                  {customer.alerts.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      {customer.alerts.map((alert, idx) => (
+                        <div key={idx} className={`p-2 rounded-lg text-xs ${getPriorityColor(alert.priority)}`}>
+                          {alert.message}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Action Buttons */}
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex space-x-2">
+                    <button
+                      onClick={() => selectCustomer(customer)}
+                      className="flex-1 bg-blue-600 dark:bg-blue-700 text-white py-2 px-3 rounded-lg text-sm hover:bg-blue-700 dark:hover:bg-blue-600"
+                    >
+                      View Details
+                    </button>
+                    <button className="bg-gray-200 dark:bg-gray-700 text-black dark:text-white py-2 px-3 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-600">
+                      <Phone className="h-4 w-4" />
+                    </button>
+                    <button className="bg-gray-200 dark:bg-gray-700 text-black dark:text-white py-2 px-3 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-600">
+                      <Mail className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+          </div>
+        )}
+
+        {/* Investment Performance Tab */}
+        {activeTab === 'investments' && (
+          <div className="space-y-6">
+            {/* Performance Overview */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Total AUM</p>
+                    <p className="text-2xl font-bold text-black dark:text-white">
+                      {formatCurrency(accountManagerData.investmentPerformance.portfolioSummary.totalAUM)}
+                    </p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+              
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">YTD Return</p>
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      +{accountManagerData.investmentPerformance.portfolioSummary.ytdReturn}%
+                    </p>
+                  </div>
+                  <ArrowUp className="h-8 w-8 text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+              
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Monthly Return</p>
+                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      +{accountManagerData.investmentPerformance.portfolioSummary.monthlyReturn}%
+                    </p>
+                  </div>
+                  <Activity className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
+              
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">vs Benchmark</p>
+                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                      +{(accountManagerData.investmentPerformance.portfolioSummary.ytdReturn - accountManagerData.investmentPerformance.portfolioSummary.benchmark).toFixed(1)}%
+                    </p>
+                  </div>
+                  <Target className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                </div>
+              </div>
+            </div>
+            
+            {/* Asset Allocation Chart */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Asset Allocation</h3>
+                <div className="space-y-4">
+                  {Object.entries(accountManagerData.investmentPerformance.assetAllocation).map(([asset, percentage]) => (
+                    <div key={asset} className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400 capitalize">{asset}</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                          <div
+                            className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-black dark:text-white w-8">{percentage}%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Top Performers */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Top Performers</h3>
+                <div className="space-y-4">
+                  {accountManagerData.investmentPerformance.topPerformers.map((fund, idx) => (
+                    <div key={idx} className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-black dark:text-white">{fund.name}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{fund.allocation}% allocation</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-green-600 dark:text-green-400">+{fund.return}%</p>
+                        <div className="flex items-center">
+                          <ArrowUp className="h-3 w-3 text-green-600 dark:text-green-400" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* Risk Metrics */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Risk Metrics</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Portfolio Risk</p>
+                  <p className="text-lg font-semibold text-yellow-600 dark:text-yellow-400">
+                    {accountManagerData.investmentPerformance.riskMetrics.portfolioRisk}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Sharpe Ratio</p>
+                  <p className="text-lg font-semibold text-black dark:text-white">
+                    {accountManagerData.investmentPerformance.riskMetrics.sharpeRatio}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Max Drawdown</p>
+                  <p className="text-lg font-semibold text-red-600 dark:text-red-400">
+                    {accountManagerData.investmentPerformance.riskMetrics.maxDrawdown}%
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Volatility</p>
+                  <p className="text-lg font-semibold text-black dark:text-white">
+                    {accountManagerData.investmentPerformance.riskMetrics.volatility}%
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Transaction Alerts Tab */}
+        {activeTab === 'transactions' && (
+          <div className="space-y-6">
+            {/* Alerts Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-red-600 dark:text-red-400">High Priority</p>
+                    <p className="text-2xl font-bold text-red-700 dark:text-red-300">
+                      {accountManagerData.alerts.filter(alert => alert.priority === 'High').length}
+                    </p>
+                  </div>
+                  <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
+                </div>
+              </div>
+              
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-yellow-600 dark:text-yellow-400">Medium Priority</p>
+                    <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">
+                      {accountManagerData.alerts.filter(alert => alert.priority === 'Medium').length}
+                    </p>
+                  </div>
+                  <Clock className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-blue-600 dark:text-blue-400">Recent Transactions</p>
+                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                      {accountManagerData.recentTransactions.length}
+                    </p>
+                  </div>
+                  <Activity className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
+            </div>
+            
+            {/* Recent Transactions */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold text-black dark:text-white">Recent Transactions</h3>
+                  <div className="flex space-x-2">
+  <select
+    value={filterTimeframe}
+    onChange={(e) => setFilterTimeframe(e.target.value)}
+    className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-black dark:text-white bg-white dark:bg-gray-700"
+  >
+    <option value="1D">Today</option>
+    <option value="1W">This Week</option>
+    <option value="1M">This Month</option>
+  </select>
+  <select
+    value={filterAccountType}
+    onChange={(e) => setFilterAccountType(e.target.value)}
+    className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-black dark:text-white bg-white dark:bg-gray-700"
+  >
+    <option value="all">All Account Types</option>
+    <option value="checking">Checking</option>
+    <option value="savings">Savings</option>
+    <option value="investment">Investment</option>
+    <option value="loan">Loan</option>
+  </select>
+  <button className="bg-blue-600 dark:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700 dark:hover:bg-blue-600">
+    <Filter className="h-4 w-4" />
+  </button>
+</div>
+
+                </div>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Customer
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Transaction
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Amount
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Date/Time
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {accountManagerData.recentTransactions.map(transaction => (
+                      <tr key={transaction.id} className={transaction.flagged ? 'bg-red-50 dark:bg-red-900/10' : ''}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div>
+                            <div className="text-sm font-medium text-black dark:text-white">
+                              {transaction.customerName}
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {transaction.customerId}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div>
+                            <div className="text-sm font-medium text-black dark:text-white">
+                              {transaction.type}
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {transaction.description}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`text-sm font-medium ${
+                            transaction.amount < 0 
+                              ? 'text-red-600 dark:text-red-400' 
+                              : 'text-green-600 dark:text-green-400'
+                          }`}>
+                            {transaction.amount < 0 ? '-' : '+'}{formatCurrency(Math.abs(transaction.amount))}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          <div>{transaction.date}</div>
+                          <div>{transaction.time}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center space-x-2">
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              transaction.status === 'Completed' 
+                                ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
+                                : transaction.status === 'Processing'
+                                ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400'
+                                : 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white'
+                            }`}>
+                              {transaction.status}
+                            </span>
+                            {transaction.flagged && (
+                              <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <button className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+                              <Eye className="h-4 w-4" />
+                            </button>
+                            {transaction.flagged && (
+                              <button className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">
+                                <Flag className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            {/* Active Alerts */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Active Alerts</h3>
+              <div className="space-y-4">
+                {accountManagerData.alerts.map(alert => (
+                  <div key={alert.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(alert.priority)}`}>
+                            {alert.priority}
+                          </span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400 capitalize">{alert.type}</span>
+                        </div>
+                        <p className="font-medium text-black dark:text-white">{alert.customer}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{alert.message}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{alert.date}</p>
+                      </div>
+                      <div className="flex space-x-2">
+                      {alert.actionRequired && (
+  <button 
+    onClick={() => handleAlertAction(alert.id)}
+    className="bg-blue-600 dark:bg-blue-700 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600"
+  >
+    Take Action
+  </button>
+)}
+<button 
+  onClick={() => handleDismissAlert(alert.id)}
+  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+>
+  <XCircle className="h-4 w-4" />
+</button>
+
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Communications Tab */}
+        {activeTab === 'communications' && (
           <div className="space-y-6">
             {/* Communication Summary */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -1155,6 +1646,453 @@ const [newCustomerData, setNewCustomerData] = useState({
               </div>
             </div>
           </div>
+        )}
+
+        {/* Revenue Analytics Tab */}
+        {activeTab === 'revenue' && (
+          <div className="space-y-6">
+            {/* Revenue Overview */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">This Month</p>
+                    <p className="text-2xl font-bold text-black dark:text-white">
+                      {formatCurrency(accountManagerData.revenueMetrics.thisMonth.totalRevenue)}
+                    </p>
+                  </div>
+                  <DollarSign className="h-8 w-8 text-green-600 dark:text-green-400" />
+                </div>
+                <div className="mt-2">
+                  <div className="flex items-center">
+                    <ArrowUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <span className="text-sm text-green-600 dark:text-green-400 ml-1">
+                      +{accountManagerData.revenueMetrics.thisMonth.growth}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Target Progress</p>
+                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      {Math.round((accountManagerData.revenueMetrics.thisMonth.totalRevenue / accountManagerData.revenueMetrics.thisMonth.target) * 100)}%
+                    </p>
+                  </div>
+                  <Target className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="mt-2">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full"
+                      style={{ 
+                        width: `${Math.min((accountManagerData.revenueMetrics.thisMonth.totalRevenue / accountManagerData.revenueMetrics.thisMonth.target) * 100, 100)}%` 
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Fees</p>
+                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                      {formatCurrency(accountManagerData.revenueMetrics.thisMonth.breakdown.fees)}
+                    </p>
+                  </div>
+                  <Briefcase className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                </div>
+              </div>
+              
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Commissions</p>
+                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                      {formatCurrency(accountManagerData.revenueMetrics.thisMonth.breakdown.commissions)}
+                    </p>
+                  </div>
+                  <Award className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+                </div>
+              </div>
+            </div>
+            
+            {/* Revenue by Customer */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Revenue by Customer</h3>
+              <div className="space-y-4">
+                {accountManagerData.revenueMetrics.byCustomer.map((customer, idx) => (
+                  <div key={idx} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                          {customer.name.charAt(0)}
+                        </span>
+                      </div>
+                      <span className="font-medium text-black dark:text-white">{customer.name}</span>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <div className="text-right">
+                        <p className="font-semibold text-black dark:text-white">{formatCurrency(customer.revenue)}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{customer.percentage}%</p>
+                      </div>
+                      <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full"
+                          style={{ width: `${customer.percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Revenue Breakdown */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Revenue Breakdown</h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-400">Management Fees</span>
+                    <span className="font-semibold text-black dark:text-white">
+                      {formatCurrency(accountManagerData.revenueMetrics.thisMonth.breakdown.fees)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-400">Commissions</span>
+                    <span className="font-semibold text-black dark:text-white">
+                      {formatCurrency(accountManagerData.revenueMetrics.thisMonth.breakdown.commissions)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-400">Interest Income</span>
+                    <span className="font-semibold text-black dark:text-white">
+                      {formatCurrency(accountManagerData.revenueMetrics.thisMonth.breakdown.interest)}
+                    </span>
+                  </div>
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-black dark:text-white">Total Revenue</span>
+                      <span className="font-bold text-green-600 dark:text-green-400">
+                        {formatCurrency(accountManagerData.revenueMetrics.thisMonth.totalRevenue)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Performance Metrics</h3>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Monthly Target</span>
+                      <span className="text-sm font-medium text-black dark:text-white">
+                        {formatCurrency(accountManagerData.revenueMetrics.thisMonth.target)}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div
+                        className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full"
+                        style={{ 
+                          width: `${Math.min((accountManagerData.revenueMetrics.thisMonth.totalRevenue / accountManagerData.revenueMetrics.thisMonth.target) * 100, 100)}%` 
+                        }}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 pt-4">
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Growth Rate</p>
+                      <p className="text-lg font-semibold text-green-600 dark:text-green-400">
+                        +{accountManagerData.revenueMetrics.thisMonth.growth}%
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Avg per Customer</p>
+                      <p className="text-lg font-semibold text-black dark:text-white">
+                        {formatCurrency(accountManagerData.revenueMetrics.thisMonth.totalRevenue / accountManagerData.customerPortfolio.length)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Calendar & Meetings Tab */}
+        {activeTab === 'calendar' && (
+          <div className="space-y-6">
+            {/* Meeting Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-blue-600 dark:text-blue-400">Today</p>
+                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                      {accountManagerData.upcomingMeetings.filter(meeting => meeting.date === '2024-06-04').length}
+                    </p>
+                  </div>
+                  <Calendar className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
+              
+              <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-green-600 dark:text-green-400">This Week</p>
+                    <p className="text-2xl font-bold text-green-700 dark:text-green-300">
+                      {accountManagerData.upcomingMeetings.length}
+                    </p>
+                  </div>
+                  <Clock className="h-8 w-8 text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+              
+              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-purple-600 dark:text-purple-400">Confirmed</p>
+                    <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                      {accountManagerData.upcomingMeetings.filter(meeting => meeting.status === 'Confirmed').length}
+                    </p>
+                  </div>
+                  <CheckCircle className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                </div>
+              </div>
+              
+              <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-orange-600 dark:text-orange-400">Pending</p>
+                    <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">
+                      {accountManagerData.upcomingMeetings.filter(meeting => meeting.status === 'Pending Confirmation').length}
+                    </p>
+                  </div>
+                  <Clock className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+                </div>
+              </div>
+            </div>
+            
+            {/* Upcoming Meetings */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold text-black dark:text-white">Upcoming Meetings</h3>
+                  <button
+                    onClick={() => setShowMeetingModal(true)}
+                    className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 dark:hover:bg-blue-600"
+                  >
+                    <Plus className="h-4 w-4 inline mr-1" />
+                    Schedule Meeting
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6">
+                <div className="space-y-4">
+                  {accountManagerData.upcomingMeetings.map(meeting => (
+                    <div key={meeting.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <h4 className="font-semibold text-black dark:text-white">{meeting.type}</h4>
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              meeting.status === 'Confirmed' 
+                                ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
+                                : 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400'
+                            }`}>
+                              {meeting.status}
+                            </span>
+                          </div>
+                          
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                            <strong>Customer:</strong> {meeting.customerName}
+                          </p>
+                          
+                          <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            <div className="flex items-center space-x-1">
+                              <Calendar className="h-4 w-4" />
+                              <span>{meeting.date}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Clock className="h-4 w-4" />
+                              <span>{meeting.time}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <MapPin className="h-4 w-4" />
+                              <span>{meeting.location}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            <strong>Duration:</strong> {meeting.duration}
+                          </div>
+                          
+                          <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            <strong>Attendees:</strong> {meeting.attendees.join(', ')}
+                          </div>
+                          
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            <strong>Agenda:</strong> {meeting.agenda.join(', ')}
+                          </div>
+                        </div>
+                        
+                        <div className="flex space-x-2 ml-4">
+                          <button className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300">
+                            <Video className="h-4 w-4" />
+                          </button>
+                          <button className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">
+                            <XCircle className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* Calendar View Placeholder */}
+{/* Calendar View - Replace the placeholder section */}
+<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+  <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Calendar View</h3>
+  
+  {/* Calendar Header */}
+  <div className="flex items-center justify-between mb-6">
+    <div className="flex items-center space-x-4">
+      <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+        <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+      </button>
+      <h4 className="text-xl font-semibold text-black dark:text-white">
+        {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+      </h4>
+      <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+        <ArrowRight className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+      </button>
+    </div>
+    <div className="flex space-x-2">
+      <button className="px-3 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-sm">
+        Month
+      </button>
+      <button className="px-3 py-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-sm">
+        Week
+      </button>
+      <button className="px-3 py-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-sm">
+        Day
+      </button>
+    </div>
+  </div>
+
+  {/* Calendar Grid */}
+  <div className="grid grid-cols-7 gap-1 mb-4">
+    {/* Day Headers */}
+    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+      <div key={day} className="p-2 text-center text-sm font-medium text-gray-600 dark:text-gray-400">
+        {day}
+      </div>
+    ))}
+    
+    {/* Calendar Days */}
+    {Array.from({ length: 35 }, (_, index) => {
+      const date = new Date();
+      const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+      const startDate = new Date(firstDay);
+      startDate.setDate(startDate.getDate() - firstDay.getDay() + index);
+      
+      const isCurrentMonth = startDate.getMonth() === date.getMonth();
+      const isToday = startDate.toDateString() === date.toDateString();
+      
+      // Check if there are meetings on this date
+      const dayMeetings = accountManagerData.upcomingMeetings.filter(meeting => 
+        meeting.date === startDate.toISOString().split('T')[0]
+      );
+      
+      return (
+        <div
+          key={index}
+          className={`p-2 min-h-[80px] border border-gray-200 dark:border-gray-700 rounded-lg ${
+            isCurrentMonth 
+              ? 'bg-white dark:bg-gray-800' 
+              : 'bg-gray-50 dark:bg-gray-700'
+          } ${
+            isToday 
+              ? 'ring-2 ring-blue-500 dark:ring-blue-400' 
+              : ''
+          }`}
+        >
+          <div className={`text-sm ${
+            isCurrentMonth 
+              ? 'text-black dark:text-white' 
+              : 'text-gray-400 dark:text-gray-600'
+          } ${
+            isToday 
+              ? 'font-bold' 
+              : ''
+          }`}>
+            {startDate.getDate()}
+          </div>
+          
+          {/* Meeting indicators */}
+          <div className="mt-1 space-y-1">
+            {dayMeetings.slice(0, 2).map((meeting, idx) => (
+              <div
+                key={idx}
+                className="text-xs p-1 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 rounded truncate"
+                title={`${meeting.time} - ${meeting.customerName}`}
+              >
+                {meeting.time.split(' ')[0]} {meeting.type}
+              </div>
+            ))}
+            {dayMeetings.length > 2 && (
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                +{dayMeetings.length - 2} more
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    })}
+  </div>
+
+  {/* Today's Schedule */}
+  <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+    <h4 className="font-semibold text-black dark:text-white mb-3">Today's Schedule</h4>
+    <div className="space-y-2">
+      {accountManagerData.upcomingMeetings
+        .filter(meeting => meeting.date === new Date().toISOString().split('T')[0])
+        .map(meeting => (
+          <div key={meeting.id} className="flex items-center space-x-3 p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-black dark:text-white">
+                {meeting.time} - {meeting.type}
+              </p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                {meeting.customerName}
+              </p>
+            </div>
+          </div>
+        ))}
+      {accountManagerData.upcomingMeetings.filter(meeting => 
+        meeting.date === new Date().toISOString().split('T')[0]
+      ).length === 0 && (
+        <p className="text-sm text-gray-500 dark:text-gray-400">No meetings scheduled for today</p>
+      )}
+    </div>
+  </div>
+</div>
+
+          </div>
+        )}
       </div>
 
       {/* Customer Details Modal */}
@@ -1568,4 +2506,4 @@ const [newCustomerData, setNewCustomerData] = useState({
     );
   };
   
-  export default Communications;
+  export default AccountManagerDashboard;

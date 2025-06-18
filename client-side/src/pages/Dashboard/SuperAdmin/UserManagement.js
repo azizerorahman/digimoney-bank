@@ -1,4 +1,3 @@
-//Spuer admin
 import { useState, useEffect } from "react";
 import {
   Search,

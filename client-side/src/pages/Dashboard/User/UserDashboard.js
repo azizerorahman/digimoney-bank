@@ -1,10 +1,10 @@
 import MoneyTransferForm from "./MoneyTransferForm";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import { toast } from "react-toastify";
 
-const UserLanding = ({ userInfo }) => {
+const UserDashboard = ({ userInfo }) => {
   const sectionRef = useRef(null);
   const headingRef = useRef(null);
   const balanceCardRef = useRef(null);
@@ -497,6 +497,9 @@ const UserLanding = ({ userInfo }) => {
 
   return (
     <section>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <Outlet />
+      </div>
       <div className="max-w-7xl mx-auto">
         <section
           ref={sectionRef}
@@ -842,4 +845,4 @@ const UserLanding = ({ userInfo }) => {
     </section>
   );
 };
-export default UserLanding;
+export default UserDashboard;
