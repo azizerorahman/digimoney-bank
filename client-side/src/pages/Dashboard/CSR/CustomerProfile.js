@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { 
-  Search, Phone, Mail, MapPin, Clock, AlertTriangle, 
-  XCircle, ArrowUp, User,
-  CreditCard, Settings, FileText
-} from 'lucide-react';
+  Search, Phone, Mail, MapPin, AlertTriangle, 
+  XCircle
+  } from 'lucide-react';
 
 export const csrDashboardData = {
   // Current CSR session info
@@ -491,8 +490,7 @@ export const customerSearchResults = [
 ];
 
 // CSRDashboard.jsx (Updated with Dark Mode Support and New Features)
-const CSRDashboard = () => {
-  const [activeTab, setActiveTab] = useState('customer');
+const CustomerProfile = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(csrDashboardData.activeCustomer);
@@ -503,7 +501,6 @@ const CSRDashboard = () => {
   const [showCreateTicket, setShowCreateTicket] = useState(false);
   const [showTicketDetails, setShowTicketDetails] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
-  const [ticketNotes, setTicketNotes] = useState('');
 
   // Search functionality
   const handleSearch = (query) => {
@@ -521,7 +518,7 @@ const CSRDashboard = () => {
     }
   };
 
-  const selectCustomer = (customer) => {
+  const selectCustomer = () => {
     setSelectedCustomer(csrDashboardData.activeCustomer);
     setShowSearchResults(false);
     setSearchQuery('');
@@ -615,16 +612,6 @@ const CSRDashboard = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch(status) {
-      case 'New': return 'text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400';
-      case 'In Progress': return 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 dark:text-yellow-400';
-      case 'Pending Approval': return 'text-purple-600 bg-purple-50 dark:bg-purple-900/20 dark:text-purple-400';
-      case 'Resolved': return 'text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400';
-      case 'Closed': return 'text-black dark:text-white bg-gray-50 dark:bg-gray-800';
-      default: return 'text-black dark:text-white bg-gray-50 dark:bg-gray-800';
-    }
-  };
 
   const getAlertColor = (type) => {
     switch(type) {
@@ -736,7 +723,7 @@ const CSRDashboard = () => {
     );
   };
 
-  const CreateTicketModal = ({ isOpen, onClose, customer, onSubmit }) => {
+  const CreateTicketModal = ({ isOpen, onClose, onSubmit }) => {
     const [formData, setFormData] = useState({
       issue: '',
       category: 'Account Updates',
@@ -1056,39 +1043,11 @@ const CSRDashboard = () => {
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-6">
-          <div className="border-b border-gray-200 dark:border-gray-700">
-            <nav className="-mb-px flex space-x-8 px-6">
-              {[
-                { id: 'customer', name: 'Customer Profile', icon: User },
-                { id: 'transactions', name: 'Transactions', icon: CreditCard },
-                { id: 'tickets', name: 'Service Requests', icon: FileText },
-                { id: 'actions', name: 'Quick Actions', icon: Settings }
-              ].map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`${
-                      activeTab === tab.id
-                        ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                        : 'border-transparent text-black dark:text-white hover:text-black dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600'
-                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span>{tab.name}</span>
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
 
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-6">
           {/* Tab Content */}
           <div className="p-6">
             {/* Customer Profile Tab */}
-            {activeTab === 'customer' && (
               <div className="space-y-6">
                 {/* Customer Alerts - ENHANCED */}
                 {selectedCustomer.alerts.length > 0 && (
@@ -1259,328 +1218,7 @@ const CSRDashboard = () => {
                   </div>
                 </div>
               </div>
-            )}
 
-            {/* Transactions Tab */}
-            {activeTab === 'transactions' && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold text-black dark:text-white">Recent Transactions</h3>
-                  <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium">
-                    View All Transactions
-                  </button>
-                </div>
-                
-                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                      <thead className="bg-gray-50 dark:bg-gray-800">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                            Date & Time
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                            Description
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                            Account
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                            Amount
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                            Status
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        {csrDashboardData.recentTransactions.map((transaction) => (
-                          <tr key={transaction.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-black dark:text-white">{transaction.date}</div>
-                              <div className="text-sm text-black dark:text-white">{transaction.time}</div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="text-sm text-black dark:text-white">{transaction.type}</div>
-                              <div className="text-sm text-black dark:text-white">{transaction.merchant}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-black dark:text-white">
-                              {transaction.account}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className={`text-sm font-medium ${
-                                transaction.amount > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                              }`}>
-                                {transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount).toLocaleString()}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                transaction.status === 'Posted' ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' :
-                                transaction.status === 'Pending' ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400' :
-                                'bg-gray-100 dark:bg-gray-800 text-black dark:text-white'
-                              }`}>
-                                {transaction.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Service Requests Tab */}
-            {activeTab === 'tickets' && (
-              <div className="space-y-6">
-                {/* Active Ticket for Current Customer */}
-                {csrDashboardData.activeTickets.length > 0 && (
-                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-black dark:text-white">Active Request - Current Customer</h3>
-                      <div className="flex items-center space-x-2">
-                        <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                        <span className="text-sm text-black dark:text-white">
-                          SLA: {csrDashboardData.activeTickets[0].timeRemaining} remaining
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {csrDashboardData.activeTickets.map((ticket) => (
-                      <div key={ticket.ticketId} className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <div className="font-medium text-black dark:text-white">{ticket.issue}</div>
-                            <div className="text-sm text-black dark:text-white">Ticket #{ticket.ticketId}</div>
-                          </div>
-                          <div className="flex space-x-2">
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(ticket.priority)}`}>
-                              {ticket.priority} Priority
-                            </span>
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(ticket.status)}`}>
-                              {ticket.status}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <p className="text-sm text-black dark:text-white mb-3">{ticket.description}</p>
-                        
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="text-black dark:text-white">Created:</span> <span className="text-black dark:text-white">{ticket.createdDate} at {ticket.createdTime}</span>
-                          </div>
-                          <div>
-                            <span className="text-black dark:text-white">Category:</span> <span className="text-black dark:text-white">{ticket.category}</span>
-                          </div>
-                        </div>
-                        
-                        {ticket.escalationRequired && (
-                          <div className="mt-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                            <div className="flex items-center space-x-2">
-                              <ArrowUp className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                              <span className="text-sm font-medium text-black dark:text-white">
-                                Escalation Required: {ticket.escalateTo}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                        
-                        <div className="mt-4 flex space-x-3">
-                          <button 
-                            onClick={() => {
-                              setSelectedTicket(ticket);
-                              setShowTicketDetails(true);
-                            }}
-                            className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 dark:hover:bg-blue-600"
-                          >
-                            Update Request
-                          </button>
-                          <button className="bg-orange-600 dark:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-orange-700 dark:hover:bg-orange-600">
-                            Escalate Now
-                          </button>
-                          <button className="bg-green-600 dark:bg-green-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 dark:hover:bg-green-600">
-                            Mark Resolved
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* My Ticket Queue */}
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold text-black dark:text-white">My Ticket Queue</h3>
-                    <div className="text-sm text-black dark:text-white">
-                      {csrDashboardData.myTicketQueue.length} tickets assigned
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    {csrDashboardData.myTicketQueue.map((ticket) => (
-                      <div key={ticket.ticketId} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-2">
-                              <div className="font-medium text-black dark:text-white">{ticket.issue}</div>
-                              <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(ticket.priority)}`}>
-                                {ticket.priority}
-                              </span>
-                              <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(ticket.status)}`}>
-                                {ticket.status}
-                              </span>
-                            </div>
-                            <div className="text-sm text-black dark:text-white mb-2">
-                              <span className="font-medium">{ticket.customerName}</span> • {ticket.customerId}
-                            </div>
-                            <div className="text-sm text-black dark:text-white">
-                              Category: {ticket.category}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className={`text-sm font-medium ${
-                              ticket.timeRemaining.includes('h') && !ticket.timeRemaining.includes('d') ? 'text-orange-600 dark:text-orange-400' :
-                              ticket.timeRemaining.includes('m') && !ticket.timeRemaining.includes('h') ? 'text-red-600 dark:text-red-400' :
-                              'text-green-600 dark:text-green-400'
-                            }`}>
-                              {ticket.timeRemaining}
-                            </div>
-                            <div className="text-xs text-black dark:text-white">remaining</div>
-                            <button 
-                              onClick={() => {
-                                setSelectedTicket(ticket);
-                                setShowTicketDetails(true);
-                              }}
-                              className="mt-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium"
-                            >
-                              Open Ticket
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Quick Actions Tab */}
-            {activeTab === 'actions' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {csrDashboardData.quickActions.map((action) => (
-                    <div key={action.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-black dark:text-white mb-1">{action.title}</h4>
-                          <p className="text-sm text-black dark:text-white">{action.description}</p>
-                        </div>
-                        <div className={`ml-3 px-2 py-1 text-xs font-semibold rounded-full ${
-                          action.permission === 'direct' ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' :
-                          action.permission === 'approval' ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400' :
-                          'bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-400'
-                        }`}>
-                          {action.permission === 'direct' ? 'Direct' :
-                           action.permission === 'approval' ? 'Approval' : 'Escalation'}
-                        </div>
-                      </div>
-                      <div className="text-xs text-black dark:text-white mb-3">
-                        Category: {action.category}
-                      </div>
-                      <button className="w-full bg-blue-600 dark:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm hover:bg-blue-700 dark:hover:bg-blue-600">
-                        {action.permission === 'direct' ? 'Execute' :
-                         action.permission === 'approval' ? 'Request Approval' : 'Escalate'}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Escalation Departments */}
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Escalation Departments</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {csrDashboardData.escalationDepartments.map((dept) => (
-                      <div key={dept.id} className="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-medium text-black dark:text-white">{dept.name}</h4>
-                          <div className="text-sm text-green-600 dark:text-green-400 font-medium">
-                            Avg: {dept.avgResponseTime}
-                          </div>
-                        </div>
-                        <div className="text-sm text-black dark:text-white space-y-1">
-                          <div>📞 {dept.phone}</div>
-                          <div>📧 {dept.email}</div>
-                          <div>🕐 {dept.availableHours}</div>
-                        </div>
-                        <div className="mt-3">
-                          <div className="text-xs text-black dark:text-white mb-1">Specialties:</div>
-                          <div className="flex flex-wrap gap-1">
-                            {dept.specialties.map((specialty, index) => (
-                              <span key={index} className="text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 px-2 py-1 rounded-full">
-                                {specialty}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        <button className="mt-3 w-full bg-orange-600 dark:bg-orange-700 text-white py-1 px-3 rounded text-sm hover:bg-orange-700 dark:hover:bg-orange-600">
-                          Contact Department
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Support Resources */}
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Support Resources</h3>
-                  
-                  {/* Common Issues */}
-                  <div className="space-y-4">
-                    {csrDashboardData.supportResources.commonIssues.map((category, categoryIndex) => (
-                      <div key={categoryIndex} className="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                        <h4 className="font-medium text-black dark:text-white mb-3">{category.category}</h4>
-                        <div className="space-y-3">
-                          {category.issues.map((issue, issueIndex) => (
-                            <div key={issueIndex} className="border-l-4 border-blue-400 dark:border-blue-500 pl-4">
-                              <div className="font-medium text-sm text-black dark:text-white mb-1">{issue.title}</div>
-                              <div className="text-sm text-black dark:text-white mb-2 italic">"{issue.script}"</div>
-                              <div className="text-xs text-black dark:text-white">
-                                <div className="font-medium mb-1">Steps:</div>
-                                <ol className="list-decimal list-inside space-y-1">
-                                  {issue.steps.map((step, stepIndex) => (
-                                    <li key={stepIndex} className="text-black dark:text-white">{step}</li>
-                                  ))}
-                                </ol>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Quick Responses */}
-                  <div className="mt-6 bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                    <h4 className="font-medium text-black dark:text-white mb-3">Quick Responses</h4>
-                    <div className="space-y-2">
-                      {csrDashboardData.supportResources.quickResponses.map((response, index) => (
-                        <div key={index} className="flex justify-between items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-600 rounded">
-                          <div>
-                            <span className="text-sm font-medium text-blue-600 dark:text-blue-400">#{response.trigger}</span>
-                            <span className="text-sm text-black dark:text-white ml-2">{response.response}</span>
-                          </div>
-                          <button className="text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 px-2 py-1 rounded hover:bg-blue-200 dark:hover:bg-blue-800/30">
-                            Copy
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -1650,4 +1288,4 @@ const CSRDashboard = () => {
     </div>
   );
 };
-export default CSRDashboard;
+export default CustomerProfile;
