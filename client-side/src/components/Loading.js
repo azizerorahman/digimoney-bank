@@ -16,21 +16,6 @@ const LoadingSpinner = ({
     />
   );
 
-  // Fullscreen mode (covers entire viewport)
-  // if (fullscreen) {
-  //   return (
-  //     <div
-  //       className={`fixed inset-0 z-50 flex flex-col items-center justify-center ${
-  //         backdropBlur ? "backdrop-blur-sm" : ""
-  //       }`}
-  //       role="status"
-  //       aria-live="polite"
-  //     >
-  //       {spinner}
-  //     </div>
-  //   );
-  // }
-
   if (overlay) {
     return (
       <div

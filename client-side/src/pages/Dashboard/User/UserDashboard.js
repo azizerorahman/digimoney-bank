@@ -497,15 +497,12 @@ const UserDashboard = ({ userInfo }) => {
 
   return (
     <section>
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-        <Outlet />
-      </div>
-      <div className="max-w-7xl mx-auto">
+      <div>
         <section
           ref={sectionRef}
           className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden"
         >
-          <div className="container mx-auto p-5 max-w-7xl">
+          <div className="container mx-auto p-12">
             {/* Welcome Header */}
             <div ref={headingRef} className="mb-6 md:mb-8 lg:mb-10">
               <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 text-gray-800 dark:text-white">

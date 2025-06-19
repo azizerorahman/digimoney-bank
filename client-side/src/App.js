@@ -8,7 +8,7 @@ import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import Footer from "./components/Footer";
 import Dashboard from "./pages/Dashboard/Dashboard";
-import LandingPage from "./pages/Dashboard/LandingPage";
+import LoadingSpinner from "./components/Loading";
 import ProtectedRoute from "./pages/Auth/ProtectedRoute";
 
 // User components
@@ -59,6 +59,8 @@ import Transactions from "./pages/Dashboard/CSR/Transactions";
 import "./App.css";
 import "react-toastify/dist/ReactToastify.css";
 import useUserInfo from "./hooks/useUserInfo";
+import { useAuthState } from "react-firebase-hooks/auth";
+import auth from "./firebase.init";
 
 function App() {
   // Use React Router's location
@@ -66,6 +68,7 @@ function App() {
   const hideNFPaths = ["/login", "/register", "/dashboard"];
   const showNF = !hideNFPaths.some((path) => location.pathname.includes(path));
 
+  const [user] = useAuthState(auth);
   const uId = localStorage.getItem("userId");
   const { userInfo, isLoading } = useUserInfo(uId);
 
@@ -85,9 +88,28 @@ function App() {
 
   // Function to redirect users to their appropriate dashboard based on role
   const getDashboardRedirect = () => {
-    if (!userInfo || isLoading) return null;
-
-    switch (userInfo.role) {
+    // If still loading user info, show a loading state
+    if (isLoading) {
+      return <LoadingSpinner fullscreen overlay />;
+    }
+    
+    // If no user info or no user is logged in, redirect to login
+    if (!user || !userInfo) {
+      return <Navigate to="/login" replace />;
+    }
+    
+    // If user has no roles, redirect to login (should not happen, but just in case)
+    if (!userInfo.role || (Array.isArray(userInfo.role) && userInfo.role.length === 0)) {
+      return <Navigate to="/login" replace />;
+    }
+    
+    // Get the active role (either from localStorage or first available role)
+    const roles = Array.isArray(userInfo.role) ? userInfo.role : [userInfo.role];
+    const savedRole = localStorage.getItem("activeRole");
+    const activeRole = (savedRole && roles.includes(savedRole)) ? savedRole : roles[0];
+    
+    // Redirect based on active role
+    switch (activeRole) {
       case "user":
         return <Navigate to="/dashboard/user" replace />;
       case "super-admin":
@@ -99,7 +121,8 @@ function App() {
       case "csr":
         return <Navigate to="/dashboard/csr" replace />;
       default:
-        return <LandingPage />;
+        // If somehow we get an unknown role, default to user dashboard
+        return <Navigate to="/dashboard/user" replace />;
     }
   };
 
@@ -113,7 +136,11 @@ function App() {
 
         <Route path="/dashboard" element={<Dashboard />}>
           {/* Default dashboard route redirects based on role */}
-          <Route index element={getDashboardRedirect()} />
+          <Route index element={
+            <ProtectedRoute>
+              {getDashboardRedirect()}
+            </ProtectedRoute>
+          } />
 
           {/* User routes */}
           <Route

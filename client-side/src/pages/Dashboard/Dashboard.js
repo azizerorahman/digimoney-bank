@@ -28,7 +28,7 @@ const Dashboard = () => {
   const [darkMode, setDarkMode] = useState(
     JSON.parse(localStorage.getItem("darkMode")) || false
   );
-  
+
   // State for active role (default to first role in the array or 'user')
   const [activeRole, setActiveRole] = useState(() => {
     const savedRole = localStorage.getItem("activeRole");
@@ -45,6 +45,40 @@ const Dashboard = () => {
   // Get user verification status
   const { verified, loading } = check;
 
+  // Handle direct navigation to /dashboard
+  useEffect(() => {
+    if (pathname === "/dashboard" && userInfo && !isLoading) {
+      // Get user roles as an array
+      const roles = Array.isArray(userInfo.role) ? userInfo.role : [userInfo.role];
+      
+      // Get active role (from localStorage or default to first role)
+      const savedRole = localStorage.getItem("activeRole");
+      const currentRole = (savedRole && roles.includes(savedRole)) ? savedRole : roles[0];
+      
+      // Redirect based on role
+      switch (currentRole) {
+        case "user":
+          navigate("/dashboard/user");
+          break;
+        case "super-admin":
+          navigate("/dashboard/super-admin");
+          break;
+        case "account-manager":
+          navigate("/dashboard/account-manager");
+          break;
+        case "loan-officer":
+          navigate("/dashboard/loan-officer");
+          break;
+        case "csr":
+          navigate("/dashboard/csr");
+          break;
+        default:
+          // Default to user dashboard if role is unknown
+          navigate("/dashboard/user");
+      }
+    }
+  }, [pathname, userInfo, isLoading, navigate]);
+
   // Handle dark mode toggle
   useEffect(() => {
     if (darkMode) {
@@ -52,15 +86,19 @@ const Dashboard = () => {
     } else {
       document.documentElement.classList.remove("dark");
     }
+    localStorage.setItem("darkMode", JSON.stringify(darkMode));
   }, [darkMode]);
 
   // Update active role when userInfo changes
   useEffect(() => {
     if (userInfo?.role && userInfo.role.length > 0) {
       // If current activeRole is not in the user's roles, reset to first available role
-      if (!userInfo.role.includes(activeRole)) {
+      if (Array.isArray(userInfo.role) && !userInfo.role.includes(activeRole)) {
         setActiveRole(userInfo.role[0]);
         localStorage.setItem("activeRole", userInfo.role[0]);
+      } else if (typeof userInfo.role === 'string' && userInfo.role !== activeRole) {
+        setActiveRole(userInfo.role);
+        localStorage.setItem("activeRole", userInfo.role);
       }
     }
   }, [userInfo, activeRole]);
@@ -69,9 +107,9 @@ const Dashboard = () => {
   const handleRoleChange = (role) => {
     setActiveRole(role);
     localStorage.setItem("activeRole", role);
-    
+
     // Navigate to the appropriate dashboard based on the selected role
-    switch(role) {
+    switch (role) {
       case "user":
         navigate("/dashboard/user");
         break;
@@ -122,12 +160,6 @@ const Dashboard = () => {
         path: "/dashboard/user/transaction-history",
         src: <FaMoneyCheck className="w-5 h-5" />,
         description: "View your transaction history",
-      },
-      {
-        title: "Send Money",
-        path: "/dashboard/user/send-money",
-        src: <FaMoneyCheck className="w-5 h-5" />,
-        description: "Transfer funds to another account",
       },
       {
         title: "Budget Management",
@@ -334,7 +366,7 @@ const Dashboard = () => {
         description: "Manage your account settings",
       },
     ],
-    "csr": [
+    csr: [
       {
         title: "Home",
         path: "/",
@@ -377,8 +409,13 @@ const Dashboard = () => {
         src: <ImProfile className="w-5 h-5" />,
         description: "Manage your account settings",
       },
-    ]
+    ],
   };
+
+  // Show loading spinner while direct navigation is being processed
+  if (pathname === "/dashboard" && (isLoading || loading)) {
+    return <LoadingSpinner overlay />;
+  }
 
   // Get current menu based on active role
   const currentMenu = menuItems[activeRole] || menuItems.user;
@@ -386,7 +423,9 @@ const Dashboard = () => {
   return (
     <>
       {verified ? (
-        <div className={`${darkMode ? "dark" : ""} transition-colors duration-300`}>
+        <div
+          className={`${darkMode ? "dark" : ""} transition-colors duration-300`}
+        >
           <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
             {/* Sidebar */}
             <aside
@@ -428,193 +467,118 @@ const Dashboard = () => {
                     <path d="M16 8h-6a2 2 0 100 4h4a2 2 0 110 4H8"></path>
                     <path d="M12 6v2m0 8v2"></path>
                   </svg>
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
                 </div>
-                <span
-                  className={`text-xl font-bold text-white transition-opacity duration-300 ${
-                    !open && "opacity-0 hidden"
-                  }`}
-                >
-                  DigiMoney
-                </span>
+                {open && (
+                  <h1 className="text-xl font-bold text-white">
+                    Banking App
+                  </h1>
+                )}
               </div>
 
-              {/* Role Switcher - Only show if user has multiple roles */}
-              {userInfo?.role && userInfo.role.length > 1 && open && (
-                <div className="px-4 mb-4">
-                  <div className="bg-white/10 dark:bg-white/5 rounded-lg p-2">
-                    <select
-                      value={activeRole}
-                      onChange={(e) => handleRoleChange(e.target.value)}
-                      className="w-full bg-transparent text-white border-0 focus:ring-2 focus:ring-accent text-sm rounded-md"
-                    >
-                      {userInfo.role.map((role) => (
-                        <option key={role} value={role} className="bg-primary text-white">
-                          {role.charAt(0).toUpperCase() + role.slice(1).replace(/-/g, ' ')}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              )}
-
-              {/* Menu items */}
-              <nav className="mt-4 px-4">
-                <ul className="space-y-2">
-                  {currentMenu.map((menu, i) => (
-                    <li key={i}>
-                      <Link
-                        to={menu.path}
-                        className={`flex items-center gap-x-3.5 py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-300
-                          ${
-                            pathname === menu.path
-                              ? "bg-white/20 dark:bg-white/10 text-white"
-                              : "text-white/80 dark:text-white/80 hover:bg-white/10 dark:hover:bg-white/5"
-                          }
-                          ${!open && "justify-center"}
-                        `}
-                        title={!open ? menu.title : ""}
-                      >
-                        <span className="text-xl">{menu.src}</span>
-                        <span
-                          className={`transition-opacity duration-300 ${
-                            !open && "opacity-0 hidden"
-                          }`}
-                        >
-                          {menu.title}
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-
-                  {/* Logout button */}
-                  <li className="pt-2">
-                    <button
-                      onClick={handleLogout}
-                      className={`flex items-center gap-x-3.5 py-2.5 px-3 rounded-lg text-sm font-medium w-full transition-all duration-300
-                        text-white/90 hover:bg-red-500/20 hover:text-white
-                        ${!open && "justify-center"}
-                      `}
-                      title={!open ? "Logout" : ""}
-                    >
-                      <span className="text-xl">
-                        <FiLogOut />
-                      </span>
-                      <span
-                        className={`transition-opacity duration-300 ${
-                          !open && "opacity-0 hidden"
-                        }`}
-                      >
-                        Logout
-                      </span>
-                    </button>
-                  </li>
-                </ul>
-              </nav>
-
-              {/* Dark mode toggle */}
+              {/* User info */}
               <div
-                className={`absolute bottom-4 ${
-                  open ? "left-4 right-4" : "left-0 right-0 flex justify-center"
+                className={`flex flex-col items-center mt-6 -mx-2 ${
+                  !open && "px-2"
                 }`}
               >
                 <div
-                  className={`flex items-center ${
-                    open ? "justify-between" : "justify-center"
-                  } bg-white/10 dark:bg-white/5 rounded-lg p-2`}
+                  className={`${color} w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-semibold uppercase`}
                 >
-                  <span
-                    className={`text-white/90 text-xs ${!open && "hidden"}`}
-                  >
-                    Dark Mode
-                  </span>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      value=""
-                      className="sr-only peer"
-                      checked={darkMode}
-                      onChange={(e) => {
-                        setDarkMode(e.target.checked);
-                        localStorage.setItem(
-                          "darkMode",
-                          JSON.stringify(e.target.checked)
-                        );
-                      }}
-                    />
-                    <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-accent rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent"></div>
-                  </label>
+                  {initial}
                 </div>
+                {open && (
+                  <div className="mt-3 text-center">
+                    <h4 className="mx-2 text-sm font-medium text-white">
+                      {user?.displayName || user?.email}
+                    </h4>
+                    {userInfo?.role && (
+                      <div className="mt-1">
+                        {/* Role selector dropdown */}
+                        {Array.isArray(userInfo.role) &&
+                        userInfo.role.length > 1 ? (
+                          <select
+                            value={activeRole}
+                            onChange={(e) => handleRoleChange(e.target.value)}
+                            className="text-xs bg-transparent text-gray-300 border border-gray-600 rounded-md p-1 focus:outline-none focus:ring-1 focus:ring-accent"
+                          >
+                            {userInfo.role.map((r) => (
+                              <option
+                                key={r}
+                                value={r}
+                                className="bg-gray-800 text-white"
+                              >
+                                {r.charAt(0).toUpperCase() + r.slice(1)}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <p className="text-xs text-gray-300">
+                            {typeof userInfo.role === "string"
+                              ? userInfo.role.charAt(0).toUpperCase() +
+                                userInfo.role.slice(1)
+                              : userInfo.role[0].charAt(0).toUpperCase() +
+                                userInfo.role[0].slice(1)}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Menu items */}
+              <div className="flex flex-col justify-between flex-1 mt-6 overflow-y-auto">
+                <nav>
+                  {currentMenu.map((item, index) => (
+                    <Link
+                      key={index}
+                      to={item.path}
+                      className={`flex items-center px-4 py-3 ${
+                        pathname.includes(item.path) &&
+                        item.path !== "/" &&
+                        "bg-indigo-800 dark:bg-gray-700"
+                      } ${
+                        pathname === item.path &&
+                        pathname === "/" &&
+                        "bg-indigo-800 dark:bg-gray-700"
+                      } text-white transition-colors duration-300 transform hover:bg-indigo-800 dark:hover:bg-gray-700 hover:text-white`}
+                      title={item.description}
+                    >
+                      <div className="min-w-[28px] flex justify-center">
+                        {item.src}
+                      </div>
+                      {open && (
+                        <span className="mx-4 font-medium">{item.title}</span>
+                      )}
+                    </Link>
+                  ))}
+                </nav>
+
+                {/* Logout button */}
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center px-4 py-3 text-white transition-colors duration-300 transform hover:bg-indigo-800 dark:hover:bg-gray-700 hover:text-white mb-4"
+                  title="Log out of your account"
+                >
+                  <div className="min-w-[28px] flex justify-center">
+                    <FiLogOut className="w-5 h-5" />
+                  </div>
+                  {open && (
+                    <span className="mx-4 font-medium">Logout</span>
+                  )}
+                </button>
               </div>
             </aside>
 
             {/* Main content */}
-            <div className="flex-1 overflow-auto">
-              {/* Mobile header with role switcher */}
-              <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 shadow-sm">
-                <div className="flex items-center justify-between p-4">
-                  <button
-                    onClick={() => setOpen(!open)}
-                    className="block lg:hidden p-2 rounded-md text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300"
-                    aria-label="Toggle sidebar"
-                  >
-                    <RiBarChartHorizontalLine className="w-6 h-6" />
-                  </button>
-
-                  <div className="text-xl font-bold text-primary dark:text-white">
-                    {pathname === "/dashboard"
-                      ? "Dashboard Overview"
-                      : currentMenu.find((menu) => menu.path === pathname)?.title ||
-                        "Dashboard"}
-                  </div>
-
-                  <div className="flex items-center gap-x-4">
-                    {/* Role switcher dropdown for mobile */}
-                    {userInfo?.role && userInfo.role.length > 1 && (
-                      <select
-                        value={activeRole}
-                        onChange={(e) => handleRoleChange(e.target.value)}
-                        className="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-800 text-gray-700 dark:text-white"
-                      >
-                        {userInfo.role.map((role) => (
-                          <option key={role} value={role}>
-                            {role.charAt(0).toUpperCase() + role.slice(1).replace(/-/g, ' ')}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-
-                    {/* Avatar/Profile */}
-                    <div className="flex items-center gap-2">
-                      {userInfo?.profilePhoto ? (
-                        <img
-                          src={userInfo.profilePhoto}
-                          alt="Profile"
-                          className="w-8 h-8 rounded-full object-cover border-2 border-primary"
-                        />
-                      ) : (
-                        <div
-                          className={`w-8 h-8 rounded-full ${color} flex items-center justify-center text-white font-bold text-sm`}
-                        >
-                          {initial}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Dashboard content */}
-              <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-                <Outlet />
-              </main>
+            <div className="flex-1 h-full overflow-y-auto bg-gray-50 dark:bg-gray-900">
+              <Outlet />
             </div>
           </div>
         </div>
       ) : (
         <AccountUnderVerification />
       )}
-      {(loading || isLoading) && <LoadingSpinner fullscreen overlay />}
     </>
   );
 };
