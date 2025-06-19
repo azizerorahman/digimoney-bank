@@ -1448,17 +1448,20 @@ const ComparisonAndRecommendations = () => {
     <section>
       <div className="max-w-7xl mx-auto">
         <section className="mt-12">
-          <h2 className="text-3xl font-bold mb-8 text-gray-800">
-            Comparison & Recommendations
-          </h2>
+        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">
+  Comparison &{" "}
+  <span className="text-[#6160DC] dark:text-[#8B7EFF]">
+    Recommendations
+  </span>
+</h2>
 
           {/* Spending Comparison */}
           <div className="grid lg:grid-cols-2 gap-8 mb-8">
             {/* Period Comparison Chart */}
-            <div className="bg-white shadow-2xl rounded-2xl p-6">
-              <h3 className="text-xl font-bold mb-6 text-gray-800">
-                Spending Comparison
-              </h3>
+            <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
+  <h3 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
+    Spending Comparison
+  </h3>
 
               {/* Time Period Selector */}
               <div className="flex space-x-2 mb-6">
@@ -1472,8 +1475,8 @@ const ComparisonAndRecommendations = () => {
                     className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-300 ${
                       index === 0
                         ? "bg-blue-600 text-white"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    }`}                    
                   >
                     {period.split(" vs ")[0]}
                   </button>
@@ -1528,9 +1531,9 @@ const ComparisonAndRecommendations = () => {
                               title={`Avg Users: $${data.avgUsers}`}
                             ></div>
                           </div>
-                          <div className="text-xs text-center text-gray-600">
-                            {data.category}
-                          </div>
+                          <div className="text-xs text-center text-gray-600 dark:text-gray-300">
+  {data.category}
+</div>
                           <div className="text-xs text-center space-y-1">
                             <div className="text-blue-600 font-bold">
                               ${data.current}
@@ -1561,25 +1564,25 @@ const ComparisonAndRecommendations = () => {
                 <div className="flex items-center justify-center space-x-6 mt-4">
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 rounded bg-blue-600"></div>
-                    <span className="text-sm text-gray-600">This Month</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">This Month</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 rounded bg-gray-400"></div>
-                    <span className="text-sm text-gray-600">Last Month</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Last Month</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 rounded bg-green-500"></div>
-                    <span className="text-sm text-gray-600">Average Users</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Average Users</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Benchmark Comparison */}
-            <div className="bg-white shadow-2xl rounded-2xl p-6">
-              <h3 className="text-xl font-bold mb-6 text-gray-800">
-                How You Compare
-              </h3>
+            <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
+  <h3 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
+    How You Compare
+  </h3>
 
               <div className="space-y-6">
                 {currentUser.comparison.spendingComparison.benchmarks.map(
@@ -1589,10 +1592,10 @@ const ComparisonAndRecommendations = () => {
                         <div className="flex items-center space-x-3">
                           <span className="text-2xl">{item.icon}</span>
                           <div>
-                            <div className="font-medium text-gray-800">
-                              {item.metric}
-                            </div>
-                            <div className="text-sm text-gray-600">
+                          <div className="font-medium text-gray-800 dark:text-white">
+  {item.metric}
+</div>
+<div className="text-sm text-gray-600 dark:text-gray-300">
                               You:{" "}
                               <span className="font-bold">
                                 {item.yourValue.toLocaleString()}
@@ -1623,7 +1626,7 @@ const ComparisonAndRecommendations = () => {
                       </div>
 
                       {/* Progress Bar */}
-                      <div className="w-full h-3 bg-gray-200 rounded-full">
+                      <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full">
                         <div
                           className={`h-3 rounded-full transition-all duration-1000 ${
                             item.status === "above"
@@ -1655,10 +1658,10 @@ const ComparisonAndRecommendations = () => {
           </div>
 
           {/* Personalized Recommendations */}
-          <div className="bg-white shadow-2xl rounded-2xl p-6">
-            <h3 className="text-xl font-bold mb-6 text-gray-800">
-              Personalized Recommendations
-            </h3>
+          <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
+  <h3 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
+    Personalized Recommendations
+  </h3>
 
             <div className="grid lg:grid-cols-3 gap-6">
               {/* Saving Recommendations */}
@@ -1672,20 +1675,20 @@ const ComparisonAndRecommendations = () => {
                   (rec, index) => (
                     <div
                       key={index}
-                      className="p-4 border border-green-200 rounded-lg bg-green-50"
+                      className="p-4 border border-green-200 dark:border-green-700 rounded-lg bg-green-50 dark:bg-green-900/20 transition-all duration-300"
                     >
                       <div className="flex items-start space-x-3">
                         <span className="text-2xl">{rec.icon}</span>
                         <div className="flex-1">
-                          <h5 className="font-medium text-gray-800">
-                            {rec.title}
-                          </h5>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {rec.description}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-2">
-                            {rec.action}
-                          </p>
+                        <h5 className="font-medium text-gray-800 dark:text-white">
+  {rec.title}
+</h5>
+<p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+  {rec.description}
+</p>
+<p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+  {rec.action}
+</p>
                           <div className="flex items-center justify-between mt-3">
                             <span className="text-sm font-bold text-green-600">
                               Save ${rec.potential}/year
@@ -1718,20 +1721,20 @@ const ComparisonAndRecommendations = () => {
                   (rec, index) => (
                     <div
                       key={index}
-                      className="p-4 border border-blue-200 rounded-lg bg-blue-50"
+                      className="p-4 border border-blue-200 dark:border-blue-700 rounded-lg bg-blue-50 dark:bg-blue-900/20 transition-all duration-300"
                     >
                       <div className="flex items-start space-x-3">
                         <span className="text-2xl">{rec.icon}</span>
                         <div className="flex-1">
-                          <h5 className="font-medium text-gray-800">
-                            {rec.title}
-                          </h5>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {rec.description}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-2">
-                            {rec.action}
-                          </p>
+                        <h5 className="font-medium text-gray-800 dark:text-white">
+  {rec.title}
+</h5>
+<p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+  {rec.description}
+</p>
+<p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+  {rec.action}
+</p>
                           <div className="flex items-center justify-between mt-3">
                             <span className="text-sm font-bold text-blue-600">
                               +${rec.potential}/year potential
@@ -1766,28 +1769,28 @@ const ComparisonAndRecommendations = () => {
                   (rec, index) => (
                     <div
                       key={index}
-                      className={`p-4 border rounded-lg ${
+                      className={`p-4 border rounded-lg transition-all duration-300 ${
                         rec.status === "excellent"
-                          ? "border-green-200 bg-green-50"
+                          ? "border-green-200 dark:border-green-700 bg-green-50 dark:bg-green-900/20"
                           : rec.status === "priority"
-                          ? "border-red-200 bg-red-50"
+                          ? "border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/20"
                           : rec.status === "review"
-                          ? "border-yellow-200 bg-yellow-50"
-                          : "border-purple-200 bg-purple-50"
-                      }`}
+                          ? "border-yellow-200 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20"
+                          : "border-purple-200 dark:border-purple-700 bg-purple-50 dark:bg-purple-900/20"
+                      }`}                      
                     >
                       <div className="flex items-start space-x-3">
                         <span className="text-2xl">{rec.icon}</span>
                         <div className="flex-1">
-                          <h5 className="font-medium text-gray-800">
-                            {rec.title}
-                          </h5>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {rec.description}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-2">
-                            {rec.action}
-                          </p>
+                        <h5 className="font-medium text-gray-800 dark:text-white">
+  {rec.title}
+</h5>
+<p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+  {rec.description}
+</p>
+<p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+  {rec.action}
+</p>
                           <div className="mt-3">
                             <span
                               className={`text-xs px-2 py-1 rounded-full ${
@@ -1845,9 +1848,9 @@ const ComparisonAndRecommendations = () => {
               </div>
             </div>
             <div className="mt-4 text-center">
-              <button className="bg-white text-blue-600 px-6 py-2 rounded-lg font-medium hover:bg-gray-100 transition-all duration-300">
-                Create Action Plan
-              </button>
+            <button className="bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 px-6 py-2 rounded-lg font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300">
+  Create Action Plan
+</button>
             </div>
           </div>
         </section>

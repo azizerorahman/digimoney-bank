@@ -1894,17 +1894,10 @@ const BudgetManagement = () => {
         {showBudgetModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div
-              className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto"
-              style={{
-                background: "var(--surface)",
-                border: `2px solid ${currentTheme?.primary}`,
-                borderRadius: "var(--radius-lg)",
-                boxShadow: currentTheme?.shadow,
-              }}
+className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto shadow-xl border-2 border-indigo-500 dark:border-indigo-400"
             >
               <h3
-                className="text-xl font-bold mb-4"
-                style={{ color: "var(--text-primary)" }}
+                className="text-xl font-bold mb-4 text-gray-800 dark:text-white"
               >
                 {editingBudget ? "Edit Budget" : "Add New Budget"}
               </h3>
@@ -1912,8 +1905,7 @@ const BudgetManagement = () => {
               <div className="space-y-4">
                 <div>
                   <label
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
+                    className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300"
                   >
                     Category *
                   </label>
@@ -1926,12 +1918,7 @@ const BudgetManagement = () => {
                         customCategory: "",
                       })
                     }
-                    className="w-full px-3 py-2 rounded-lg border"
-                    style={{
-                      background: "var(--background)",
-                      border: `1px solid ${currentTheme?.primary}40`,
-                      color: "var(--text-primary)",
-                    }}
+                    className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
                   >
                     <option value="">Select Category</option>
                     {availableCategories
@@ -1952,8 +1939,7 @@ const BudgetManagement = () => {
                 {budgetForm.category === "Others" && (
                   <div>
                     <label
-                      className="block text-sm font-medium mb-2"
-                      style={{ color: "var(--text-secondary)" }}
+                      className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300"
                     >
                       Custom Category Name *
                     </label>
@@ -1967,16 +1953,10 @@ const BudgetManagement = () => {
                           customCategory: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 rounded-lg border"
-                      style={{
-                        background: "var(--background)",
-                        border: `1px solid ${currentTheme?.primary}40`,
-                        color: "var(--text-primary)",
-                      }}
+                      className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
                     />
                     <div
-                      className="text-xs mt-1"
-                      style={{ color: "var(--text-secondary)" }}
+                      className="text-xs mt-1 text-gray-600 dark:text-gray-300"
                     >
                       This will be the display name for your custom category
                     </div>
@@ -1985,8 +1965,7 @@ const BudgetManagement = () => {
 
                 <div>
                   <label
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
+                    className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300"
                   >
                     Monthly Budget Amount *
                   </label>
@@ -1997,19 +1976,13 @@ const BudgetManagement = () => {
                     onChange={(e) =>
                       setBudgetForm({ ...budgetForm, budgeted: e.target.value })
                     }
-                    className="w-full px-3 py-2 rounded-lg border"
-                    style={{
-                      background: "var(--background)",
-                      border: `1px solid ${currentTheme?.primary}40`,
-                      color: "var(--text-primary)",
-                    }}
+                    className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
                   />
                 </div>
 
                 <div>
                   <label
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
+                    className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300"
                   >
                     Description (Optional)
                   </label>
@@ -2023,16 +1996,10 @@ const BudgetManagement = () => {
                       })
                     }
                     rows={3}
-                    className="w-full px-3 py-2 rounded-lg border resize-none"
-                    style={{
-                      background: "var(--background)",
-                      border: `1px solid ${currentTheme?.primary}40`,
-                      color: "var(--text-primary)",
-                    }}
+                    className="w-full px-3 py-2 rounded-lg border resize-none bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
                   />
                   <div
-                    className="text-xs mt-1"
-                    style={{ color: "var(--text-secondary)" }}
+                    className="text-xs mt-1 text-gray-600 dark:text-gray-300"
                   >
                     Describe what expenses this budget will cover
                   </div>
@@ -2040,8 +2007,7 @@ const BudgetManagement = () => {
 
                 <div>
                   <label
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
+                    className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300"
                   >
                     Color Theme
                   </label>
@@ -2100,17 +2066,10 @@ const BudgetManagement = () => {
         {showMonthlyBudgetModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div
-              className="bg-white rounded-lg p-6 w-full max-w-md mx-4"
-              style={{
-                background: "var(--surface)",
-                border: `2px solid ${currentTheme?.primary}`,
-                borderRadius: "var(--radius-lg)",
-                boxShadow: currentTheme?.shadow,
-              }}
+className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] shadow-xl border-2 border-indigo-500 dark:border-indigo-400"
             >
               <h3
-                className="text-xl font-bold mb-4"
-                style={{ color: "var(--text-primary)" }}
+                className="text-xl font-bold mb-4 text-gray-800 dark:text-white"
               >
                 Set Monthly Budget Limit
               </h3>
@@ -2118,8 +2077,7 @@ const BudgetManagement = () => {
               <div className="space-y-4">
                 <div>
                   <label
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
+                    className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300"
                   >
                     Monthly Budget Limit
                   </label>
@@ -2130,16 +2088,10 @@ const BudgetManagement = () => {
                     onChange={(e) =>
                       setTempMonthlyBudget(parseFloat(e.target.value) || 0)
                     }
-                    className="w-full px-3 py-2 rounded-lg border"
-                    style={{
-                      background: "var(--background)",
-                      border: `1px solid ${currentTheme?.primary}40`,
-                      color: "var(--text-primary)",
-                    }}
+                    className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
                   />
                   <div
-                    className="text-xs mt-1"
-                    style={{ color: "var(--text-secondary)" }}
+                    className="text-xs mt-1 text-gray-600 dark:text-gray-300 "
                   >
                     This will be used as your overall monthly spending target
                   </div>
@@ -2176,21 +2128,16 @@ const BudgetManagement = () => {
         {/* BUDGET MANAGEMENT SECTION */}
         <div className="mt-12 p-5">
           <div className="flex items-center justify-between mb-6">
-            <h2
-              className="text-2xl font-bold"
-              style={{ color: "var(--text-primary)" }}
-            >
-              Budget Management & Spending Analysis
-            </h2>
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">
+          Budget Management{" "}
+                <span className="text-[#6160DC] dark:text-[#8B7EFF]">
+                & Spending Analysis
+                </span>
+              </h2>
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setShowMonthlyBudgetModal(true)}
-                className="px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:opacity-90"
-                style={{
-                  background: "var(--background)",
-                  border: `2px solid ${currentTheme?.primary}`,
-                  color: currentTheme?.primary,
-                }}
+                className="px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:opacity-90 bg-white dark:bg-gray-700 border-2 border-indigo-500 dark:border-indigo-400 text-indigo-500 dark:text-indigo-400"
               >
                 📊 Set Monthly Budget
               </button>
@@ -2210,11 +2157,7 @@ const BudgetManagement = () => {
           {/* Budget Overview Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div
-              className="p-4 rounded-lg text-center"
-              style={{
-                background: `${chartColors.income}20`,
-                border: `1px solid ${chartColors.income}40`,
-              }}
+              className="p-4 rounded-lg text-center bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700"
             >
               <div
                 className="text-2xl font-bold"
@@ -2223,19 +2166,14 @@ const BudgetManagement = () => {
                 {formatCurrency(getTotalBudgeted())}
               </div>
               <div
-                className="text-sm"
-                style={{ color: "var(--text-secondary)" }}
+                className="text-sm text-gray-600 dark:text-gray-300"
               >
                 Total Budgeted
               </div>
             </div>
 
             <div
-              className="p-4 rounded-lg text-center"
-              style={{
-                background: `${chartColors.spending}20`,
-                border: `1px solid ${chartColors.spending}40`,
-              }}
+              className="p-4 rounded-lg text-center bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700"
             >
               <div
                 className="text-2xl font-bold"
@@ -2244,19 +2182,14 @@ const BudgetManagement = () => {
                 {formatCurrency(getTotalActualSpending())}
               </div>
               <div
-                className="text-sm"
-                style={{ color: "var(--text-secondary)" }}
+                className="text-sm text-gray-600 dark:text-gray-300"
               >
                 Total Spent
               </div>
             </div>
 
             <div
-              className="p-4 rounded-lg text-center"
-              style={{
-                background: `${currentTheme?.primary}20`,
-                border: `1px solid ${currentTheme?.primary}40`,
-              }}
+              className="p-4 rounded-lg text-center bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700"
             >
               <div
                 className="text-2xl font-bold"
@@ -2267,8 +2200,7 @@ const BudgetManagement = () => {
                 )}
               </div>
               <div
-                className="text-sm"
-                style={{ color: "var(--text-secondary)" }}
+                className="text-sm text-gray-600 dark:text-gray-300"
               >
                 {getTotalBudgeted() > getTotalActualSpending()
                   ? "Remaining"
@@ -2277,11 +2209,7 @@ const BudgetManagement = () => {
             </div>
 
             <div
-              className="p-4 rounded-lg text-center"
-              style={{
-                background: `${currentTheme?.primary}20`,
-                border: `1px solid ${currentTheme?.primary}40`,
-              }}
+              className="p-4 rounded-lg text-center bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700"
             >
               <div
                 className="text-2xl font-bold"
@@ -2290,8 +2218,7 @@ const BudgetManagement = () => {
                 {formatCurrency(monthlyBudgetLimit)}
               </div>
               <div
-                className="text-sm"
-                style={{ color: "var(--text-secondary)" }}
+                className="text-sm text-gray-600 dark:text-gray-300"
               >
                 Monthly Limit
               </div>
@@ -2301,13 +2228,7 @@ const BudgetManagement = () => {
             <select
               value={spendingAnalysisView}
               onChange={(e) => setSpendingAnalysisView(e.target.value)}
-              className="px-4 py-2 my-2 rounded-lg text-sm font-medium transition-all duration-300"
-              style={{
-                background: "var(--surface)",
-                border: `1px solid ${currentTheme?.primary}`,
-                color: "var(--text-primary)",
-                marginLeft: "auto", // This pushes it to the right
-              }}
+              className="px-4 py-2 my-2 rounded-lg text-sm font-medium transition-all duration-300 bg-white dark:bg-gray-800 border border-indigo-500 dark:border-indigo-400 text-gray-800 dark:text-white ml-auto"
             >
               <option value="trends">Monthly Spending Trends</option>
               <option value="categories">Category-wise Spending</option>
@@ -2317,27 +2238,18 @@ const BudgetManagement = () => {
 
           {/* Spending Analysis Charts */}
           <div
-            className="p-6 rounded-lg transition-all duration-500"
-            style={{
-              background: "var(--surface)",
-              border: `1px solid ${currentTheme?.primary}`,
-              borderRadius: "var(--radius-lg)",
-              boxShadow: "var(--shadow-md)",
-              paddingBottom: "60px",
-            }}
+          className="p-6 rounded-lg transition-all duration-500 bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 pb-[60px]"
           >
             {spendingAnalysisView === "trends" && (
               <>
                 <div className="flex items-center justify-between mb-6">
                   <h3
-                    className="text-lg font-semibold"
-                    style={{ color: "var(--text-primary)" }}
+                    className="text-lg font-semibold text-gray-800 dark:text-white"
                   >
                     Monthly Spending Trends
                   </h3>
                   <div
-                    className="text-sm"
-                    style={{ color: "var(--text-secondary)" }}
+                    className="text-sm text-gray-600 dark:text-gray-300"
                   >
                     Monthly Budget: {formatCurrency(monthlyBudgetLimit)}
                   </div>
@@ -2394,8 +2306,7 @@ const BudgetManagement = () => {
                             )}
                           </div>
                           <div
-                            className="text-xs text-center"
-                            style={{ color: "var(--text-secondary)" }}
+                            className="text-xs text-center text-gray-600 dark:text-gray-300"
                           >
                             {data.month}
                           </div>
@@ -2426,8 +2337,7 @@ const BudgetManagement = () => {
                         style={{ background: currentTheme?.primary }}
                       ></div>
                       <span
-                        className="text-sm"
-                        style={{ color: "var(--text-secondary)" }}
+                        className="text-sm text-gray-600 dark:text-gray-300"
                       >
                         Budget
                       </span>
@@ -2438,8 +2348,7 @@ const BudgetManagement = () => {
                         style={{ background: chartColors.income }}
                       ></div>
                       <span
-                        className="text-sm"
-                        style={{ color: "var(--text-secondary)" }}
+                        className="text-sm text-gray-600 dark:text-gray-300"
                       >
                         Under Budget
                       </span>
@@ -2450,8 +2359,7 @@ const BudgetManagement = () => {
                         style={{ background: chartColors.spending }}
                       ></div>
                       <span
-                        className="text-sm"
-                        style={{ color: "var(--text-secondary)" }}
+                        className="text-sm text-gray-600 dark:text-gray-300"
                       >
                         Over Budget
                       </span>
@@ -2464,8 +2372,7 @@ const BudgetManagement = () => {
             {spendingAnalysisView === "categories" && (
               <>
                 <h3
-                  className="text-lg font-semibold mb-6"
-                  style={{ color: "var(--text-primary)" }}
+                  className="text-lg font-semibold mb-6 text-gray-800 dark:text-white"
                 >
                   Category-wise Spending Distribution
                 </h3>
@@ -2516,8 +2423,7 @@ const BudgetManagement = () => {
                       {/* Center Total */}
                       <div className="absolute inset-0 flex items-center justify-center flex-col">
                         <div
-                          className="text-lg font-bold"
-                          style={{ color: "var(--text-primary)" }}
+                          className="text-lg font-bold text-gray-800 dark:text-white"
                         >
                           Total
                         </div>
@@ -2550,30 +2456,27 @@ const BudgetManagement = () => {
                               {getCategoryIcon(item.category)}
                             </span>
                             <span
-                              className="font-medium"
-                              style={{ color: "var(--text-primary)" }}
+                              className="font-medium text-gray-800 dark:text-white"
                             >
                               {item.category}
                             </span>
                           </div>
                           <div className="text-right">
                             <div
-                              className="font-bold"
-                              style={{ color: "var(--text-primary)" }}
+                              className="font-bold text-gray-800 dark:text-white"
                             >
                               {formatCurrency(item.amount)}
                             </div>
                             <div
-                              className="text-xs"
-                              style={{ color: "var(--text-secondary)" }}
+                              className="text-xs text-gray-600 dark:text-gray-300"
                             >
                               {item.percentage.toFixed(1)}%
                             </div>
                           </div>
                         </div>
                         <div
-                          className="w-full h-2 rounded-full"
-                          style={{ background: "var(--surface-variant)" }}
+                          className="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-600"
+
                         >
                           <div
                             className="h-2 rounded-full transition-all duration-1000"
@@ -2593,8 +2496,7 @@ const BudgetManagement = () => {
             {spendingAnalysisView === "budget" && (
               <>
                 <h3
-                  className="text-lg font-semibold mb-6"
-                  style={{ color: "var(--text-primary)" }}
+                  className="text-lg font-semibold mb-6 text-gray-800 dark:text-white"
                 >
                   Budget Categories
                 </h3>
@@ -2614,17 +2516,11 @@ const BudgetManagement = () => {
                       return (
                         <div
                           key={budget.id}
-                          className={`p-4 rounded-lg transition-all duration-300 ${
-                            budget.isActive ? "" : "opacity-50"
-                          }`}
-                          style={{
-                            background: "var(--background)",
-                            border: `1px solid ${
-                              budget.isActive
-                                ? budget.color
-                                : "var(--surface-variant)"
-                            }40`,
-                          }}
+                          className={`p-4 rounded-lg transition-all duration-300 bg-gray-50 dark:bg-gray-700 border ${
+                            budget.isActive 
+                              ? 'border-gray-300 dark:border-gray-600' 
+                              : 'border-gray-200 dark:border-gray-700'
+                          } ${budget.isActive ? "" : "opacity-50"}`}                          
                         >
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center space-x-3">
@@ -2633,22 +2529,19 @@ const BudgetManagement = () => {
                               </span>
                               <div>
                                 <div
-                                  className="font-semibold"
-                                  style={{ color: "var(--text-primary)" }}
+                                  className="font-semibold text-gray-800 dark:text-white"
                                 >
                                   {budget.category}
                                 </div>
                                 {budget.description && (
                                   <div
-                                    className="text-xs mt-1"
-                                    style={{ color: "var(--text-secondary)" }}
+                                    className="text-xs mt-1 text-gray-600 dark:text-gray-300"
                                   >
                                     {budget.description}
                                   </div>
                                 )}
                                 <div
-                                  className="text-sm"
-                                  style={{ color: "var(--text-secondary)" }}
+                                  className="text-sm text-gray-600 dark:text-gray-300"
                                 >
                                   {isOverBudget
                                     ? "Over Budget"
@@ -2664,42 +2557,23 @@ const BudgetManagement = () => {
                             <div className="flex items-center space-x-2">
                               <button
                                 onClick={() => handleToggleBudget(budget.id)}
-                                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-300`}
-                                style={{
-                                  background: budget.isActive
-                                    ? `${budget.color}20`
-                                    : "var(--surface-variant)",
-                                  color: budget.isActive
-                                    ? budget.color
-                                    : "var(--text-secondary)",
-                                  border: `1px solid ${
-                                    budget.isActive
-                                      ? budget.color
-                                      : "var(--surface-variant)"
-                                  }40`,
-                                }}
+                                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-300 ${
+                                  budget.isActive
+                                    ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-700'
+                                    : 'bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600'
+                                }`}                                
                               >
                                 {budget.isActive ? "Active" : "Inactive"}
                               </button>
                               <button
                                 onClick={() => handleEditBudget(budget)}
-                                className="px-3 py-1 rounded-lg text-xs font-medium transition-all duration-300"
-                                style={{
-                                  background: `${currentTheme?.primary}20`,
-                                  color: currentTheme?.primary,
-                                  border: `1px solid ${currentTheme?.primary}40`,
-                                }}
+                                className="px-3 py-1 rounded-lg text-xs font-medium transition-all duration-300 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-700"
                               >
                                 Edit
                               </button>
                               <button
                                 onClick={() => handleDeleteBudget(budget.id)}
-                                className="px-3 py-1 rounded-lg text-xs font-medium transition-all duration-300"
-                                style={{
-                                  background: `${chartColors.spending}20`,
-                                  color: chartColors.spending,
-                                  border: `1px solid ${chartColors.spending}40`,
-                                }}
+                                className="px-3 py-1 rounded-lg text-xs font-medium transition-all duration-300 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700"
                               >
                                 Delete
                               </button>
@@ -2709,19 +2583,17 @@ const BudgetManagement = () => {
                           {/* Budget Progress Bars */}
                           <div className="space-y-3">
                             <div>
-                              <div className="flex justify-between text-sm mb-1">
-                                <span
-                                  style={{ color: "var(--text-secondary)" }}
+                              <div className="flex justify-between text-sm mb-1 text-gray-600 dark:text-gray-300">
+                                <span className="text-gray-600 dark:text-gray-300"
                                 >
                                   Budgeted
                                 </span>
-                                <span style={{ color: "var(--text-primary)" }}>
+                                <span className="text-gray-800 dark:text-white"                                >
                                   {formatCurrency(budget.budgeted)}
                                 </span>
                               </div>
                               <div
-                                className="w-full h-3 rounded-full"
-                                style={{ background: "var(--surface-variant)" }}
+                                className="w-full h-3 rounded-full bg-gray-200 dark:bg-gray-600"
                               >
                                 <div
                                   className="h-3 rounded-full transition-all duration-1000"
@@ -2736,18 +2608,17 @@ const BudgetManagement = () => {
 
                             <div>
                               <div className="flex justify-between text-sm mb-1">
-                                <span
-                                  style={{ color: "var(--text-secondary)" }}
+                                <span className="text-gray-600 dark:text-gray-300"
+
                                 >
                                   Actual Spending
                                 </span>
-                                <span style={{ color: "var(--text-primary)" }}>
+                                <span className="text-gray-800 dark:text-white"                                >
                                   {formatCurrency(budget.actual)}
                                 </span>
                               </div>
                               <div
-                                className="w-full h-3 rounded-full"
-                                style={{ background: "var(--surface-variant)" }}
+                                className="w-full h-3 rounded-full bg-gray-200 dark:bg-gray-600"
                               >
                                 <div
                                   className="h-3 rounded-full transition-all duration-1000"
@@ -2774,8 +2645,7 @@ const BudgetManagement = () => {
                                 }}
                               ></div>
                               <span
-                                className="text-sm"
-                                style={{ color: "var(--text-secondary)" }}
+                                className="text-sm text-gray-600 dark:text-gray-300"
                               >
                                 {percentage.toFixed(1)}% of budget used
                               </span>
@@ -2804,14 +2674,12 @@ const BudgetManagement = () => {
                   <div className="text-center py-8">
                     <div className="text-4xl mb-4">💰</div>
                     <div
-                      className="text-lg font-medium mb-2"
-                      style={{ color: "var(--text-primary)" }}
+                      className="text-lg font-medium mb-2 text-gray-800 dark:text-white"
                     >
                       No Budget Categories Set
                     </div>
                     <div
-                      className="text-sm mb-4"
-                      style={{ color: "var(--text-secondary)" }}
+                      className="text-sm mb-4 text-gray-600 dark:text-gray-300"
                     >
                       Start managing your finances by creating budget categories
                     </div>
@@ -2832,11 +2700,7 @@ const BudgetManagement = () => {
                 {getBudgetVsActual().length > 0 && (
                   <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div
-                      className="p-4 rounded-lg text-center"
-                      style={{
-                        background: `${chartColors.income}20`,
-                        border: `1px solid ${chartColors.income}40`,
-                      }}
+                      className="p-4 rounded-lg text-center bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700"
                     >
                       <div
                         className="text-2xl font-bold"
@@ -2848,8 +2712,7 @@ const BudgetManagement = () => {
                         }
                       </div>
                       <div
-                        className="text-sm"
-                        style={{ color: "var(--text-secondary)" }}
+                        className="text-sm text-gray-600 dark:text-gray-300"
                       >
                         Categories Under Budget
                       </div>
@@ -2872,19 +2735,14 @@ const BudgetManagement = () => {
                         }
                       </div>
                       <div
-                        className="text-sm"
-                        style={{ color: "var(--text-secondary)" }}
+                        className="text-sm text-gray-600 dark:text-gray-300"
                       >
                         Categories Over Budget
                       </div>
                     </div>
 
                     <div
-                      className="p-4 rounded-lg text-center"
-                      style={{
-                        background: `${currentTheme?.primary}20`,
-                        border: `1px solid ${currentTheme?.primary}40`,
-                      }}
+                      className="p-4 rounded-lg text-center bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700"
                     >
                       <div
                         className="text-2xl font-bold"
@@ -2898,8 +2756,7 @@ const BudgetManagement = () => {
                         )}
                       </div>
                       <div
-                        className="text-sm"
-                        style={{ color: "var(--text-secondary)" }}
+                        className="text-sm text-gray-600 dark:text-gray-300"
                       >
                         Total Variance
                       </div>

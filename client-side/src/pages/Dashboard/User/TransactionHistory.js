@@ -1805,12 +1805,12 @@ const TransactionHistory = ({ userInfo }) => {
       <div className="max-w-7xl mx-auto">
         <div className="mt-12 p-5">
           <div className="flex items-center justify-between mb-6">
-            <h2
-              className="text-2xl font-bold"
-              style={{ color: "var(--text-primary)" }}
-            >
-              Transaction History
-            </h2>
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">
+          Transaction{" "}
+                <span className="text-[#6160DC] dark:text-[#8B7EFF]">
+                History
+                </span>
+              </h2>
             <div className="flex items-center space-x-4">
               <select
                 value={timeRange}
@@ -1844,20 +1844,16 @@ const TransactionHistory = ({ userInfo }) => {
           </div>
 
           <div
-            className="p-6 rounded-lg transition-all duration-500 mb-8"
+            className="p-6 rounded-lg transition-all duration-500 mb-8 bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700"
             style={{
-              background: "var(--surface)",
-              border: `1px solid ${currentTheme?.primary}`,
-              borderRadius: "var(--radius-lg)",
-              boxShadow: "var(--shadow-md)",
               paddingBottom: "55px",
             }}
+            
           >
             {chartType === "timeline" ? (
               <>
                 <h3
-                  className="text-lg font-semibold mb-6"
-                  style={{ color: "var(--text-primary)" }}
+                  className="text-lg font-semibold mb-6 text-gray-800 dark:text-white"
                 >
                   Income vs Spending Timeline
                 </h3>
@@ -1896,8 +1892,7 @@ const TransactionHistory = ({ userInfo }) => {
                             ></div>
                           </div>
                           <div
-                            className="text-xs text-center"
-                            style={{ color: "var(--text-secondary)" }}
+                            className="text-xs text-center text-gray-600 dark:text-gray-300"
                           >
                             {new Date(data.date).toLocaleDateString("en-US", {
                               month: "short",
@@ -1916,8 +1911,7 @@ const TransactionHistory = ({ userInfo }) => {
                         style={{ background: chartColors.income }}
                       ></div>
                       <span
-                        className="text-sm"
-                        style={{ color: "var(--text-secondary)" }}
+                        className="text-sm text-gray-600 dark:text-gray-300"
                       >
                         Income
                       </span>
@@ -1928,8 +1922,7 @@ const TransactionHistory = ({ userInfo }) => {
                         style={{ background: chartColors.spending }}
                       ></div>
                       <span
-                        className="text-sm"
-                        style={{ color: "var(--text-secondary)" }}
+                        className="text-sm text-gray-600 dark:text-gray-300"
                       >
                         Spending
                       </span>
@@ -1940,23 +1933,20 @@ const TransactionHistory = ({ userInfo }) => {
             ) : (
               <>
                 <h3
-                  className="text-lg font-semibold mb-6"
-                  style={{ color: "var(--text-primary)" }}
+                  className="text-lg font-semibold mb-6 text-gray-800 dark:text-white"
                 >
                   Spending by Category
                   {filterAccountType !== "all" &&
                     filterAccountType !== "allTransactions" && (
                       <span
-                        className="text-sm font-normal ml-2"
-                        style={{ color: "var(--text-secondary)" }}
+                        className="text-sm font-normal ml-2 text-gray-600 dark:text-gray-300"
                       >
                         ({filterAccountType} accounts only)
                       </span>
                     )}
                   {filterAccountType === "allTransactions" && (
                     <span
-                      className="text-sm font-normal ml-2"
-                      style={{ color: "var(--text-secondary)" }}
+                      className="text-sm font-normal ml-2 text-gray-600 dark:text-gray-300"
                     >
                       (All accounts)
                     </span>
@@ -1981,30 +1971,26 @@ const TransactionHistory = ({ userInfo }) => {
                               {getCategoryIcon(item.category)}
                             </span>
                             <span
-                              className="font-medium"
-                              style={{ color: "var(--text-primary)" }}
+                              className="font-medium text-gray-800 dark:text-white"
                             >
                               {item.category}
                             </span>
                           </div>
                           <div className="text-right">
                             <div
-                              className="font-bold"
-                              style={{ color: "var(--text-primary)" }}
+                              className="font-bold text-gray-800 dark:text-white"
                             >
                               {formatCurrency(item.amount)}
                             </div>
                             <div
-                              className="text-xs"
-                              style={{ color: "var(--text-secondary)" }}
+                              className="text-xs text-gray-600 dark:text-gray-300"
                             >
                               {percentage.toFixed(1)}%
                             </div>
                           </div>
                         </div>
                         <div
-                          className="w-full h-3 rounded-full"
-                          style={{ background: "var(--surface-variant)" }}
+                          className="w-full h-3 rounded-full bg-gray-200 dark:bg-gray-600"
                         >
                           <div
                             className="h-3 rounded-full transition-all duration-1000"
@@ -2021,14 +2007,12 @@ const TransactionHistory = ({ userInfo }) => {
                     <div className="text-center py-8">
                       <div className="text-4xl mb-4">📊</div>
                       <div
-                        className="text-lg font-medium mb-2"
-                        style={{ color: "var(--text-primary)" }}
+                        className="text-lg font-medium mb-2 text-gray-800 dark:text-white"
                       >
                         No spending data found
                       </div>
                       <div
-                        className="text-sm"
-                        style={{ color: "var(--text-secondary)" }}
+                        className="text-sm text-gray-600 dark:text-gray-300"
                       >
                         No spending transactions match the current filter
                         criteria
@@ -2043,25 +2027,16 @@ const TransactionHistory = ({ userInfo }) => {
           {/* Transaction Details and Filter Section */}
           <div className="grid lg:grid-cols-3 gap-8">
             <div
-              className="lg:col-span-2 p-6 rounded-lg transition-all duration-500 flex flex-col"
-              style={{
-                background: "var(--surface)",
-                border: `1px solid ${currentTheme?.primary}`,
-                borderRadius: "var(--radius-lg)",
-                boxShadow: "var(--shadow-md)",
-                height: "652px",
-              }}
+className="lg:col-span-2 p-6 rounded-lg transition-all duration-500 flex flex-col bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 h-[652px]"
             >
               <div className="flex items-center justify-between mb-6">
                 <h3
-                  className="text-lg font-semibold"
-                  style={{ color: "var(--text-primary)" }}
+                  className="text-lg font-semibold text-gray-800 dark:text-white"
                 >
                   Transaction Details
                   {filterAccountType !== "all" && (
                     <span
-                      className="text-sm font-normal ml-2"
-                      style={{ color: "var(--text-secondary)" }}
+                      className="text-sm font-normal ml-2 text-gray-600 dark:text-gray-300"
                     >
                       {filterAccountType === "allTransactions"
                         ? "(All Accounts)"
@@ -2070,8 +2045,7 @@ const TransactionHistory = ({ userInfo }) => {
                   )}
                 </h3>
                 <div
-                  className="text-sm"
-                  style={{ color: "var(--text-secondary)" }}
+                  className="text-sm text-gray-600 dark:text-gray-300"
                 >
                   Showing {getFilteredTransactions().length} of{" "}
                   {transactions.length - getFilteredTransactions().length}{" "}
@@ -2084,11 +2058,7 @@ const TransactionHistory = ({ userInfo }) => {
                   getFilteredTransactions().map((transaction) => (
                     <div
                       key={transaction.id}
-                      className="flex items-center justify-between p-4 rounded-lg transition-all duration-300 hover:scale-102"
-                      style={{
-                        background: "var(--background)",
-                        border: `1px solid ${currentTheme?.primary}20`,
-                      }}
+                      className="flex items-center justify-between p-4 rounded-lg transition-all duration-300 hover:scale-102 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
                     >
                       <div className="flex items-center space-x-4">
                         <div
@@ -2099,14 +2069,12 @@ const TransactionHistory = ({ userInfo }) => {
                         </div>
                         <div>
                           <div
-                            className="font-medium"
-                            style={{ color: "var(--text-primary)" }}
+                            className="font-medium text-gray-800 dark:text-white"
                           >
                             {transaction.description}
                           </div>
                           <div
-                            className="text-sm"
-                            style={{ color: "var(--text-secondary)" }}
+                            className="text-sm text-gray-600 dark:text-gray-300"
                           >
                             {transaction.merchant} •{" "}
                             {new Date(transaction.date).toLocaleDateString()}
@@ -2154,15 +2122,13 @@ const TransactionHistory = ({ userInfo }) => {
                           {formatCurrency(transaction.amount)}
                         </div>
                         <div
-                          className="text-xs"
-                          style={{ color: "var(--text-secondary)" }}
+                          className="text-xs text-gray-600 dark:text-gray-300"
                         >
                           {getTransactionIcon(transaction.type)}{" "}
                           {transaction.type}
                         </div>
                         <div
-                          className="text-xs mt-1"
-                          style={{ color: "var(--text-secondary)" }}
+                          className="text-xs mt-1 text-gray-600 dark:text-gray-300"
                         >
                           {getAccountTypeById(transaction.accountId)} Account
                         </div>
@@ -2173,14 +2139,12 @@ const TransactionHistory = ({ userInfo }) => {
                   <div className="text-center py-8">
                     <div className="text-4xl mb-4">🔍</div>
                     <div
-                      className="text-lg font-medium mb-2"
-                      style={{ color: "var(--text-primary)" }}
+                      className="text-lg font-medium mb-2 text-gray-800 dark:text-white"
                     >
                       No transactions found
                     </div>
                     <div
-                      className="text-sm"
-                      style={{ color: "var(--text-secondary)" }}
+                      className="text-sm text-gray-600 dark:text-gray-300"
                     >
                       Try adjusting your search criteria or filters
                     </div>
@@ -2191,17 +2155,10 @@ const TransactionHistory = ({ userInfo }) => {
 
             {/* Search and Filter Section */}
             <div
-              className="p-6 rounded-lg transition-all duration-500"
-              style={{
-                background: "var(--surface)",
-                border: `1px solid ${currentTheme?.primary}`,
-                borderRadius: "var(--radius-lg)",
-                boxShadow: "var(--shadow-md)",
-              }}
+className="p-6 rounded-lg transition-all duration-500 bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700"
             >
               <h3
-                className="text-lg font-semibold mb-4"
-                style={{ color: "var(--text-primary)" }}
+                className="text-lg font-semibold mb-4 text-gray-800 dark:text-white"
               >
                 Search & Filter
               </h3>
@@ -2209,8 +2166,7 @@ const TransactionHistory = ({ userInfo }) => {
               <div className="space-y-4">
                 <div>
                   <label
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
+                    className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300"
                   >
                     Search Transactions
                   </label>
@@ -2219,31 +2175,20 @@ const TransactionHistory = ({ userInfo }) => {
                     placeholder="Search by description or merchant..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300"
-                    style={{
-                      background: "var(--background)",
-                      border: `1px solid ${currentTheme?.primary}40`,
-                      color: "var(--text-primary)",
-                    }}
+                    className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
                   />
                 </div>
 
                 <div>
                   <label
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
+                    className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300"
                   >
                     Account Type
                   </label>
                   <select
                     value={filterAccountType}
                     onChange={(e) => setFilterAccountType(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300"
-                    style={{
-                      background: "var(--background)",
-                      border: `1px solid ${currentTheme?.primary}40`,
-                      color: "var(--text-primary)",
-                    }}
+                    className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
                   >
                     {accountTypeOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -2252,8 +2197,7 @@ const TransactionHistory = ({ userInfo }) => {
                     ))}
                   </select>
                   <div
-                    className="text-xs mt-1"
-                    style={{ color: "var(--text-secondary)" }}
+                    className="text-xs mt-1 text-gray-600 dark:text-gray-300"
                   >
                     {filterAccountType === "all" &&
                       `Showing transactions from: ${selectedAccount?.accountName}`}
@@ -2267,20 +2211,14 @@ const TransactionHistory = ({ userInfo }) => {
 
                 <div>
                   <label
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
+                    className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300"
                   >
                     Category
                   </label>
                   <select
                     value={filterCategory}
                     onChange={(e) => setFilterCategory(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300"
-                    style={{
-                      background: "var(--background)",
-                      border: `1px solid ${currentTheme?.primary}40`,
-                      color: "var(--text-primary)",
-                    }}
+                    className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
                   >
                     {categories.map((category) => (
                       <option key={category} value={category}>
@@ -2292,8 +2230,7 @@ const TransactionHistory = ({ userInfo }) => {
 
                 <div>
                   <label
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
+                    className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300"
                   >
                     Date Range
                   </label>
@@ -2302,31 +2239,20 @@ const TransactionHistory = ({ userInfo }) => {
                       type="date"
                       value={filterDateFrom}
                       onChange={(e) => setFilterDateFrom(e.target.value)}
-                      className="px-3 py-2 rounded-lg text-sm transition-all duration-300"
-                      style={{
-                        background: "var(--background)",
-                        border: `1px solid ${currentTheme?.primary}40`,
-                        color: "var(--text-primary)",
-                      }}
+                      className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
                     />
                     <input
                       type="date"
                       value={filterDateTo}
                       onChange={(e) => setFilterDateTo(e.target.value)}
-                      className="px-3 py-2 rounded-lg text-sm transition-all duration-300"
-                      style={{
-                        background: "var(--background)",
-                        border: `1px solid ${currentTheme?.primary}40`,
-                        color: "var(--text-primary)",
-                      }}
+                      className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: "var(--text-secondary)" }}
+                    className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300"
                   >
                     Amount Range
                   </label>
@@ -2336,46 +2262,27 @@ const TransactionHistory = ({ userInfo }) => {
                       placeholder="Min amount"
                       value={filterAmountMin}
                       onChange={(e) => setFilterAmountMin(e.target.value)}
-                      className="px-3 py-2 rounded-lg text-sm transition-all duration-300"
-                      style={{
-                        background: "var(--background)",
-                        border: `1px solid ${currentTheme?.primary}40`,
-                        color: "var(--text-primary)",
-                      }}
+                      className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
                     />
                     <input
                       type="number"
                       placeholder="Max amount"
                       value={filterAmountMax}
                       onChange={(e) => setFilterAmountMax(e.target.value)}
-                      className="px-3 py-2 rounded-lg text-sm transition-all duration-300"
-                      style={{
-                        background: "var(--background)",
-                        border: `1px solid ${currentTheme?.primary}40`,
-                        color: "var(--text-primary)",
-                      }}
+                      className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
                     />
                   </div>
                 </div>
 
                 <button
                   onClick={clearFilters}
-                  className="w-full py-2 px-4 rounded-lg font-medium transition-all duration-300 hover:opacity-90"
-                  style={{
-                    background: "var(--background)",
-                    border: `2px solid ${currentTheme?.primary}`,
-                    color: currentTheme?.primary,
-                  }}
+                  className="w-full py-2 px-4 rounded-lg font-medium transition-all duration-300 hover:opacity-90 bg-white dark:bg-gray-700 border-2 border-indigo-500 dark:border-indigo-400 text-indigo-500 dark:text-indigo-400"
                 >
                   Clear All Filters
                 </button>
 
                 <div
-                  className="p-3 rounded-lg text-center"
-                  style={{
-                    background: `${currentTheme?.primary}10`,
-                    border: `1px solid ${currentTheme?.primary}30`,
-                  }}
+                  className="p-3 rounded-lg text-center bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700"
                 >
                   <div
                     className="text-sm font-medium"
@@ -2385,8 +2292,7 @@ const TransactionHistory = ({ userInfo }) => {
                   </div>
                   {filterAccountType !== "all" && (
                     <div
-                      className="text-xs mt-1"
-                      style={{ color: "var(--text-secondary)" }}
+                      className="text-xs mt-1 text-gray-600 dark:text-gray-300"
                     >
                       {filterAccountType === "allTransactions"
                         ? "From all accounts"

@@ -1430,9 +1430,9 @@ const InvestmentPortfolio = () => {
       <section className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden">
         <div className="container mx-auto max-w-7xl">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-            <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
-            <div className="h-48 bg-gray-300 dark:bg-gray-700 rounded-2xl mb-8"></div>
+          <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+          <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
+          <div className="h-48 bg-gray-300 dark:bg-gray-700 rounded-2xl mb-8"></div>
             <div className="grid lg:grid-cols-3 gap-6">
               {[1, 2, 3].map((i) => (
                 <div
@@ -1471,7 +1471,7 @@ const InvestmentPortfolio = () => {
   // Risk indicator component
   const RiskIndicator = ({ level, score }) => (
     <div className="flex items-center space-x-2">
-      <div className="w-20 bg-gray-200 rounded-full h-2">
+      <div className="w-20 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
         <div
           className="h-2 rounded-full transition-all duration-300"
           style={{
@@ -1487,7 +1487,7 @@ const InvestmentPortfolio = () => {
         {level} ({score}/10)
       </span>
     </div>
-  );
+  );  
 
 
   return (
@@ -1495,32 +1495,30 @@ const InvestmentPortfolio = () => {
       <div className="max-w-7xl mx-auto">
         {/* Investment Portfolio Section */}
         <section className="mt-12">
-          <h2 className="text-3xl font-bold mb-8 text-gray-800">
-            Investment Portfolio
-          </h2>
+        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">
+        Investment{" "}
+                <span className="text-[#6160DC] dark:text-[#8B7EFF]">
+                Portfolio
+                </span>
+              </h2>
 
           {/* Portfolio Overview Cards */}
           <div className="grid lg:grid-cols-3 gap-6 mb-8">
             {/* Total Portfolio Value */}
-            <div className="bg-white shadow-2xl rounded-2xl p-6">
+            <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">Total Portfolio Value</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">Total Portfolio Value</p>
                   <h3
-                    className="text-2xl font-bold text-gray-800"
+                    className="text-2xl font-bold text-gray-800 dark:text-white"
                     style={{ marginTop: "5px" }}
                   >
                     $
                     {currentUser.investmentPortfolio.totalValue.toLocaleString()}
                   </h3>
                 </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-blue-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -1533,16 +1531,16 @@ const InvestmentPortfolio = () => {
             </div>
 
             {/* Total Gain/Loss */}
-            <div className="bg-white shadow-2xl rounded-2xl p-6">
+            <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">Total Gain/Loss</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">Total Gain/Loss</p>
                   <h3
                     className={`text-2xl font-bold ${
                       currentUser.investmentPortfolio.totalGainLoss >= 0
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-red-600 dark:text-red-400"
+                    }`}                    
                   >
                     {currentUser.investmentPortfolio.totalGainLoss >= 0
                       ? "+"
@@ -1553,9 +1551,9 @@ const InvestmentPortfolio = () => {
                   <p
                     className={`text-sm ${
                       currentUser.investmentPortfolio.totalGainLoss >= 0
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-red-600 dark:text-red-400"
+                    }`}                    
                   >
                     (
                     {currentUser.investmentPortfolio.totalGainLoss >= 0
@@ -1567,16 +1565,17 @@ const InvestmentPortfolio = () => {
                 <div
                   className={`w-12 h-12 rounded-full flex items-center justify-center ${
                     currentUser.investmentPortfolio.totalGainLoss >= 0
-                      ? "bg-green-100"
-                      : "bg-red-100"
+                      ? "bg-green-100 dark:bg-green-900/30"
+                      : "bg-red-100 dark:bg-red-900/30"
                   }`}
+                                                                                          
                 >
                   <svg
                     className={`w-6 h-6 ${
                       currentUser.investmentPortfolio.totalGainLoss >= 0
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-red-600 dark:text-red-400"
+                    }`}                    
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1597,21 +1596,16 @@ const InvestmentPortfolio = () => {
             </div>
 
             {/* Risk Analysis */}
-            <div className="bg-white shadow-2xl rounded-2xl p-6">
+            <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-gray-500 text-sm">Portfolio Risk</p>
-                  <h3 className="text-xl font-bold text-gray-800">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">Portfolio Risk</p>
+                  <h3 className="text-xl font-bold text-gray-800 dark:text-white"                  >
                     {currentUser.investmentPortfolio.riskLevel}
                   </h3>
                 </div>
-                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-orange-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -1631,8 +1625,8 @@ const InvestmentPortfolio = () => {
           {/* Charts Section */}
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Portfolio Composition - Pie Chart */}
-            <div className="bg-white shadow-2xl rounded-2xl p-6">
-              <h3 className="text-xl font-bold mb-6 text-gray-800">
+            <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
+              <h3 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
                 Portfolio Composition
               </h3>
               <div className="h-80">
@@ -1673,9 +1667,9 @@ const InvestmentPortfolio = () => {
                         className="w-4 h-4 rounded-full"
                         style={{ backgroundColor: item.color }}
                       />
-                      <span className="text-sm text-gray-600">{item.name}</span>
-                      <span className="text-sm font-medium text-gray-800">
-                        ${item.value.toLocaleString()}
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{item.name}</span>
+                      <span className="text-sm font-medium text-gray-800 dark:text-white">
+                            ${item.value.toLocaleString()}
                       </span>
                     </div>
                   )
@@ -1684,8 +1678,8 @@ const InvestmentPortfolio = () => {
             </div>
 
             {/* Performance Over Time - Line Chart */}
-            <div className="bg-white shadow-2xl rounded-2xl p-6">
-              <h3 className="text-xl font-bold mb-6 text-gray-800">
+            <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
+              <h3 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
                 Performance Over Time
               </h3>
               <div className="h-80">
@@ -1722,12 +1716,12 @@ const InvestmentPortfolio = () => {
               </div>
 
               {/* Performance Summary */}
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
                     6-Month Performance
-                  </span>
-                  <span className="text-sm font-medium text-green-600">
+                </span>
+                <span className="text-sm font-medium text-green-600 dark:text-green-400">
                     +
                     {(
                       ((currentUser.investmentPortfolio.totalValue -

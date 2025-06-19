@@ -1448,19 +1448,22 @@ const InsuranceCoverage = () => {
     <section>
       <div className="max-w-7xl mx-auto">
         <section className="mt-12">
-          <h2 className="text-3xl font-bold mb-8 text-gray-800">
-            Insurance Coverage
-          </h2>
+        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">
+  Insurance{" "}
+  <span className="text-[#6160DC] dark:text-[#8B7EFF]">
+    Coverage
+  </span>
+</h2>
 
           {/* Insurance Overview */}
-          <div className="bg-white shadow-2xl rounded-2xl p-6 mb-8">
+          <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 mb-8 transition-all duration-300">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-800">
-                Total Annual Premiums
-              </h3>
-              <div className="text-3xl font-bold text-blue-600">
-                ${currentUser.insurance.totalPremiums.toLocaleString()}
-              </div>
+            <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+  Total Annual Premiums
+</h3>
+<div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+  ${currentUser.insurance.totalPremiums.toLocaleString()}
+</div>
             </div>
 
             {/* Insurance Policies Grid */}
@@ -1468,59 +1471,59 @@ const InsuranceCoverage = () => {
               {currentUser.insurance.policies.map((policy) => (
                 <div
                   key={policy.id}
-                  className="border border-gray-200 rounded-lg p-6"
+                  className="border border-gray-200 dark:border-gray-600 rounded-lg p-6 dark:bg-gray-700 transition-all duration-300"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-800">
-                        {policy.type}
-                      </h4>
-                      <p className="text-sm text-gray-600">{policy.provider}</p>
-                      <p className="text-xs text-gray-500">
-                        Policy: {policy.policyNumber}
-                      </p>
+                    <h4 className="text-lg font-semibold text-gray-800 dark:text-white">
+  {policy.type}
+</h4>
+<p className="text-sm text-gray-600 dark:text-gray-300">{policy.provider}</p>
+<p className="text-xs text-gray-500 dark:text-gray-400">
+  Policy: {policy.policyNumber}
+</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xl font-bold text-gray-800">
-                        ${policy.premium.toLocaleString()}
-                      </p>
-                      <p className="text-sm text-gray-600">Annual Premium</p>
+                    <p className="text-xl font-bold text-gray-800 dark:text-white">
+  ${policy.premium.toLocaleString()}
+</p>
+<p className="text-sm text-gray-600 dark:text-gray-300">Annual Premium</p>
                     </div>
                   </div>
 
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Deductible</span>
-                      <span className="font-medium">
-                        ${policy.deductible?.toLocaleString() || "N/A"}
-                      </span>
+                    <span className="text-gray-600 dark:text-gray-300">Deductible</span>
+<span className="font-medium text-gray-800 dark:text-white">
+  ${policy.deductible?.toLocaleString() || "N/A"}
+</span>
                     </div>
 
                     {policy.type === "Auto Insurance" && policy.vehicles && (
                       <div className="text-sm">
-                        <span className="text-gray-600">Vehicle: </span>
-                        <span className="font-medium">
-                          {policy.vehicles[0].year} {policy.vehicles[0].make}{" "}
-                          {policy.vehicles[0].model}
-                        </span>
+                        <span className="text-gray-600 dark:text-gray-300">Vehicle: </span>
+<span className="font-medium text-gray-800 dark:text-white">
+  {policy.vehicles[0].year} {policy.vehicles[0].make}{" "}
+  {policy.vehicles[0].model}
+</span>
                       </div>
                     )}
 
                     {policy.type === "Life Insurance" && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Coverage Amount</span>
-                        <span className="font-medium">
-                          ${policy.faceValue?.toLocaleString()}
-                        </span>
+                        <span className="text-gray-600 dark:text-gray-300">Coverage Amount</span>
+<span className="font-medium text-gray-800 dark:text-white">
+  ${policy.faceValue?.toLocaleString()}
+</span>
                       </div>
                     )}
 
                     {policy.discounts && policy.discounts.length > 0 && (
                       <div className="text-sm">
-                        <span className="text-gray-600">Discounts: </span>
-                        <span className="font-medium text-green-600">
-                          {policy.discounts.join(", ")}
-                        </span>
+                        <span className="text-gray-600 dark:text-gray-300">Discounts: </span>
+<span className="font-medium text-green-600 dark:text-green-400">
+  {policy.discounts.join(", ")}
+</span>
                       </div>
                     )}
                   </div>
@@ -1531,38 +1534,38 @@ const InsuranceCoverage = () => {
 
           {/* Claims History */}
           {currentUser.insurance.claimsHistory.length > 0 && (
-            <div className="bg-white shadow-2xl rounded-2xl p-6">
-              <h3 className="text-xl font-bold mb-6 text-gray-800">
-                Recent Claims
-              </h3>
+            <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
+            <h3 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
+              Recent Claims
+            </h3>          
               <div className="space-y-4">
                 {currentUser.insurance.claimsHistory.map((claim, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                    className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-600 rounded-lg dark:bg-gray-700 transition-all duration-300"
                   >
                     <div>
-                      <p className="font-medium text-gray-800">
-                        {claim.description}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {claim.type} •{" "}
-                        {new Date(claim.date).toLocaleDateString()}
-                      </p>
+                    <p className="font-medium text-gray-800 dark:text-white">
+  {claim.description}
+</p>
+<p className="text-sm text-gray-600 dark:text-gray-300">
+  {claim.type} •{" "}
+  {new Date(claim.date).toLocaleDateString()}
+</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-gray-800">
-                        ${claim.amount.toLocaleString()}
-                      </p>
-                      <p
-                        className={`text-sm ${
-                          claim.status === "Settled" || claim.status === "Paid"
-                            ? "text-green-600"
-                            : "text-orange-600"
-                        }`}
-                      >
-                        {claim.status}
-                      </p>
+                    <p className="font-bold text-gray-800 dark:text-white">
+  ${claim.amount.toLocaleString()}
+</p>
+<p
+  className={`text-sm ${
+    claim.status === "Settled" || claim.status === "Paid"
+      ? "text-green-600 dark:text-green-400"
+      : "text-orange-600 dark:text-orange-400"
+  }`}
+>
+  {claim.status}
+</p>
                     </div>
                   </div>
                 ))}

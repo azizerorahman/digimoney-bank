@@ -1438,26 +1438,29 @@ const AlertsAndNotifications = () => {
     <section>
       <div className="max-w-7xl mx-auto">
         <section className="mt-12">
-          <h2 className="text-3xl font-bold mb-8 text-gray-800">
-            Alerts & Notifications
-          </h2>
-          <div className="bg-white shadow-2xl rounded-2xl p-6">
-            <h3 className="text-xl font-bold mb-6 text-gray-800">
-              Credit Alerts & Notifications
-            </h3>
+        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">
+  Alerts &{" "}
+  <span className="text-[#6160DC] dark:text-[#8B7EFF]">
+    Notifications
+  </span>
+</h2>
+<div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
+  <h3 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
+    Credit Alerts & Notifications
+  </h3>
             <div className="space-y-4">
               {(currentUser.creditHistory?.alerts || []).map((alert, index) => (
                 <div
                   key={index}
-                  className={`p-4 rounded-lg border-l-4 ${
+                  className={`p-4 rounded-lg border-l-4 transition-all duration-300 ${
                     alert.type === "warning"
-                      ? "bg-yellow-50 border-yellow-400"
+                      ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400 dark:border-yellow-600"
                       : alert.type === "success"
-                      ? "bg-green-50 border-green-400"
+                      ? "bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-600"
                       : alert.type === "danger"
-                      ? "bg-red-50 border-red-400"
-                      : "bg-blue-50 border-blue-400"
-                  }`}
+                      ? "bg-red-50 dark:bg-red-900/20 border-red-400 dark:border-red-600"
+                      : "bg-blue-50 dark:bg-blue-900/20 border-blue-400 dark:border-blue-600"
+                  }`}                  
                 >
                   <div className="flex items-start space-x-3">
                     <div
@@ -1512,9 +1515,9 @@ const AlertsAndNotifications = () => {
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-bold text-gray-800">{alert.title}</h4>
-                      <p className="text-sm text-gray-600">{alert.message}</p>
-                      <p className="text-xs text-gray-500 mt-1">{alert.date}</p>
+                    <h4 className="font-bold text-gray-800 dark:text-white">{alert.title}</h4>
+<p className="text-sm text-gray-600 dark:text-gray-300">{alert.message}</p>
+<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{alert.date}</p>
                     </div>
                   </div>
                 </div>
@@ -1525,12 +1528,12 @@ const AlertsAndNotifications = () => {
                 currentUser.creditHistory.alerts.length === 0) && (
                 <div className="text-center py-8">
                   <div className="text-4xl mb-4">🔔</div>
-                  <div className="text-lg font-medium mb-2 text-gray-800">
-                    No Recent Alerts
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    Your credit profile is stable with no recent changes
-                  </div>
+                  <div className="text-lg font-medium mb-2 text-gray-800 dark:text-white">
+  No Recent Alerts
+</div>
+<div className="text-sm text-gray-600 dark:text-gray-300">
+  Your credit profile is stable with no recent changes
+</div>
                 </div>
               )}
             </div>
@@ -1541,170 +1544,165 @@ const AlertsAndNotifications = () => {
         <section className="mt-12">
           {/* Alert Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4 text-center transition-all duration-300">
               <div className="text-2xl font-bold text-red-600">2</div>
-              <div className="text-sm text-red-700">Critical Alerts</div>
+              <div className="text-sm text-red-700 dark:text-red-300">Critical Alerts</div>
             </div>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4 text-center transition-all duration-300">
               <div className="text-2xl font-bold text-yellow-600">5</div>
-              <div className="text-sm text-yellow-700">Warnings</div>
+              <div className="text-sm text-yellow-700 dark:text-yellow-300">Warnings</div>
             </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 text-center transition-all duration-300">
               <div className="text-2xl font-bold text-blue-600">3</div>
-              <div className="text-sm text-blue-700">Info Updates</div>
+              <div className="text-sm text-blue-700 dark:text-blue-300">Info Updates</div>
             </div>
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-4 text-center transition-all duration-300">
               <div className="text-2xl font-bold text-green-600">1</div>
-              <div className="text-sm text-green-700">Good News</div>
+              <div className="text-sm text-green-700 dark:text-green-300">Good News</div>
             </div>
           </div>
 
           {/* All Alerts Combined */}
-          <div className="bg-white shadow-2xl rounded-2xl p-6">
-            <h3 className="text-xl font-bold mb-6 text-gray-800">
-              Recent Alerts & Notifications
-            </h3>
-            <div className="space-y-4 max-h-96 overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
+  <h3 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
+    Recent Alerts & Notifications
+  </h3>
+  <div className="space-y-4 max-h-96 overflow-y-auto dark:scrollbar-thin dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
               {/* Low Balance Alerts */}
-              <div className="p-4 rounded-lg border-l-4 bg-yellow-50 border-yellow-400">
-                <div className="flex items-start space-x-3">
+              <div className="p-4 rounded-lg border-l-4 bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400 dark:border-yellow-600 transition-all duration-300">                <div className="flex items-start space-x-3">
                   <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
                     <span className="text-white">⚠️</span>
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-bold text-gray-800">
-                      Low Balance Alert
+                    <h4 className="font-bold text-gray-800 dark:text-white">                      Low Balance Alert
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
                       Your Checking account balance is below $500
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">Today, 7:23 AM</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Today, 7:23 AM</p>
                   </div>
                   <div className="text-right">
                     <span className="text-lg font-bold text-yellow-600">
                       $450.25
                     </span>
-                    <p className="text-xs text-gray-500">Current Balance</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Current Balance</p>
                   </div>
                 </div>
               </div>
 
               {/* Large Transaction Alert */}
-              <div className="p-4 rounded-lg border-l-4 bg-blue-50 border-blue-400">
-                <div className="flex items-start space-x-3">
+              <div className="p-4 rounded-lg border-l-4 bg-blue-50 dark:bg-blue-900/20 border-blue-400 dark:border-blue-600 transition-all duration-300">                
+              <div className="flex items-start space-x-3">
                   <div className="w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center">
                     <span className="text-white">💰</span>
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-bold text-gray-800">
-                      Large Transaction Detected
+                    <h4 className="font-bold text-gray-800 dark:text-white">                      Large Transaction Detected
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
                       Transaction of $2,918.32 for Mortgage Payment processed
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">June 1, 2025</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">June 1, 2025</p>
                   </div>
                   <div className="text-right">
                     <span className="text-lg font-bold text-blue-600">
                       -$2,918.32
                     </span>
-                    <p className="text-xs text-gray-500">Auto Payment</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Auto Payment</p>
                   </div>
                 </div>
               </div>
 
               {/* Suspicious Activity Alert */}
-              <div className="p-4 rounded-lg border-l-4 bg-red-50 border-red-400">
+              <div className="p-4 rounded-lg border-l-4 bg-red-50 dark:bg-red-900/20 border-red-400 dark:border-red-600 transition-all duration-300">
                 <div className="flex items-start space-x-3">
                   <div className="w-8 h-8 bg-red-400 rounded-full flex items-center justify-center">
                     <span className="text-white">🔒</span>
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-bold text-gray-800">
-                      Suspicious Activity Detected
+                    <h4 className="font-bold text-gray-800 dark:text-white">                      Suspicious Activity Detected
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
                       Login attempt from unrecognized device in New York
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       June 2, 2025 - 11:45 PM
                     </p>
                   </div>
                   <div className="text-right">
-                    <button className="px-3 py-1 bg-red-600 text-white text-xs rounded-full">
-                      Review
-                    </button>
+                  <button className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded-full transition-all duration-300">
+  Review
+</button>
                   </div>
                 </div>
               </div>
 
               {/* Budget Alert */}
-              <div className="p-4 rounded-lg border-l-4 bg-yellow-50 border-yellow-400">
-                <div className="flex items-start space-x-3">
+              <div className="p-4 rounded-lg border-l-4 bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400 dark:border-yellow-600 transition-all duration-300">               
+              <div className="flex items-start space-x-3">
                   <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
                     <span className="text-white">📊</span>
                   </div>
                   <div className="flex-1">
                     <h4 className="font-bold text-gray-800">Budget Exceeded</h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
                       You've exceeded your Transportation budget by $74.75
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">May 30, 2025</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">May 30, 2025</p>
                   </div>
                   <div className="text-right">
                     <span className="text-lg font-bold text-yellow-600">
                       107.9%
                     </span>
-                    <p className="text-xs text-gray-500">of Budget Used</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">of Budget Used</p>
                   </div>
                 </div>
               </div>
 
               {/* Credit Score Improvement */}
-              <div className="p-4 rounded-lg border-l-4 bg-green-50 border-green-400">
+              <div className="p-4 rounded-lg border-l-4 bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-600 transition-all duration-300">
                 <div className="flex items-start space-x-3">
                   <div className="w-8 h-8 bg-green-400 rounded-full flex items-center justify-center">
                     <span className="text-white">📈</span>
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-bold text-gray-800">
+                  <h4 className="font-bold text-gray-800 dark:text-white">
                       Credit Score Improved
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
                       Your credit score increased by 13 points this month!
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">June 1, 2025</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">June 1, 2025</p>
                   </div>
                   <div className="text-right">
                     <span className="text-lg font-bold text-green-600">
                       +13
                     </span>
-                    <p className="text-xs text-gray-500">Points</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Points</p>
                   </div>
                 </div>
               </div>
 
               {/* Payment Reminder */}
-              <div className="p-4 rounded-lg border-l-4 bg-blue-50 border-blue-400">
-                <div className="flex items-start space-x-3">
+              <div className="p-4 rounded-lg border-l-4 bg-blue-50 dark:bg-blue-900/20 border-blue-400 dark:border-blue-600 transition-all duration-300">
+               <div className="flex items-start space-x-3">
                   <div className="w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center">
                     <span className="text-white">📅</span>
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-bold text-gray-800">
-                      Payment Due Reminder
+                    <h4 className="font-bold text-gray-800 dark:text-white">                      Payment Due Reminder
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
                       Auto loan payment of $648.50 is due in 7 days
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       Due: July 10, 2025
                     </p>
                   </div>
                   <div className="text-right">
-                    <button className="px-3 py-1 bg-blue-600 text-white text-xs rounded-full">
-                      Pay Now
-                    </button>
+                  <button className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-full transition-all duration-300">
+  Pay Now
+</button>
                   </div>
                 </div>
               </div>

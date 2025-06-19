@@ -1454,17 +1454,20 @@ const CreditScoreAndReports = () => {
     <section>
       <div className="max-w-7xl mx-auto">
         <section className="mt-12">
-          <h2 className="text-3xl font-bold mb-8 text-gray-800">
-            Credit Score & Reports
-          </h2>
+        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">
+        Credit Score &{" "}
+                <span className="text-[#6160DC] dark:text-[#8B7EFF]">
+                Reports
+                </span>
+              </h2>
 
           {/* Credit Score Trend Line Chart */}
           <div
             className="grid lg:grid-cols-2 gap-8"
             style={{ marginBottom: "48px" }}
           >
-            <div className="bg-white shadow-2xl rounded-2xl p-6">
-              <h3 className="text-xl font-bold mb-6 text-gray-800">
+            <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
+              <h3 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
                 Credit Score Trend
               </h3>
               <div className="h-80">
@@ -1521,8 +1524,8 @@ const CreditScoreAndReports = () => {
             </div>
 
             {/* Credit Utilization Gauge */}
-            <div className="bg-white shadow-2xl rounded-2xl p-6">
-              <h3 className="text-xl font-bold mb-6 text-gray-800">
+            <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
+              <h3 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
                 Credit Utilization
               </h3>
               <div className="flex flex-col items-center">
@@ -1566,17 +1569,17 @@ const CreditScoreAndReports = () => {
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-bold text-gray-800">
-                      {currentUser.creditHistory?.utilizationRate || 23.4}%
-                    </span>
-                    <span className="text-sm text-gray-500">Utilized</span>
+                  <span className="text-3xl font-bold text-gray-800 dark:text-white">
+  {currentUser.creditHistory?.utilizationRate || 23.4}%
+</span>
+<span className="text-sm text-gray-500 dark:text-gray-400">Utilized</span>
                   </div>
                 </div>
 
                 <div className="w-full space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Total Credit Used</span>
-                    <span className="font-bold">
+                  <span className="text-gray-800 dark:text-gray-300">Total Credit Used</span>
+<span className="font-bold text-gray-800 dark:text-white">
                       $
                       {(
                         currentUser.creditHistory?.totalCreditUsed || 5850
@@ -1584,8 +1587,8 @@ const CreditScoreAndReports = () => {
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>Total Credit Limit</span>
-                    <span className="font-bold">
+                  <span className="text-gray-800 dark:text-gray-300">Total Credit Limit</span>
+<span className="font-bold text-gray-800 dark:text-white">
                       $
                       {(
                         currentUser.creditHistory?.totalCreditLimit || 25000
@@ -1593,8 +1596,8 @@ const CreditScoreAndReports = () => {
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>Available Credit</span>
-                    <span className="font-bold text-green-600">
+                  <span className="text-gray-800 dark:text-gray-300">Available Credit</span>
+<span className="font-bold text-green-600 dark:text-green-400">
                       $
                       {(
                         (currentUser.creditHistory?.totalCreditLimit || 25000) -
@@ -1608,11 +1611,11 @@ const CreditScoreAndReports = () => {
           </div>
 
           {/* Visual Alerts Section */}
-          <h2 className="text-3xl font-bold mb-8 text-gray-800">
-            Alerts & Notifications
-          </h2>
-          <div className="bg-white shadow-2xl rounded-2xl p-6">
-            <h3 className="text-xl font-bold mb-6 text-gray-800">
+          <h2 className="text-3xl font-bold mb-8 text-gray-800 dark:text-white">
+  Alerts & Notifications
+</h2>
+          <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
+            <h3 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
               Credit Alerts & Notifications
             </h3>
             <div className="space-y-4">
@@ -1621,12 +1624,12 @@ const CreditScoreAndReports = () => {
                   key={index}
                   className={`p-4 rounded-lg border-l-4 ${
                     alert.type === "warning"
-                      ? "bg-yellow-50 border-yellow-400"
-                      : alert.type === "success"
-                      ? "bg-green-50 border-green-400"
-                      : alert.type === "danger"
-                      ? "bg-red-50 border-red-400"
-                      : "bg-blue-50 border-blue-400"
+  ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400"
+  : alert.type === "success"
+  ? "bg-green-50 dark:bg-green-900/20 border-green-400"
+  : alert.type === "danger"
+  ? "bg-red-50 dark:bg-red-900/20 border-red-400"
+  : "bg-blue-50 dark:bg-blue-900/20 border-blue-400"
                   }`}
                 >
                   <div className="flex items-start space-x-3">
@@ -1682,9 +1685,9 @@ const CreditScoreAndReports = () => {
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-bold text-gray-800">{alert.title}</h4>
-                      <p className="text-sm text-gray-600">{alert.message}</p>
-                      <p className="text-xs text-gray-500 mt-1">{alert.date}</p>
+                    <h4 className="font-bold text-gray-800 dark:text-white">{alert.title}</h4>
+<p className="text-sm text-gray-600 dark:text-gray-300">{alert.message}</p>
+<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{alert.date}</p>
                     </div>
                   </div>
                 </div>
@@ -1695,12 +1698,12 @@ const CreditScoreAndReports = () => {
                 currentUser.creditHistory.alerts.length === 0) && (
                 <div className="text-center py-8">
                   <div className="text-4xl mb-4">🔔</div>
-                  <div className="text-lg font-medium mb-2 text-gray-800">
-                    No Recent Alerts
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    Your credit profile is stable with no recent changes
-                  </div>
+                  <div className="text-lg font-medium mb-2 text-gray-800 dark:text-white">
+  No Recent Alerts
+</div>
+<div className="text-sm text-gray-600 dark:text-gray-300">
+  Your credit profile is stable with no recent changes
+</div>
                 </div>
               )}
             </div>

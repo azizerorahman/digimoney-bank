@@ -1465,9 +1465,9 @@ const LoanAndMortgageManagement = () => {
       <section className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden">
         <div className="container mx-auto max-w-7xl">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-            <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
-            <div className="h-48 bg-gray-300 dark:bg-gray-700 rounded-2xl mb-8"></div>
+          <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+<div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
+<div className="h-48 bg-gray-300 dark:bg-gray-700 rounded-2xl mb-8"></div>
             <div className="grid lg:grid-cols-3 gap-6">
               {[1, 2, 3].map((i) => (
                 <div
@@ -1486,14 +1486,17 @@ const LoanAndMortgageManagement = () => {
     <section>
       <div className="max-w-7xl mx-auto">
         <section className="mt-12">
-          <h2 className="text-3xl font-bold mb-8 text-gray-800">
-            Loan & Mortgage Management
-          </h2>
+        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">
+        Loan & Mortgage{" "}
+                <span className="text-[#6160DC] dark:text-[#8B7EFF]">
+                Management
+                </span>
+              </h2>
 
           {/* Outstanding Balance with Full Circle Gauge */}
           <div className="grid lg:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white shadow-2xl rounded-2xl p-6">
-              <h3 className="text-xl font-bold mb-6 text-gray-800">
+          <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
+              <h3 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
                 Outstanding Balance
               </h3>
               <div className="flex flex-col items-center">
@@ -1530,13 +1533,14 @@ const LoanAndMortgageManagement = () => {
 
                   {/* Center Content - More space due to larger inner radius */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <div className="text-xl font-bold text-gray-800 mb-2">
-                      ${currentUser.loans[0].currentBalance.toLocaleString()}
-                    </div>
-                    <div className="text-base text-gray-500 font-medium">
-                      Remaining
-                    </div>
-                    <div className="text-sm text-green-600 font-semibold mt-2">
+                  <div className="text-xl font-bold text-gray-800 dark:text-white mb-2">
+  ${currentUser.loans[0].currentBalance.toLocaleString()}
+</div>
+<div className="text-base text-gray-500 dark:text-gray-400 font-medium">
+  Remaining
+</div>
+<div className="text-sm text-green-600 dark:text-green-400 font-semibold mt-2">
+
                       {(
                         ((currentUser.loans[0].originalAmount -
                           currentUser.loans[0].currentBalance) /
@@ -1550,14 +1554,15 @@ const LoanAndMortgageManagement = () => {
 
                 {/* Progress Stats */}
                 <div className="text-center space-y-3 w-full">
-                  <div className="flex justify-between items-center bg-gray-50 rounded-lg p-3">
-                    <span className="text-sm text-gray-600">Total Loan</span>
-                    <span className="font-semibold text-gray-800">
-                      ${currentUser.loans[0].originalAmount.toLocaleString()}
-                    </span>
-                  </div>
+                <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+  <span className="text-sm text-gray-600 dark:text-gray-400">Total Loan</span>
+  <span className="font-semibold text-gray-800 dark:text-white">
+    ${currentUser.loans[0].originalAmount.toLocaleString()}
+  </span>
+</div>
 
-                  <div className="text-xs text-gray-400">
+
+<div className="text-xs text-gray-400 dark:text-gray-500">
                     $
                     {(
                       currentUser.loans[0].originalAmount -
@@ -1570,8 +1575,8 @@ const LoanAndMortgageManagement = () => {
             </div>
 
             {/* Payment Schedule Timeline */}
-            <div className="lg:col-span-2 bg-white shadow-2xl rounded-2xl p-6">
-              <h3 className="text-xl font-bold mb-4 text-gray-800">
+            <div className="lg:col-span-2 bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
+            <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
                 Payment Schedule Timeline
               </h3>
               <div className="space-y-4">
@@ -1581,17 +1586,17 @@ const LoanAndMortgageManagement = () => {
                     .map((payment, index) => (
                       <div
                         key={index}
-                        className="flex items-center space-x-4 text-black"
+                        className="flex items-center space-x-4 text-gray-800 dark:text-white"
                       >
                         <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                         <div className="flex-1">
                           <div className="flex justify-between">
-                            <span className="font-medium">{payment.date}</span>
-                            <span className="text-green-600 font-bold">
+                          <span className="font-medium text-gray-800 dark:text-white">{payment.date}</span>
+<span className="text-green-600 dark:text-green-400 font-bold">
                               ${payment.amount.toLocaleString()}
                             </span>
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
                             Principal: ${payment.principal.toLocaleString()} |
                             Interest: ${payment.interest.toLocaleString()}
                           </div>
@@ -1601,20 +1606,20 @@ const LoanAndMortgageManagement = () => {
 
                 {/* Upcoming Payments */}
                 <div className="border-t pt-4">
-                  <h4 className="font-medium text-gray-700 mb-2">
-                    Upcoming Payments
-                  </h4>
+                <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">
+  Upcoming Payments
+</h4>
                   {["2025-07-01", "2025-08-01", "2025-09-01"].map(
                     (date, index) => (
                       <div
                         key={index}
-                        className="flex items-center space-x-4 opacity-100 text-black"
+                        className="flex items-center space-x-4 opacity-100 text-gray-800 dark:text-white"
                       >
                         <div className="w-3 h-3 bg-red-600 rounded-full"></div>
                         <div className="flex-1">
                           <div className="flex justify-between">
-                            <span className="font-medium">{date}</span>
-                            <span className="font-bold">
+                          <span className="font-medium text-gray-800 dark:text-white">{date}</span>
+<span className="font-bold text-gray-800 dark:text-white">
                               $
                               {currentUser.loans[0].monthlyPayment.toLocaleString()}
                             </span>
@@ -1629,8 +1634,8 @@ const LoanAndMortgageManagement = () => {
           </div>
 
           {/* Principal vs Interest Breakdown */}
-          <div className="bg-white shadow-2xl rounded-2xl p-6 mb-8">
-            <h3 className="text-xl font-bold mb-6 text-gray-800">
+          <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 mb-8 transition-all duration-300">
+            <h3 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
               Principal vs Interest Breakdown
             </h3>
             <div className="grid lg:grid-cols-2 gap-8">
@@ -1670,25 +1675,25 @@ const LoanAndMortgageManagement = () => {
               </div>
 
               <div className="space-y-6">
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <h4 className="font-bold text-green-800">
-                    Total Principal Paid
-                  </h4>
-                  <p className="text-2xl font-bold text-green-600">
+              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+  <h4 className="font-bold text-green-800 dark:text-green-400">
+    Total Principal Paid
+  </h4>
+  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                     ${currentUser.loans[0].principalPaid.toLocaleString()}
                   </p>
                 </div>
-                <div className="p-4 bg-yellow-50 rounded-lg">
-                  <h4 className="font-bold text-yellow-800">
-                    Total Interest Paid
-                  </h4>
-                  <p className="text-2xl font-bold text-yellow-600">
+                <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+  <h4 className="font-bold text-yellow-800 dark:text-yellow-400">
+    Total Interest Paid
+  </h4>
+  <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                     ${currentUser.loans[0].interestPaid.toLocaleString()}
                   </p>
                 </div>
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <h4 className="font-bold text-blue-800">Interest Savings</h4>
-                  <p className="text-sm text-blue-600">
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+  <h4 className="font-bold text-blue-800 dark:text-blue-400">Interest Savings</h4>
+  <p className="text-sm text-blue-600 dark:text-blue-400">
                     Early payments could save $
                     {(
                       currentUser.loans[0].currentBalance * 0.15
