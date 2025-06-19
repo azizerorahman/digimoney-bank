@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Search,
   User,
@@ -29,8 +29,6 @@ import {
   Shield,
   Flag,
   MessageSquare,
-  Paperclip,
-  Star,
   MapPin,
   Briefcase,
   Users,
@@ -1364,19 +1362,7 @@ const LoanOfficerDashboard = () => {
     alert("Export Report feature - would generate and download report");
   };
 
-  const handleRiskReview = () => {
-    console.log("Opening risk review...");
-    // Implementation for risk review
-    // You could filter and show only high-risk applications
-    setFilterStatus("flagged");
-    setActiveTab("risk");
-    alert(
-      "Risk Review - Switching to Risk Assessment tab with flagged applications"
-    );
-  };
-
   // Filter applications
-  // NEW - KEEP THIS ONE
   const filteredApplications = loanOfficerData.loanApplications.filter(
     (app) => {
       // First filter by status and loan type

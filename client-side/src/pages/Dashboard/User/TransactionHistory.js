@@ -1,6 +1,83 @@
-import React, { useState } from "react";
+import axios from "axios";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "react-toastify";
 
-const Transactions = () => {
+const TransactionHistory = ({ userInfo }) => {
+  const sectionRef = useRef(null);
+  const headingRef = useRef(null);
+  const balanceCardRef = useRef(null);
+  const actionsRef = useRef(null);
+  const accountsRef = useRef(null);
+  const dashboardRef = useRef(null);
+
+  const uId = localStorage.getItem("userId");
+  const [accounts, setAccounts] = useState([]);
+  const [accountsLoading, setAccountsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      if (!uId) return;
+      setAccountsLoading(true);
+      try {
+        const token = localStorage.getItem("accessToken");
+        const res = await axios.get(
+          `${process.env.REACT_APP_API_URL}/accounts`,
+          {
+            params: { uId },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        // The API returns { success, accounts }
+        if (res.data && res.data.success) {
+          setAccounts(res.data.accounts);
+        } else {
+          toast.error("Failed to fetch accounts");
+        }
+      } catch (error) {
+        toast.error("Failed to fetch accounts");
+      } finally {
+        setAccountsLoading(false);
+      }
+    };
+    fetchAccounts();
+  }, [uId]);
+
+  const [transactions, setTransactions] = useState([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (!uId) return;
+      setTransactionsLoading(true);
+      try {
+        const token = localStorage.getItem("accessToken");
+        const res = await axios.get(
+          `${process.env.REACT_APP_API_URL}/transactions`,
+          {
+            params: { uId },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (res.data && res.data.success) {
+          setTransactions(res.data.transactions);
+        } else {
+          toast.error("Failed to fetch transactions");
+        }
+      } catch (error) {
+        toast.error("Failed to fetch transactions");
+      } finally {
+        setTransactionsLoading(false);
+      }
+    };
+    fetchTransactions();
+  }, [uId]);
+
+  console.log(transactions);
+
   const currentUser = {
     id: 1,
     name: "John Smith",
@@ -1250,10 +1327,6 @@ const Transactions = () => {
     },
   };
 
-  const [selectedAccount, setSelectedAccount] = useState(
-    currentUser.accounts[0]
-  );
-
   // Transaction History States
   const [timeRange, setTimeRange] = useState("7days");
   const [chartType, setChartType] = useState("timeline");
@@ -1264,77 +1337,6 @@ const Transactions = () => {
   const [filterDateTo, setFilterDateTo] = useState("");
   const [filterAmountMin, setFilterAmountMin] = useState("");
   const [filterAmountMax, setFilterAmountMax] = useState("");
-
-
-  // Budget Management States
-  const [budgets, setBudgets] = useState([
-    {
-      id: 1,
-      category: "Food",
-      budgeted: 600,
-      actual: 520,
-      color: "#ff6b6b",
-      isActive: true,
-      description: "Monthly food and dining expenses",
-    },
-    {
-      id: 2,
-      category: "Transportation",
-      budgeted: 300,
-      actual: 280,
-      color: "#4ecdc4",
-      isActive: true,
-      description: "Gas, public transport, and car maintenance",
-    },
-    {
-      id: 3,
-      category: "Utilities",
-      budgeted: 250,
-      actual: 320,
-      color: "#45b7d1",
-      isActive: true,
-      description: "Electricity, water, internet bills",
-    },
-    {
-      id: 4,
-      category: "Shopping",
-      budgeted: 400,
-      actual: 650,
-      color: "#96ceb4",
-      isActive: true,
-      description: "Clothing, electronics, and general shopping",
-    },
-    {
-      id: 5,
-      category: "Entertainment",
-      budgeted: 200,
-      actual: 150,
-      color: "#feca57",
-      isActive: true,
-      description: "Movies, games, and leisure activities",
-    },
-    {
-      id: 6,
-      category: "Health",
-      budgeted: 150,
-      actual: 120,
-      color: "#ff9ff3",
-      isActive: true,
-      description: "Medical expenses and gym membership",
-    },
-    {
-      id: 7,
-      category: "Cash",
-      budgeted: 100,
-      actual: 200,
-      color: "#54a0ff",
-      isActive: true,
-      description: "ATM withdrawals and cash expenses",
-    },
-  ]);
-
-
- 
 
   // Theme configurations for each card type
   const themes = {
@@ -1376,52 +1378,18 @@ const Transactions = () => {
     spending: "#ef4444",
   };
 
-  const currentTheme = themes[selectedAccount.type];
+  const [selectedAccount, setSelectedAccount] = useState(null);
 
-
-  const calculateActualSpending = (category) => {
-    return currentUser.recentTransactions
-      .filter((t) => t.category === category && t.amount < 0)
-      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-  };
-
-
-  // Update actual spending for budgets based on current transactions
-  const updateBudgetActuals = () => {
-    setBudgets(
-      budgets.map((budget) => ({
-        ...budget,
-        actual: calculateActualSpending(budget.category),
-      }))
-    );
-  };
-
-  // Call this when component mounts or transactions change
-  React.useEffect(() => {
-    updateBudgetActuals();
-  }, [currentUser.recentTransactions]);
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(Math.abs(amount));
-  };
-
-  const getTransactionIcon = (type) => {
-    switch (type) {
-      case "deposit":
-        return "↗️";
-      case "withdrawal":
-        return "↙️";
-      case "payment":
-        return "💳";
-      case "transfer":
-        return "🔄";
-      default:
-        return "💰";
+  // Set selectedAccount to the first account when accounts are loaded
+  useEffect(() => {
+    if (accounts && accounts.length > 0) {
+      setSelectedAccount(accounts[0]);
     }
-  };
+  }, [accounts]);
+
+  console.log("sfsfb", selectedAccount);
+
+  const currentTheme = themes[selectedAccount?.type];
 
   const getCategoryIcon = (category) => {
     switch (category) {
@@ -1464,27 +1432,18 @@ const Transactions = () => {
     }
   };
 
-
-  const getTotalBalance = () => {
-    return currentUser.accounts
-      .filter((account) => account.type !== "Credit")
-      .reduce((sum, account) => sum + account.balance, 0);
-  };
-
- 
-
   const getAccountTypeById = (accountId) => {
-    const account = currentUser.accounts.find((acc) => acc.id === accountId);
+    const account = accounts.find((acc) => acc.id === accountId);
     return account ? account.type : null;
   };
 
   const getAccountNameById = (accountId) => {
-    const account = currentUser.accounts.find((acc) => acc.id === accountId);
+    const account = accounts.find((acc) => acc.id === accountId);
     return account ? account.accountName : "Unknown Account";
   };
 
   const getFilteredTransactions = () => {
-    let filtered = currentUser.recentTransactions;
+    let filtered = transactions;
 
     if (searchTerm) {
       filtered = filtered.filter(
@@ -1535,7 +1494,7 @@ const Transactions = () => {
   };
 
   const getCategoryBreakdown = () => {
-    let transactions = currentUser.recentTransactions;
+    let filteredTransactions = transactions;
 
     if (
       filterAccountType !== "all" &&
@@ -1544,13 +1503,13 @@ const Transactions = () => {
       const accountsOfType = currentUser.accounts
         .filter((acc) => acc.type === filterAccountType)
         .map((acc) => acc.id);
-      transactions = transactions.filter((t) =>
+      filteredTransactions = filteredTransactions.filter((t) =>
         accountsOfType.includes(t.accountId)
       );
     }
 
     const categories = {};
-    transactions
+    filteredTransactions
       .filter((t) => t.amount < 0)
       .forEach((transaction) => {
         const category = transaction.category;
@@ -1586,9 +1545,239 @@ const Transactions = () => {
     setFilterAmountMax("");
   };
 
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Simulate loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
+  // Intersection Observer for scroll animations
+  useEffect(() => {
+    if (isLoading || accountsLoading) return;
 
+    const section = sectionRef.current;
+    const heading = headingRef.current;
+    const balanceCard = balanceCardRef.current;
+    const actions = actionsRef.current;
+    const accounts = accountsRef.current;
+    const dashboard = dashboardRef.current;
+
+    // Initial state (hidden)
+    if (heading) {
+      heading.style.opacity = "0";
+      heading.style.transform = "translateY(20px)";
+    }
+    if (balanceCard) {
+      balanceCard.style.opacity = "0";
+      balanceCard.style.transform = "translateY(30px)";
+    }
+    if (actions) {
+      actions.style.opacity = "0";
+      actions.style.transform = "translateY(30px)";
+    }
+    if (accounts) {
+      accounts.style.opacity = "0";
+      accounts.style.transform = "translateY(30px)";
+    }
+    if (dashboard) {
+      dashboard.style.opacity = "0";
+      dashboard.style.transform = "translateY(30px)";
+    }
+
+    // Create observer
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          // Animate heading
+          setTimeout(() => {
+            if (heading) {
+              heading.style.transition =
+                "opacity 0.6s ease, transform 0.6s ease";
+              heading.style.opacity = "1";
+              heading.style.transform = "translateY(0)";
+            }
+          }, 200);
+
+          setTimeout(() => {
+            if (actions) {
+              actions.style.transition =
+                "opacity 0.8s ease, transform 0.8s ease";
+              actions.style.opacity = "1";
+              actions.style.transform = "translateY(0)";
+            }
+          }, 500);
+
+          // Animate balance card
+          setTimeout(() => {
+            if (balanceCard) {
+              balanceCard.style.transition =
+                "opacity 0.8s ease, transform 0.8s ease";
+              balanceCard.style.opacity = "1";
+              balanceCard.style.transform = "translateY(0)";
+            }
+          }, 400);
+
+          // Animate accounts
+          setTimeout(() => {
+            if (accounts) {
+              accounts.style.transition =
+                "opacity 0.8s ease, transform 0.8s ease";
+              accounts.style.opacity = "1";
+              accounts.style.transform = "translateY(0)";
+            }
+          }, 600);
+
+          // Animate dashboard
+          setTimeout(() => {
+            if (dashboard) {
+              dashboard.style.transition =
+                "opacity 0.8s ease, transform 0.8s ease";
+              dashboard.style.opacity = "1";
+              dashboard.style.transform = "translateY(0)";
+            }
+          }, 800);
+
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    if (section) {
+      observer.observe(section);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [accountsLoading, isLoading]);
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(Math.abs(amount));
+  };
+
+  const getTransactionIcon = (type) => {
+    switch (type) {
+      case "deposit":
+        return (
+          <svg
+            className="w-5 h-5 text-green-500 dark:text-green-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 11l5-5m0 0l5 5m-5-5v12"
+            />
+          </svg>
+        );
+      case "withdrawal":
+        return (
+          <svg
+            className="w-5 h-5 text-red-500 dark:text-red-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 13l-5 5m0 0l-5-5m5 5V6"
+            />
+          </svg>
+        );
+      case "payment":
+        return (
+          <svg
+            className="w-5 h-5 text-blue-500 dark:text-blue-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+            />
+          </svg>
+        );
+      case "transfer":
+        return (
+          <svg
+            className="w-5 h-5 text-purple-500 dark:text-purple-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+            />
+          </svg>
+        );
+      default:
+        return (
+          <svg
+            className="w-5 h-5 text-gray-500 dark:text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+            />
+          </svg>
+        );
+    }
+  };
+
+  if (accountsLoading || transactionsLoading) {
+    return (
+      <div className="loading-spinner">
+        <div className="spinner"></div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <section className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden">
+        <div className="container mx-auto max-w-7xl">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+            <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
+            <div className="h-48 bg-gray-300 dark:bg-gray-700 rounded-2xl mb-8"></div>
+            <div className="grid lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="h-32 bg-gray-300 dark:bg-gray-700 rounded-2xl"
+                ></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   const categories = [
     "all",
@@ -1611,20 +1800,10 @@ const Transactions = () => {
     { value: "Credit", label: "Credit Accounts" },
   ];
 
-
-
-
   return (
-    <section
-      className="mt-8"
-      style={{ fontFamily: "var(--font-sans)", padding: "0", margin: "0 20px" }}
-    >
-      <div
-        className="max-w-7xl mx-auto px-4"
-        style={{ padding: "0", margin: "0" }}
-      >
-        {/* Transaction History Section */}
-        <div className="mt-12">
+    <section>
+      <div className="max-w-7xl mx-auto">
+        <div className="mt-12 p-5">
           <div className="flex items-center justify-between mb-6">
             <h2
               className="text-2xl font-bold"
@@ -1639,7 +1818,7 @@ const Transactions = () => {
                 className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300"
                 style={{
                   background: "var(--surface)",
-                  border: `1px solid ${currentTheme.primary}`,
+                  border: `1px solid ${currentTheme?.primary}`,
                   color: "var(--text-primary)",
                 }}
               >
@@ -1654,7 +1833,7 @@ const Transactions = () => {
                 className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300"
                 style={{
                   background: "var(--surface)",
-                  border: `1px solid ${currentTheme.primary}`,
+                  border: `1px solid ${currentTheme?.primary}`,
                   color: "var(--text-primary)",
                 }}
               >
@@ -1668,7 +1847,7 @@ const Transactions = () => {
             className="p-6 rounded-lg transition-all duration-500 mb-8"
             style={{
               background: "var(--surface)",
-              border: `1px solid ${currentTheme.primary}`,
+              border: `1px solid ${currentTheme?.primary}`,
               borderRadius: "var(--radius-lg)",
               boxShadow: "var(--shadow-md)",
               paddingBottom: "55px",
@@ -1867,7 +2046,7 @@ const Transactions = () => {
               className="lg:col-span-2 p-6 rounded-lg transition-all duration-500 flex flex-col"
               style={{
                 background: "var(--surface)",
-                border: `1px solid ${currentTheme.primary}`,
+                border: `1px solid ${currentTheme?.primary}`,
                 borderRadius: "var(--radius-lg)",
                 boxShadow: "var(--shadow-md)",
                 height: "652px",
@@ -1895,7 +2074,8 @@ const Transactions = () => {
                   style={{ color: "var(--text-secondary)" }}
                 >
                   Showing {getFilteredTransactions().length} of{" "}
-                  {currentUser.recentTransactions.length} transactions
+                  {transactions.length - getFilteredTransactions().length}{" "}
+                  transactions
                 </div>
               </div>
 
@@ -1907,13 +2087,13 @@ const Transactions = () => {
                       className="flex items-center justify-between p-4 rounded-lg transition-all duration-300 hover:scale-102"
                       style={{
                         background: "var(--background)",
-                        border: `1px solid ${currentTheme.primary}20`,
+                        border: `1px solid ${currentTheme?.primary}20`,
                       }}
                     >
                       <div className="flex items-center space-x-4">
                         <div
                           className="w-12 h-12 rounded-full flex items-center justify-center text-lg"
-                          style={{ background: `${currentTheme.primary}20` }}
+                          style={{ background: `${currentTheme?.primary}20` }}
                         >
                           {getCategoryIcon(transaction.category)}
                         </div>
@@ -1935,8 +2115,8 @@ const Transactions = () => {
                             <div
                               className="text-xs px-2 py-1 rounded-full inline-block"
                               style={{
-                                background: `${currentTheme.primary}20`,
-                                color: currentTheme.primary,
+                                background: `${currentTheme?.primary}20`,
+                                color: currentTheme?.primary,
                               }}
                             >
                               {transaction.category}
@@ -1947,12 +2127,12 @@ const Transactions = () => {
                                 background: `${
                                   themes[
                                     getAccountTypeById(transaction.accountId)
-                                  ]?.primary || currentTheme.primary
+                                  ]?.primary || currentTheme?.primary
                                 }20`,
                                 color:
                                   themes[
                                     getAccountTypeById(transaction.accountId)
-                                  ]?.primary || currentTheme.primary,
+                                  ]?.primary || currentTheme?.primary,
                               }}
                             >
                               {getAccountNameById(transaction.accountId)}
@@ -2014,7 +2194,7 @@ const Transactions = () => {
               className="p-6 rounded-lg transition-all duration-500"
               style={{
                 background: "var(--surface)",
-                border: `1px solid ${currentTheme.primary}`,
+                border: `1px solid ${currentTheme?.primary}`,
                 borderRadius: "var(--radius-lg)",
                 boxShadow: "var(--shadow-md)",
               }}
@@ -2042,7 +2222,7 @@ const Transactions = () => {
                     className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300"
                     style={{
                       background: "var(--background)",
-                      border: `1px solid ${currentTheme.primary}40`,
+                      border: `1px solid ${currentTheme?.primary}40`,
                       color: "var(--text-primary)",
                     }}
                   />
@@ -2061,7 +2241,7 @@ const Transactions = () => {
                     className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300"
                     style={{
                       background: "var(--background)",
-                      border: `1px solid ${currentTheme.primary}40`,
+                      border: `1px solid ${currentTheme?.primary}40`,
                       color: "var(--text-primary)",
                     }}
                   >
@@ -2076,7 +2256,7 @@ const Transactions = () => {
                     style={{ color: "var(--text-secondary)" }}
                   >
                     {filterAccountType === "all" &&
-                      `Showing transactions from: ${selectedAccount.accountName}`}
+                      `Showing transactions from: ${selectedAccount?.accountName}`}
                     {filterAccountType === "allTransactions" &&
                       "Showing transactions from all accounts"}
                     {filterAccountType !== "all" &&
@@ -2098,7 +2278,7 @@ const Transactions = () => {
                     className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300"
                     style={{
                       background: "var(--background)",
-                      border: `1px solid ${currentTheme.primary}40`,
+                      border: `1px solid ${currentTheme?.primary}40`,
                       color: "var(--text-primary)",
                     }}
                   >
@@ -2125,7 +2305,7 @@ const Transactions = () => {
                       className="px-3 py-2 rounded-lg text-sm transition-all duration-300"
                       style={{
                         background: "var(--background)",
-                        border: `1px solid ${currentTheme.primary}40`,
+                        border: `1px solid ${currentTheme?.primary}40`,
                         color: "var(--text-primary)",
                       }}
                     />
@@ -2136,7 +2316,7 @@ const Transactions = () => {
                       className="px-3 py-2 rounded-lg text-sm transition-all duration-300"
                       style={{
                         background: "var(--background)",
-                        border: `1px solid ${currentTheme.primary}40`,
+                        border: `1px solid ${currentTheme?.primary}40`,
                         color: "var(--text-primary)",
                       }}
                     />
@@ -2159,7 +2339,7 @@ const Transactions = () => {
                       className="px-3 py-2 rounded-lg text-sm transition-all duration-300"
                       style={{
                         background: "var(--background)",
-                        border: `1px solid ${currentTheme.primary}40`,
+                        border: `1px solid ${currentTheme?.primary}40`,
                         color: "var(--text-primary)",
                       }}
                     />
@@ -2171,7 +2351,7 @@ const Transactions = () => {
                       className="px-3 py-2 rounded-lg text-sm transition-all duration-300"
                       style={{
                         background: "var(--background)",
-                        border: `1px solid ${currentTheme.primary}40`,
+                        border: `1px solid ${currentTheme?.primary}40`,
                         color: "var(--text-primary)",
                       }}
                     />
@@ -2183,8 +2363,8 @@ const Transactions = () => {
                   className="w-full py-2 px-4 rounded-lg font-medium transition-all duration-300 hover:opacity-90"
                   style={{
                     background: "var(--background)",
-                    border: `2px solid ${currentTheme.primary}`,
-                    color: currentTheme.primary,
+                    border: `2px solid ${currentTheme?.primary}`,
+                    color: currentTheme?.primary,
                   }}
                 >
                   Clear All Filters
@@ -2193,13 +2373,13 @@ const Transactions = () => {
                 <div
                   className="p-3 rounded-lg text-center"
                   style={{
-                    background: `${currentTheme.primary}10`,
-                    border: `1px solid ${currentTheme.primary}30`,
+                    background: `${currentTheme?.primary}10`,
+                    border: `1px solid ${currentTheme?.primary}30`,
                   }}
                 >
                   <div
                     className="text-sm font-medium"
-                    style={{ color: currentTheme.primary }}
+                    style={{ color: currentTheme?.primary }}
                   >
                     {getFilteredTransactions().length} transactions found
                   </div>
@@ -2218,87 +2398,8 @@ const Transactions = () => {
             </div>
           </div>
         </div>
-
-        {/* Quick Stats with Theme */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
-          <div
-            className="p-4 rounded-lg text-center transition-all duration-500 hover:scale-105"
-            style={{
-              background: currentTheme.lightGradient,
-              color: "white",
-              borderRadius: "var(--radius-md)",
-              boxShadow: currentTheme.shadow,
-            }}
-          >
-            <div className="text-2xl font-bold">
-              {currentUser.accounts.length}
-            </div>
-            <div className="text-sm opacity-90">Active Accounts</div>
-          </div>
-
-          <div
-            className="p-4 rounded-lg text-center transition-all duration-500 hover:scale-105"
-            style={{
-              background: "var(--surface)",
-              border: `2px solid ${currentTheme.primary}`,
-              borderRadius: "var(--radius-md)",
-              boxShadow: "var(--shadow-sm)",
-            }}
-          >
-            <div
-              className="text-2xl font-bold"
-              style={{ color: currentTheme.primary }}
-            >
-              {
-                currentUser.recentTransactions.filter((t) => t.amount > 0)
-                  .length
-              }
-            </div>
-            <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
-              Recent Deposits
-            </div>
-          </div>
-
-          <div
-            className="p-4 rounded-lg text-center transition-all duration-500 hover:scale-105"
-            style={{
-              background: "var(--surface)",
-              border: `2px solid ${currentTheme.primary}`,
-              borderRadius: "var(--radius-md)",
-              boxShadow: "var(--shadow-sm)",
-            }}
-          >
-            <div
-              className="text-2xl font-bold"
-              style={{ color: currentTheme.primary }}
-            >
-              {formatCurrency(
-                currentUser.accounts.find((acc) => acc.type === "Credit")
-                  ?.balance || 0
-              )}
-            </div>
-            <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
-              Credit Balance
-            </div>
-          </div>
-
-          <div
-            className="p-4 rounded-lg text-center transition-all duration-500 hover:scale-105"
-            style={{
-              background: currentTheme.gradient,
-              color: "white",
-              borderRadius: "var(--radius-md)",
-              boxShadow: currentTheme.shadow,
-            }}
-          >
-            <div className="text-2xl font-bold">
-              {formatCurrency(getTotalBalance())}
-            </div>
-            <div className="text-sm opacity-90">Net Worth</div>
-          </div>
-        </div>
       </div>
     </section>
-  );    
+  );
 };
-export default Transactions;
+export default TransactionHistory;

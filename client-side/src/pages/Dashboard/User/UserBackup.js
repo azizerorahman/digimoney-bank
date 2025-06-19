@@ -1,212 +1,8 @@
-// import React, { useEffect } from "react";
-// import {
-//   LineChart,
-//   Line,
-//   ResponsiveContainer,
-//   CartesianGrid,
-//   XAxis,
-//   YAxis,
-//   Tooltip,
-//   Legend,
-// } from "recharts";
-// import { FaPlay } from "react-icons/fa";
-// import { ImUpload, ImDownload } from "react-icons/im";
-// import TransactionRow from "./TransactionRow";
-// import TransactionPieChart from "./TransactionPieChart";
-// import TransactionBarChart from "./TransactionBarChart";
-// import BalanceCard from "./BalanceCard";
-// import useUserInfo from "../../hooks/useUserInfo";
-// import { useAuthState } from "react-firebase-hooks/auth";
-// import auth from "../../firebase.init";
-// import { useDispatch, useSelector } from "react-redux";
-// // import { fetchTransaction } from "../../redux/reducers/TransactionReducer";
-// import useAdmin from "../../hooks/useAdmin";
-// import AdminDashboard from "./AdminDashboard";
-
-// const LandingPage = () => {
-//   const [user] = useAuthState(auth);
-//   const { admin, loadingAdmin } = useAdmin(user);
-//   const { userInfo } = useUserInfo(user);
-//   console.log(userInfo);
-//   // const { transaction } = useSelector((state) => state.transaction);
-//   const dispatch = useDispatch();
-//   // useEffect(() => {
-//   //   dispatch(
-//   //     fetchTransaction({ accountNumber: userInfo?.accountNumber, page: 0 })
-//   //   );
-//   // }, [dispatch, userInfo]);
-//   // let totalSendMoney = 0;
-//   // transaction.map((money) => (totalSendMoney += parseFloat(money.send_money)));
-//   // let totalReceiveMoney = 0;
-//   // transaction.map(
-//   //   (money) => (totalReceiveMoney += parseFloat(money.receive_money))
-//   // );
-//   // let transactionHistory = [];
-//   // transaction.forEach((element) => {
-//   //   const getSendMoney = element.send_money;
-//   //   const getNumber = Number(getSendMoney);
-
-//   //   const newArray = { ...element, send_money: getNumber };
-
-//   //   transactionHistory.push(newArray);
-//   // });
-
-//   if (loadingAdmin) {
-//     return;
-//   }
-//   if (admin) {
-//     return <AdminDashboard />;
-//   }
-
-//   return (
-//     <section className="mt-8">
-//       <div className="grid lg:grid-cols-3 gap-12">
-//         <BalanceCard />
-
-//         {/* Income Card Chart start */}
-//         <div className="card bg-white  shadow-2xl  text-gray-200">
-//           <div className=" p-5">
-//             <div className="flex items-center justify-between mb-8 gap-x-8">
-//               <span>
-//                 <ImDownload className="h-12 w-12 bg-[#6160DC] p-2 rounded-full" />
-//               </span>
-//               <div>
-//                 <p className="text-gray-400">Reveive Money</p>
-//                 <h1 className="text-xl font-bold text-black">
-//                   {/* ${totalReceiveMoney ? totalReceiveMoney : 0} */}
-//                 </h1>
-//               </div>
-//               <div>
-//                 <p className="flex justify-end ">
-//                   <span className="flex flex-col items-center">
-//                     <span>
-//                       <FaPlay className="text-[#00A389] rotate-[30deg]" />
-//                     </span>
-//                     <span className="text-[#00A389] font-bold">+0,5%</span>
-//                   </span>
-//                 </p>
-//                 <span className="text-gray-500">last month</span>
-//               </div>
-//             </div>
-//             <div className="h-[120px]">
-//               <ResponsiveContainer width="100%" height="100%">
-//                 {/* <LineChart width={500} height={300} data={transactionHistory}>
-//                   <CartesianGrid strokeDasharray="3 3" />
-//                   <XAxis
-//                     dataKey="receive_money"
-//                     padding={{ left: 30, right: 30 }}
-//                   />
-//                   <YAxis />
-//                   <Tooltip />
-//                   <Legend />
-//                   <Line
-//                     type="monotone"
-//                     dataKey="receive_money"
-//                     stroke="#8884d8"
-//                     activeDot={{ r: 8 }}
-//                   />
-//                   <Line type="monotone" dataKey="send_money" stroke="#82ca9d" />
-//                 </LineChart> */}
-//               </ResponsiveContainer>
-//             </div>
-//           </div>
-//         </div>
-//         {/* Income Card Chart end */}
-
-//         {/* Expense Card Start */}
-//         <div className="card bg-white  shadow-2xl  text-gray-200">
-//           <div className=" p-5">
-//             <div className="flex items-center justify-between mb-8 gap-x-8">
-//               <span>
-//                 <ImUpload className="h-12 w-12 bg-[#54C5EB] p-2 rounded-full" />
-//               </span>
-//               <div>
-//                 <p className="text-gray-400">Send Money</p>
-//                 <h1 className="text-xl font-bold text-black">
-//                   {/* ${totalSendMoney ? totalSendMoney : 0} */}
-//                 </h1>
-//               </div>
-//               <div>
-//                 <p className="flex justify-end ">
-//                   <span className="flex flex-col items-center">
-//                     <span>
-//                       <FaPlay className="text-[#00A389] rotate-[-30deg]" />
-//                     </span>
-//                     <span className="text-[#00A389] font-bold">+0,5%</span>
-//                   </span>
-//                 </p>
-//                 <span className="text-gray-500">last month</span>
-//               </div>
-//             </div>
-//             <div className="h-[120px]">
-//               <ResponsiveContainer width="100%" height="100%">
-//                 {/* <LineChart width={500} height={300} data={transactionHistory}>
-//                   <CartesianGrid strokeDasharray="3 3" />
-//                   <XAxis
-//                     dataKey="receive_money"
-//                     padding={{ left: 30, right: 30 }}
-//                   />
-//                   <YAxis />
-//                   <Tooltip />
-//                   <Legend />
-//                   <Line
-//                     type="monotone"
-//                     dataKey="send_money"
-//                     stroke="#8884d8"
-//                     activeDot={{ r: 8 }}
-//                   />
-//                   <Line
-//                     type="monotone"
-//                     dataKey="reveive_money"
-//                     stroke="#82ca9d"
-//                   />
-//                 </LineChart> */}
-//               </ResponsiveContainer>
-//             </div>
-//           </div>
-//         </div>
-//         {/* Expense Card End */}
-//       </div>
-
-//       {/* <div className="grid  lg:grid-cols-2 gap-x-16 mt-12">
-//         {/* Bar Chart Start Start */}
-//         {/* <TransactionBarChart transaction={transactionHistory} /> */}
-//         {/* Bar Chart end */}
-//         {/* Pie Chart Start */}
-
-//         {/* <TransactionPieChart transaction={transactionHistory} /> */}
-//         {/* Pie chart end */}
-//       {/* </div> */}
-//       {/* Transaction table start  */}
-//       <section className="mt-12 bg-white shadow-2xl rounded-2xl">
-//         <h1 className="text-3xl font-bold my-8 ml-2">Lastest Transaction</h1>
-//         <div className="overflow-x-auto">
-//           <table className="table table-zebra  w-full">
-//             <tbody>
-//               {/* {transaction.slice(0, 6).map((rowdata, i) => (
-//                 <TransactionRow key={i} userInfo={userInfo} rowdata={rowdata} />
-//               ))} */}
-//             </tbody>
-//           </table>
-//         </div>
-//       </section>
-//       {/* Transaction table end */}
-//     </section>
-//   );
-// };
-
-// export default LandingPage;
-
-// import React from "react";
-// import { useAuthState } from "react-firebase-hooks/auth";
-// import auth from "../../firebase.init";
-// import useAdmin from "../../hooks/useAdmin";
-// import AdminDashboard from "./AdminDashboard";
-// // import LandingPage from "./LandingPage";
-// // import { useSelector } from "react-redux";
-// import { useUserInfo } from "../../hooks/useUserInfo";
-
-import React, { useState } from "react";
+import MoneyTransferForm from "./MoneyTransferForm";
+import axios from "axios";
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 import {
   PieChart,
   Pie,
@@ -222,7 +18,83 @@ import {
   ReferenceLine,
 } from "recharts";
 
-const LandingPage = () => {
+const User = ({ userInfo }) => {
+  const sectionRef = useRef(null);
+  const headingRef = useRef(null);
+  const balanceCardRef = useRef(null);
+  const actionsRef = useRef(null);
+  const accountsRef = useRef(null);
+  const dashboardRef = useRef(null);
+
+  const uId = localStorage.getItem("userId");
+  const [accounts, setAccounts] = useState([]);
+  const [accountsLoading, setAccountsLoading] = useState(false);
+  const [showTransferForm, setShowTransferForm] = useState(false);
+
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      if (!uId) return;
+      setAccountsLoading(true);
+      try {
+        const token = localStorage.getItem("accessToken");
+        const res = await axios.get(
+          `${process.env.REACT_APP_API_URL}/accounts`,
+          {
+            params: { uId },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        // The API returns { success, accounts }
+        if (res.data && res.data.success) {
+          setAccounts(res.data.accounts);
+        } else {
+          toast.error("Failed to fetch accounts");
+        }
+      } catch (error) {
+        toast.error("Failed to fetch accounts");
+      } finally {
+        setAccountsLoading(false);
+      }
+    };
+    fetchAccounts();
+  }, [uId]);
+
+  const [transactions, setTransactions] = useState([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (!uId) return;
+      setTransactionsLoading(true);
+      try {
+        const token = localStorage.getItem("accessToken");
+        const res = await axios.get(
+          `${process.env.REACT_APP_API_URL}/transactions`,
+          {
+            params: { uId },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (res.data && res.data.success) {
+          setTransactions(res.data.transactions);
+        } else {
+          toast.error("Failed to fetch transactions");
+        }
+      } catch (error) {
+        toast.error("Failed to fetch transactions");
+      } finally {
+        setTransactionsLoading(false);
+      }
+    };
+    fetchTransactions();
+  }, [uId]);
+
+  console.log(transactions);
+
   const currentUser = {
     id: 1,
     name: "John Smith",
@@ -1472,10 +1344,6 @@ const LandingPage = () => {
     },
   };
 
-  const [selectedAccount, setSelectedAccount] = useState(
-    currentUser.accounts[0]
-  );
-
   // Transaction History States
   const [timeRange, setTimeRange] = useState("7days");
   const [chartType, setChartType] = useState("timeline");
@@ -1651,7 +1519,18 @@ const LandingPage = () => {
     spending: "#ef4444",
   };
 
-  const currentTheme = themes[selectedAccount.type];
+  const [selectedAccount, setSelectedAccount] = useState(null);
+
+  // Set selectedAccount to the first account when accounts are loaded
+  useEffect(() => {
+    if (accounts && accounts.length > 0) {
+      setSelectedAccount(accounts[0]);
+    }
+  }, [accounts]);
+
+  console.log("sfsfb", selectedAccount);
+
+  const currentTheme = themes[selectedAccount?.type];
 
   // Budget Management Functions
   const handleAddBudget = () => {
@@ -1774,7 +1653,7 @@ const LandingPage = () => {
   };
 
   const calculateActualSpending = (category) => {
-    return currentUser.recentTransactions
+    return transactions
       .filter((t) => t.category === category && t.amount < 0)
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
   };
@@ -1811,31 +1690,10 @@ const LandingPage = () => {
   };
 
   // Call this when component mounts or transactions change
-  React.useEffect(() => {
-    updateBudgetActuals();
-  }, [currentUser.recentTransactions]);
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(Math.abs(amount));
-  };
-
-  const getTransactionIcon = (type) => {
-    switch (type) {
-      case "deposit":
-        return "↗️";
-      case "withdrawal":
-        return "↙️";
-      case "payment":
-        return "💳";
-      case "transfer":
-        return "🔄";
-      default:
-        return "💰";
-    }
-  };
+  //  useEffect(() => {
+  //   console.log("Running updateBudgetActuals()");
+  //   updateBudgetActuals();
+  // }, [currentUser.recentTransactions]);
 
   // Get account type color
   const getAccountColor = (type) => {
@@ -1851,7 +1709,377 @@ const LandingPage = () => {
     }
   };
 
-  // Get account type icon
+  const getCategoryIcon = (category) => {
+    switch (category) {
+      case "Food":
+        return "🍽️";
+      case "Transportation":
+        return "🚗";
+      case "Utilities":
+        return "⚡";
+      case "Shopping":
+        return "🛍️";
+      case "Entertainment":
+        return "🎬";
+      case "Health":
+        return "💪";
+      case "Income":
+        return "💰";
+      case "Transfer":
+        return "🔄";
+      case "Cash":
+        return "💵";
+      case "Education":
+        return "📚";
+      case "Insurance":
+        return "🛡️";
+      case "Subscriptions":
+        return "📱";
+      case "Travel":
+        return "✈️";
+      case "Gifts":
+        return "🎁";
+      case "Personal Care":
+        return "💄";
+      case "Home Maintenance":
+        return "🔧";
+      case "Others":
+        return "📋";
+      default:
+        return "📊";
+    }
+  };
+
+  const getCardGradient = (type) => {
+    return themes[type].gradient;
+  };
+
+  const getCreditUtilization = (account) => {
+    if (account.type !== "Credit") return 0;
+    return (Math.abs(account.balance) / account.creditLimit) * 100;
+  };
+
+  const getAccountTypeById = (accountId) => {
+    const account = accounts.find((acc) => acc.id === accountId);
+    return account ? account.type : null;
+  };
+
+  const getAccountNameById = (accountId) => {
+    const account = accounts.find((acc) => acc.id === accountId);
+    return account ? account.accountName : "Unknown Account";
+  };
+
+  const getFilteredTransactions = () => {
+    let filtered = transactions;
+
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (t) =>
+          t.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          t.merchant.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (filterCategory !== "all") {
+      filtered = filtered.filter((t) => t.category === filterCategory);
+    }
+
+    if (filterAccountType !== "all") {
+      if (filterAccountType === "allTransactions") {
+        // Show all transactions from all accounts
+      } else {
+        const accountsOfType = currentUser.accounts
+          .filter((acc) => acc.type === filterAccountType)
+          .map((acc) => acc.id);
+        filtered = filtered.filter((t) => accountsOfType.includes(t.accountId));
+      }
+    }
+
+    if (filterDateFrom) {
+      filtered = filtered.filter(
+        (t) => new Date(t.date) >= new Date(filterDateFrom)
+      );
+    }
+    if (filterDateTo) {
+      filtered = filtered.filter(
+        (t) => new Date(t.date) <= new Date(filterDateTo)
+      );
+    }
+
+    if (filterAmountMin) {
+      filtered = filtered.filter(
+        (t) => Math.abs(t.amount) >= parseFloat(filterAmountMin)
+      );
+    }
+    if (filterAmountMax) {
+      filtered = filtered.filter(
+        (t) => Math.abs(t.amount) <= parseFloat(filterAmountMax)
+      );
+    }
+
+    return filtered;
+  };
+
+  const getCategoryBreakdown = () => {
+    let filteredTransactions = transactions;
+
+    if (
+      filterAccountType !== "all" &&
+      filterAccountType !== "allTransactions"
+    ) {
+      const accountsOfType = currentUser.accounts
+        .filter((acc) => acc.type === filterAccountType)
+        .map((acc) => acc.id);
+      filteredTransactions = filteredTransactions.filter((t) =>
+        accountsOfType.includes(t.accountId)
+      );
+    }
+
+    const categories = {};
+    filteredTransactions
+      .filter((t) => t.amount < 0)
+      .forEach((transaction) => {
+        const category = transaction.category;
+        if (!categories[category]) {
+          categories[category] = 0;
+        }
+        categories[category] += Math.abs(transaction.amount);
+      });
+
+    return Object.entries(categories)
+      .map(([category, amount]) => ({ category, amount }))
+      .sort((a, b) => b.amount - a.amount);
+  };
+
+  const getTimelineData = () => {
+    const days = timeRange === "7days" ? 7 : timeRange === "30days" ? 30 : 90;
+    return currentUser.transactionHistory.slice(-days);
+  };
+
+  const getMaxValue = (data) => {
+    const maxIncome = Math.max(...data.map((d) => d.income));
+    const maxSpending = Math.max(...data.map((d) => d.spending));
+    return Math.max(maxIncome, maxSpending);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setFilterCategory("all");
+    setFilterAccountType("all");
+    setFilterDateFrom("");
+    setFilterDateTo("");
+    setFilterAmountMin("");
+    setFilterAmountMax("");
+  };
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Simulate loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Intersection Observer for scroll animations
+  useEffect(() => {
+    if (isLoading || accountsLoading) return;
+
+    const section = sectionRef.current;
+    const heading = headingRef.current;
+    const balanceCard = balanceCardRef.current;
+    const actions = actionsRef.current;
+    const accounts = accountsRef.current;
+    const dashboard = dashboardRef.current;
+
+    // Initial state (hidden)
+    if (heading) {
+      heading.style.opacity = "0";
+      heading.style.transform = "translateY(20px)";
+    }
+    if (balanceCard) {
+      balanceCard.style.opacity = "0";
+      balanceCard.style.transform = "translateY(30px)";
+    }
+    if (actions) {
+      actions.style.opacity = "0";
+      actions.style.transform = "translateY(30px)";
+    }
+    if (accounts) {
+      accounts.style.opacity = "0";
+      accounts.style.transform = "translateY(30px)";
+    }
+    if (dashboard) {
+      dashboard.style.opacity = "0";
+      dashboard.style.transform = "translateY(30px)";
+    }
+
+    // Create observer
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          // Animate heading
+          setTimeout(() => {
+            if (heading) {
+              heading.style.transition =
+                "opacity 0.6s ease, transform 0.6s ease";
+              heading.style.opacity = "1";
+              heading.style.transform = "translateY(0)";
+            }
+          }, 200);
+
+          setTimeout(() => {
+            if (actions) {
+              actions.style.transition =
+                "opacity 0.8s ease, transform 0.8s ease";
+              actions.style.opacity = "1";
+              actions.style.transform = "translateY(0)";
+            }
+          }, 500);
+
+          // Animate balance card
+          setTimeout(() => {
+            if (balanceCard) {
+              balanceCard.style.transition =
+                "opacity 0.8s ease, transform 0.8s ease";
+              balanceCard.style.opacity = "1";
+              balanceCard.style.transform = "translateY(0)";
+            }
+          }, 400);
+
+          // Animate accounts
+          setTimeout(() => {
+            if (accounts) {
+              accounts.style.transition =
+                "opacity 0.8s ease, transform 0.8s ease";
+              accounts.style.opacity = "1";
+              accounts.style.transform = "translateY(0)";
+            }
+          }, 600);
+
+          // Animate dashboard
+          setTimeout(() => {
+            if (dashboard) {
+              dashboard.style.transition =
+                "opacity 0.8s ease, transform 0.8s ease";
+              dashboard.style.opacity = "1";
+              dashboard.style.transform = "translateY(0)";
+            }
+          }, 800);
+
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    if (section) {
+      observer.observe(section);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isLoading]);
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(Math.abs(amount));
+  };
+
+  const formatAccountNumber = (accountNumber) => {
+    if (!accountNumber) return "•••• •••• •••• ••••";
+    return accountNumber;
+  };
+
+  const getTransactionIcon = (type) => {
+    switch (type) {
+      case "deposit":
+        return (
+          <svg
+            className="w-5 h-5 text-green-500 dark:text-green-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 11l5-5m0 0l5 5m-5-5v12"
+            />
+          </svg>
+        );
+      case "withdrawal":
+        return (
+          <svg
+            className="w-5 h-5 text-red-500 dark:text-red-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 13l-5 5m0 0l-5-5m5 5V6"
+            />
+          </svg>
+        );
+      case "payment":
+        return (
+          <svg
+            className="w-5 h-5 text-blue-500 dark:text-blue-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+            />
+          </svg>
+        );
+      case "transfer":
+        return (
+          <svg
+            className="w-5 h-5 text-purple-500 dark:text-purple-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+            />
+          </svg>
+        );
+      default:
+        return (
+          <svg
+            className="w-5 h-5 text-gray-500 dark:text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+            />
+          </svg>
+        );
+    }
+  };
+
   const getAccountIcon = (type) => {
     switch (type) {
       case "Checking":
@@ -1907,180 +2135,133 @@ const LandingPage = () => {
     }
   };
 
-  const getCategoryIcon = (category) => {
-    switch (category) {
-      case "Food":
-        return "🍽️";
-      case "Transportation":
-        return "🚗";
-      case "Utilities":
-        return "⚡";
-      case "Shopping":
-        return "🛍️";
-      case "Entertainment":
-        return "🎬";
-      case "Health":
-        return "💪";
-      case "Income":
-        return "💰";
-      case "Transfer":
-        return "🔄";
-      case "Cash":
-        return "💵";
-      case "Education":
-        return "📚";
-      case "Insurance":
-        return "🛡️";
-      case "Subscriptions":
-        return "📱";
-      case "Travel":
-        return "✈️";
-      case "Gifts":
-        return "🎁";
-      case "Personal Care":
-        return "💄";
-      case "Home Maintenance":
-        return "🔧";
-      case "Others":
-        return "📋";
-      default:
-        return "📊";
-    }
-  };
-
-  const getCardGradient = (type) => {
-    return themes[type].gradient;
-  };
-
   const getTotalBalance = () => {
-    return currentUser.accounts
+    return accounts
       .filter((account) => account.type !== "Credit")
       .reduce((sum, account) => sum + account.balance, 0);
   };
 
   const getAccountTransactions = (accountId) => {
-    return currentUser.recentTransactions
+    return transactions
       .filter((transaction) => transaction.accountId === accountId)
       .slice(0, 4);
   };
 
-  const getCreditUtilization = (account) => {
-    if (account.type !== "Credit") return 0;
-    return (Math.abs(account.balance) / account.creditLimit) * 100;
-  };
+  const actions = [
+    {
+      name: "Transfer Money",
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+          />
+        </svg>
+      ),
+      color:
+        "from-[#6160DC] to-[#514fbd] dark:from-[#8B7EFF] dark:to-[#6160DC]",
+      onClick: () => setShowTransferForm(true),
+    },
+    {
+      name: "Pay Bills",
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+          />
+        </svg>
+      ),
+      color:
+        "from-[#FF6B6B] to-[#E63946] dark:from-[#FF8A8A] dark:to-[#FF6B6B]",
+    },
+    {
+      name: "Deposit Check",
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+      ),
+      color:
+        "from-[#36D399] to-[#2A9D8F] dark:from-[#4AE3AA] dark:to-[#36D399]",
+    },
+    {
+      name: "Find ATM",
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+          />
+        </svg>
+      ),
+      color:
+        "from-[#FFAA5A] to-[#FF8C38] dark:from-[#FFBB7C] dark:to-[#FFAA5A]",
+    },
+  ];
 
-  const getAccountTypeById = (accountId) => {
-    const account = currentUser.accounts.find((acc) => acc.id === accountId);
-    return account ? account.type : null;
-  };
-
-  const getAccountNameById = (accountId) => {
-    const account = currentUser.accounts.find((acc) => acc.id === accountId);
-    return account ? account.accountName : "Unknown Account";
-  };
-
-  const getFilteredTransactions = () => {
-    let filtered = currentUser.recentTransactions;
-
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (t) =>
-          t.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          t.merchant.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (filterCategory !== "all") {
-      filtered = filtered.filter((t) => t.category === filterCategory);
-    }
-
-    if (filterAccountType !== "all") {
-      if (filterAccountType === "allTransactions") {
-        // Show all transactions from all accounts
-      } else {
-        const accountsOfType = currentUser.accounts
-          .filter((acc) => acc.type === filterAccountType)
-          .map((acc) => acc.id);
-        filtered = filtered.filter((t) => accountsOfType.includes(t.accountId));
-      }
-    }
-
-    if (filterDateFrom) {
-      filtered = filtered.filter(
-        (t) => new Date(t.date) >= new Date(filterDateFrom)
-      );
-    }
-    if (filterDateTo) {
-      filtered = filtered.filter(
-        (t) => new Date(t.date) <= new Date(filterDateTo)
-      );
-    }
-
-    if (filterAmountMin) {
-      filtered = filtered.filter(
-        (t) => Math.abs(t.amount) >= parseFloat(filterAmountMin)
-      );
-    }
-    if (filterAmountMax) {
-      filtered = filtered.filter(
-        (t) => Math.abs(t.amount) <= parseFloat(filterAmountMax)
-      );
-    }
-
-    return filtered;
-  };
-
-  const getCategoryBreakdown = () => {
-    let transactions = currentUser.recentTransactions;
-
-    if (
-      filterAccountType !== "all" &&
-      filterAccountType !== "allTransactions"
-    ) {
-      const accountsOfType = currentUser.accounts
-        .filter((acc) => acc.type === filterAccountType)
-        .map((acc) => acc.id);
-      transactions = transactions.filter((t) =>
-        accountsOfType.includes(t.accountId)
-      );
-    }
-
-    const categories = {};
-    transactions
-      .filter((t) => t.amount < 0)
-      .forEach((transaction) => {
-        const category = transaction.category;
-        if (!categories[category]) {
-          categories[category] = 0;
-        }
-        categories[category] += Math.abs(transaction.amount);
-      });
-
-    return Object.entries(categories)
-      .map(([category, amount]) => ({ category, amount }))
-      .sort((a, b) => b.amount - a.amount);
-  };
-
-  const getTimelineData = () => {
-    const days = timeRange === "7days" ? 7 : timeRange === "30days" ? 30 : 90;
-    return currentUser.transactionHistory.slice(-days);
-  };
-
-  const getMaxValue = (data) => {
-    const maxIncome = Math.max(...data.map((d) => d.income));
-    const maxSpending = Math.max(...data.map((d) => d.spending));
-    return Math.max(maxIncome, maxSpending);
-  };
-
-  const clearFilters = () => {
-    setSearchTerm("");
-    setFilterCategory("all");
-    setFilterAccountType("all");
-    setFilterDateFrom("");
-    setFilterDateTo("");
-    setFilterAmountMin("");
-    setFilterAmountMax("");
-  };
+  if (isLoading) {
+    return (
+      <section className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden">
+        <div className="container mx-auto max-w-7xl">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+            <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
+            <div className="h-48 bg-gray-300 dark:bg-gray-700 rounded-2xl mb-8"></div>
+            <div className="grid lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="h-32 bg-gray-300 dark:bg-gray-700 rounded-2xl"
+                ></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   // Updated functions for spending analysis with dynamic budget data
   const getMonthlySpendingTrends = () => {
@@ -2152,6 +2333,18 @@ const LandingPage = () => {
     }
   };
 
+  const handleTransferComplete = (transferDetails) => {
+    console.log("Transfer completed:", transferDetails);
+    // Handle successful transfer (show success message, update balances, etc.)
+    setShowTransferForm(false);
+
+    // Optional: Show success notification using toast
+    toast.success("Transfer completed successfully!");
+
+    // Optional: Refresh accounts data
+    // You might want to refetch accounts here to update balances
+  };
+
   // Risk indicator component
   const RiskIndicator = ({ level, score }) => (
     <div className="flex items-center space-x-2">
@@ -2209,30 +2402,341 @@ const LandingPage = () => {
   ];
 
   return (
-    <section
-      className="mt-8"
-      style={{ fontFamily: "var(--font-sans)", padding: "0", margin: "0 20px" }}
-    >
-      <div
-        className="max-w-7xl mx-auto px-4"
-        style={{ padding: "0", margin: "0" }}
-      >
-        {/* Welcome Header with Theme */}
-        <div className="mb-8">
-          <h1
-            className="text-3xl font-bold mb-2"
-            style={{ color: "var(--text-primary)" }}
-          >
-            Welcome back, {currentUser.name}
-          </h1>
-          <p className="text-lg" style={{ color: "var(--text-secondary)" }}>
-            Here's your{" "}
-            <span style={{ color: currentTheme.primary, fontWeight: "600" }}>
-              {currentTheme.name}
-            </span>{" "}
-            account overview for today
-          </p>
-        </div>
+    <section>
+      <div className="max-w-7xl mx-auto">
+        <section
+          ref={sectionRef}
+          className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden"
+        >
+          <div className="container mx-auto p-5 max-w-7xl">
+            {/* Welcome Header */}
+            <div ref={headingRef} className="mb-6 md:mb-8 lg:mb-10">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 text-gray-800 dark:text-white">
+                Welcome back,{" "}
+                <span className="text-[#6160DC] dark:text-[#8B7EFF]">
+                  {userInfo.name}
+                </span>
+              </h1>
+              <p className="text-base md:text-lg text-gray-600 dark:text-gray-300">
+                Here's your financial overview for today
+              </p>
+            </div>
+
+            {/* Balance Card and Quick Actions Section - Side by Side on Desktop */}
+            <div className="mb-6 md:mb-8 lg:mb-10 grid lg:grid-cols-2 gap-6 md:gap-8">
+              {/* Balance Card - Left Side on Desktop */}
+              <div ref={balanceCardRef}>
+                <div className="h-full">
+                  <div className="bg-gradient-to-br from-[#6160DC] to-[#514fbd] dark:from-[#514fbd] dark:to-[#3f3d9a] text-white shadow-xl rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 h-full">
+                    <div className="p-4 md:p-6 lg:p-8 relative h-full flex flex-col">
+                      {/* Card Header */}
+                      <div className="flex justify-between items-start mb-4 md:mb-6">
+                        <div className="flex items-center">
+                          <div className="w-6 md:w-8 h-4 md:h-6 bg-yellow-400 rounded-sm mr-2 md:mr-3"></div>
+                          <div className="w-5 md:w-6 h-5 md:h-6">
+                            <div className="w-full h-3 md:h-4 border-t-2 border-l-2 border-r-2 border-white/70 rounded-t-full"></div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="w-6 h-6 md:w-8 md:h-8 text-white"
+                          >
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M16 8h-6a2 2 0 100 4h4a2 2 0 110 4H8"></path>
+                            <path d="M12 6v2m0 8v2"></path>
+                          </svg>
+                        </div>
+                      </div>
+
+                      {/* Balance Display */}
+                      <div className="mb-4 md:mb-6">
+                        <p className="text-xs md:text-sm text-white/90 mb-1 md:mb-2">
+                          Total Balance
+                        </p>
+                        <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold flex items-center">
+                          <span className="text-lg md:text-xl lg:text-2xl xl:text-3xl mr-1 md:mr-2">
+                            $
+                          </span>
+                          {getTotalBalance().toLocaleString()}
+                        </h2>
+                        <p className="text-white/80 mt-1 md:mt-2 text-sm md:text-base">
+                          Across {accounts.length} accounts
+                        </p>
+                      </div>
+
+                      {/* Card Number */}
+                      <div className="text-center mb-4 md:mb-6 flex-grow">
+                        <p className="font-mono tracking-wider text-sm md:text-base lg:text-lg">
+                          {formatAccountNumber(selectedAccount?.accountNumber)}
+                        </p>
+                      </div>
+
+                      {/* Card Footer */}
+                      <div className="flex justify-between items-end mt-auto">
+                        <div>
+                          <p className="text-xs font-medium mb-1 text-white/80">
+                            Card Holder
+                          </p>
+                          <p className="text-sm md:text-base font-bold truncate max-w-[120px] md:max-w-[150px]">
+                            {userInfo.name}
+                          </p>
+                        </div>
+                        <div className="flex items-end">
+                          <div className="mr-3 md:mr-4">
+                            <p className="text-xs font-medium mb-1 text-white/80">
+                              Valid Thru
+                            </p>
+                            <p className="text-sm md:text-base font-bold">
+                              {selectedAccount?.validThru}
+                            </p>
+                          </div>
+
+                          <div className="flex">
+                            <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-red-500"></div>
+                            <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-yellow-500 -ml-2"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions - Right Side on Desktop */}
+              <div ref={actionsRef} className="h-full flex flex-col">
+                <div className="grid grid-cols-2 gap-4 md:gap-6 flex-grow">
+                  {actions.map((action, index) => (
+                    <button
+                      key={index}
+                      onClick={action.onClick} // Add this onClick handler
+                      className={`group p-4 md:p-6 rounded-xl bg-gradient-to-br ${action.color} text-white shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex flex-col items-center justify-center h-full`}
+                    >
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                        {action.icon}
+                      </div>
+                      <div className="text-sm md:text-base font-medium text-center">
+                        {action.name}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Account Cards */}
+            <div ref={accountsRef} className="mb-6 md:mb-8 lg:mb-10">
+              <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">
+                Your{" "}
+                <span className="text-[#6160DC] dark:text-[#8B7EFF]">
+                  Accounts
+                </span>
+              </h2>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                {accounts.map((account) => (
+                  <div
+                    key={account.id}
+                    className={`group p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 relative overflow-hidden cursor-pointer ${
+                      selectedAccount?.id === account.id
+                        ? "ring-2 ring-[#6160DC] dark:ring-[#8B7EFF]"
+                        : ""
+                    }`}
+                    onClick={() => setSelectedAccount(account)}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#6160DC]/5 to-[#514fbd]/5 dark:from-[#8B7EFF]/10 dark:to-[#6160DC]/10 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"></div>
+
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-3 md:mb-4">
+                        <div className="flex items-center space-x-2 md:space-x-3">
+                          <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#6160DC]/10 dark:bg-[#8B7EFF]/20 flex items-center justify-center text-[#6160DC] dark:text-[#8B7EFF] group-hover:scale-110 transition-transform duration-300">
+                            {getAccountIcon(account.type)}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-sm md:text-base text-gray-800 dark:text-white">
+                              {account.type}
+                            </h3>
+                            <p className="text-xs md:text-sm text-gray-600 dark:text-gray-300">
+                              {account.cardType}
+                            </p>
+                          </div>
+                        </div>
+                        <div
+                          className={`w-3 h-3 rounded-full ${
+                            account.isActive ? "bg-green-400" : "bg-red-400"
+                          }`}
+                        />
+                      </div>
+
+                      <h4 className="text-base md:text-lg font-bold mb-2 text-gray-800 dark:text-white">
+                        {account.accountName}
+                      </h4>
+                      <p className="text-xs md:text-sm text-gray-600 dark:text-gray-300 mb-3 md:mb-4">
+                        {account.accountNumber}
+                      </p>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs md:text-sm text-gray-600 dark:text-gray-300">
+                            {account.type === "Credit"
+                              ? "Balance"
+                              : "Available"}
+                          </p>
+                          <p className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 dark:text-white">
+                            {account.balance < 0 ? "-" : ""}
+                            {formatCurrency(account.balance)}
+                          </p>
+                          {account.type === "Credit" && (
+                            <p className="text-xs md:text-sm text-gray-600 dark:text-gray-300">
+                              Limit: {formatCurrency(account.creditLimit)}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Dashboard Content */}
+            <div
+              ref={dashboardRef}
+              className="grid lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8"
+            >
+              {/* Account Summary */}
+              <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg md:text-xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">
+                  Account Summary
+                </h3>
+                <div className="space-y-3 md:space-y-4">
+                  {accounts.map((account) => (
+                    <div
+                      key={account.id}
+                      className={`flex items-center justify-between p-3 md:p-4 rounded-xl cursor-pointer transition-all duration-300 ${
+                        selectedAccount?.id === account.id
+                          ? "bg-[#6160DC]/10 dark:bg-[#8B7EFF]/20 ring-2 ring-[#6160DC] dark:ring-[#8B7EFF]"
+                          : "bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600"
+                      }`}
+                      onClick={() => setSelectedAccount(account)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-white font-bold text-xs md:text-sm ${
+                            account.type === "Checking"
+                              ? "bg-blue-500"
+                              : account.type === "Savings"
+                              ? "bg-green-500"
+                              : "bg-purple-500"
+                          }`}
+                        >
+                          {account.type === "Checking"
+                            ? "💳"
+                            : account.type === "Savings"
+                            ? "🏦"
+                            : "💰"}
+                        </div>
+                        <div>
+                          <div className="font-medium text-xs md:text-sm text-gray-800 dark:text-white">
+                            {account.accountName}
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-300">
+                            {account.accountNumber}
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        className={`font-bold text-xs md:text-sm ${
+                          account.balance < 0
+                            ? "text-red-500"
+                            : "text-gray-800 dark:text-white"
+                        }`}
+                      >
+                        {account.balance < 0 ? "-" : ""}
+                        {formatCurrency(account.balance)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Recent Transactions */}
+              <div className="lg:col-span-2 p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-4 md:mb-6">
+                  <h3 className="text-lg md:text-xl font-bold text-gray-800 dark:text-white">
+                    Recent Transactions
+                  </h3>
+                  <div className="text-xs md:text-sm text-[#6160DC] dark:text-[#8B7EFF] font-medium">
+                    {selectedAccount?.accountName}
+                  </div>
+                </div>
+                <div className="space-y-3 md:space-y-4">
+                  {getAccountTransactions(selectedAccount?._id).map(
+                    (transaction) => (
+                      <div
+                        key={transaction._id}
+                        className="flex items-center justify-between p-3 md:p-4 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-300"
+                      >
+                        <div className="flex items-center space-x-3 md:space-x-4">
+                          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
+                            {getTransactionIcon(transaction.type)}
+                          </div>
+                          <div>
+                            <div className="font-medium text-xs md:text-sm text-gray-800 dark:text-white">
+                              {transaction.description}
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-gray-300">
+                              {new Date(transaction.date).toLocaleDateString()}{" "}
+                              • {transaction.category}
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          className={`font-bold text-xs md:text-sm ${
+                            transaction.amount < 0
+                              ? "text-red-500"
+                              : "text-green-500"
+                          }`}
+                        >
+                          {transaction.amount < 0 ? "-" : "+"}
+                          {formatCurrency(transaction.amount)}
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+
+                <div className="mt-4 md:mt-6">
+                  <Link
+                    to="/transactions"
+                    className="w-full inline-flex items-center justify-center px-4 md:px-6 py-2 md:py-3 bg-[#6160DC] hover:bg-[#514fbd] dark:bg-[#8B7EFF] dark:hover:bg-[#6160DC] text-white font-medium rounded-xl transition-all duration-300 hover:shadow-lg text-sm md:text-base"
+                  >
+                    View All Transactions
+                    <svg
+                      className="w-4 h-4 md:w-5 md:h-5 ml-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 8l4 4m0 0l-4 4m4-4H3"
+                      />
+                    </svg>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Budget Management Modal */}
         {showBudgetModal && (
@@ -2241,9 +2745,9 @@ const LandingPage = () => {
               className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto"
               style={{
                 background: "var(--surface)",
-                border: `2px solid ${currentTheme.primary}`,
+                border: `2px solid ${currentTheme?.primary}`,
                 borderRadius: "var(--radius-lg)",
-                boxShadow: currentTheme.shadow,
+                boxShadow: currentTheme?.shadow,
               }}
             >
               <h3
@@ -2273,7 +2777,7 @@ const LandingPage = () => {
                     className="w-full px-3 py-2 rounded-lg border"
                     style={{
                       background: "var(--background)",
-                      border: `1px solid ${currentTheme.primary}40`,
+                      border: `1px solid ${currentTheme?.primary}40`,
                       color: "var(--text-primary)",
                     }}
                   >
@@ -2314,7 +2818,7 @@ const LandingPage = () => {
                       className="w-full px-3 py-2 rounded-lg border"
                       style={{
                         background: "var(--background)",
-                        border: `1px solid ${currentTheme.primary}40`,
+                        border: `1px solid ${currentTheme?.primary}40`,
                         color: "var(--text-primary)",
                       }}
                     />
@@ -2344,7 +2848,7 @@ const LandingPage = () => {
                     className="w-full px-3 py-2 rounded-lg border"
                     style={{
                       background: "var(--background)",
-                      border: `1px solid ${currentTheme.primary}40`,
+                      border: `1px solid ${currentTheme?.primary}40`,
                       color: "var(--text-primary)",
                     }}
                   />
@@ -2370,7 +2874,7 @@ const LandingPage = () => {
                     className="w-full px-3 py-2 rounded-lg border resize-none"
                     style={{
                       background: "var(--background)",
-                      border: `1px solid ${currentTheme.primary}40`,
+                      border: `1px solid ${currentTheme?.primary}40`,
                       color: "var(--text-primary)",
                     }}
                   />
@@ -2403,9 +2907,9 @@ const LandingPage = () => {
                           background: color,
                           borderColor:
                             budgetForm.color === color
-                              ? currentTheme.primary
+                              ? currentTheme?.primary
                               : "transparent",
-                          ringColor: currentTheme.primary,
+                          ringColor: currentTheme?.primary,
                         }}
                       />
                     ))}
@@ -2419,7 +2923,7 @@ const LandingPage = () => {
                   className="px-4 py-2 rounded-lg font-medium"
                   style={{
                     background: "var(--background)",
-                    border: `1px solid ${currentTheme.primary}40`,
+                    border: `1px solid ${currentTheme?.primary}40`,
                     color: "var(--text-secondary)",
                   }}
                 >
@@ -2429,8 +2933,8 @@ const LandingPage = () => {
                   onClick={handleSaveBudget}
                   className="px-4 py-2 rounded-lg font-medium text-white"
                   style={{
-                    background: currentTheme.gradient,
-                    boxShadow: currentTheme.shadow,
+                    background: currentTheme?.gradient,
+                    boxShadow: currentTheme?.shadow,
                   }}
                 >
                   {editingBudget ? "Update Budget" : "Create Budget"}
@@ -2447,9 +2951,9 @@ const LandingPage = () => {
               className="bg-white rounded-lg p-6 w-full max-w-md mx-4"
               style={{
                 background: "var(--surface)",
-                border: `2px solid ${currentTheme.primary}`,
+                border: `2px solid ${currentTheme?.primary}`,
                 borderRadius: "var(--radius-lg)",
-                boxShadow: currentTheme.shadow,
+                boxShadow: currentTheme?.shadow,
               }}
             >
               <h3
@@ -2477,7 +2981,7 @@ const LandingPage = () => {
                     className="w-full px-3 py-2 rounded-lg border"
                     style={{
                       background: "var(--background)",
-                      border: `1px solid ${currentTheme.primary}40`,
+                      border: `1px solid ${currentTheme?.primary}40`,
                       color: "var(--text-primary)",
                     }}
                   />
@@ -2496,7 +3000,7 @@ const LandingPage = () => {
                   className="px-4 py-2 rounded-lg font-medium"
                   style={{
                     background: "var(--background)",
-                    border: `1px solid ${currentTheme.primary}40`,
+                    border: `1px solid ${currentTheme?.primary}40`,
                     color: "var(--text-secondary)",
                   }}
                 >
@@ -2506,8 +3010,8 @@ const LandingPage = () => {
                   onClick={handleSaveMonthlyBudget}
                   className="px-4 py-2 rounded-lg font-medium text-white"
                   style={{
-                    background: currentTheme.gradient,
-                    boxShadow: currentTheme.shadow,
+                    background: currentTheme?.gradient,
+                    boxShadow: currentTheme?.shadow,
                   }}
                 >
                   Save Budget
@@ -2517,364 +3021,8 @@ const LandingPage = () => {
           </div>
         )}
 
-        {/* Total Balance Card */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 mb-8 text-white shadow-2xl">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-indigo-200 text-lg">Total Balance</p>
-              <h2 className="text-4xl font-bold">
-                {formatCurrency(getTotalBalance())}
-              </h2>
-              <p className="text-indigo-200 mt-2">
-                Across {currentUser.accounts.length} accounts
-              </p>
-            </div>
-            <div className="hidden md:block">
-              <svg
-                className="w-20 h-20 text-indigo-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1}
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* Account Cards */}
-        <div className="mb-8">
-          <h2
-            className="text-xl font-semibold mb-4"
-            style={{ color: "var(--text-primary)" }}
-          >
-            Your Accounts
-          </h2>
-          <div className="grid lg:grid-cols-3 gap-6 mb-8">
-            {currentUser.accounts.map((account) => (
-              <div
-                key={account.id}
-                className={`bg-gradient-to-br ${getAccountColor(
-                  account.type
-                )} rounded-2xl p-6 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 cursor-pointer transform hover:scale-105 ${
-                  selectedAccount?.id === account.id
-                    ? "ring-4 ring-white ring-opacity-50"
-                    : ""
-                }`}
-                onClick={() => setSelectedAccount(account)}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    {getAccountIcon(account.type)}
-                    <span className="font-semibold">{account.type}</span>
-                  </div>
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      account.isActive ? "bg-green-400" : "bg-red-400"
-                    }`}
-                  />
-                </div>
-
-                <h3 className="text-xl font-bold mb-2">
-                  {account.accountName}
-                </h3>
-                <p className="text-sm opacity-90 mb-4">
-                  {account.accountNumber}
-                </p>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm opacity-90">
-                      {account.type === "Credit" ? "Balance" : "Available"}
-                    </p>
-                    <p className="text-2xl font-bold">
-                      ${Math.abs(account.balance).toLocaleString()}
-                    </p>
-                    {account.type === "Credit" && (
-                      <p className="text-sm opacity-90">
-                        Limit: ${account.creditLimit.toLocaleString()}
-                      </p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm opacity-90">{account.cardType}</p>
-                    <svg
-                      className="w-8 h-8 mt-1"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 2v2h16V6H4zm0 4v8h16v-8H4z" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Main Dashboard Content with Dynamic Theme */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div
-            className="p-6 rounded-lg transition-all duration-500"
-            style={{
-              background: "var(--surface)",
-              border: `2px solid ${currentTheme.primary}`,
-              borderRadius: "var(--radius-lg)",
-              boxShadow: currentTheme.shadow,
-            }}
-          >
-            <h3
-              className="text-lg font-semibold mb-4"
-              style={{ color: "var(--text-primary)" }}
-            >
-              Total Balance Overview
-            </h3>
-            <div className="text-center">
-              <div
-                className="text-4xl font-bold mb-2 transition-colors duration-500"
-                style={{ color: currentTheme.primary }}
-              >
-                {formatCurrency(getTotalBalance())}
-              </div>
-              <div
-                className="text-sm mb-6"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Total Available Funds
-              </div>
-
-              <div
-                className="p-4 rounded-lg transition-all duration-500"
-                style={{
-                  background: currentTheme.lightGradient,
-                  color: "white",
-                }}
-              >
-                <div className="text-sm font-medium mb-2 opacity-90">
-                  Selected Account: {selectedAccount.accountName}
-                </div>
-                <div className="text-2xl font-bold">
-                  {selectedAccount.type === "Credit" &&
-                  selectedAccount.balance < 0
-                    ? "-"
-                    : ""}
-                  {formatCurrency(selectedAccount.balance)}
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <div
-                  className="text-xs mb-2"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  Account Health
-                </div>
-                <div
-                  className="w-full h-2 rounded-full"
-                  style={{ background: "var(--surface-variant)" }}
-                >
-                  <div
-                    className="h-2 rounded-full transition-all duration-1000"
-                    style={{
-                      background: currentTheme.gradient,
-                      width:
-                        selectedAccount.type === "Credit"
-                          ? `${100 - getCreditUtilization(selectedAccount)}%`
-                          : `${Math.min(
-                              (selectedAccount.balance / 30000) * 100,
-                              100
-                            )}%`,
-                    }}
-                  ></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div
-            className="p-6 rounded-lg transition-all duration-500"
-            style={{
-              background: "var(--surface)",
-              border: `1px solid ${currentTheme.primary}`,
-              borderRadius: "var(--radius-lg)",
-              boxShadow: "var(--shadow-md)",
-            }}
-          >
-            <h3
-              className="text-lg font-semibold mb-4"
-              style={{ color: "var(--text-primary)" }}
-            >
-              Account Summary
-            </h3>
-            <div className="space-y-4">
-              {currentUser.accounts.map((account) => (
-                <div
-                  key={account.id}
-                  className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-300 ${
-                    selectedAccount.id === account.id
-                      ? "ring-2 ring-offset-1 transform scale-105"
-                      : "hover:scale-102"
-                  }`}
-                  style={{
-                    background:
-                      selectedAccount.id === account.id
-                        ? currentTheme.lightGradient
-                        : "var(--background)",
-                    ringColor: currentTheme.primary,
-                  }}
-                  onClick={() => setSelectedAccount(account)}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all duration-300"
-                      style={{
-                        background:
-                          selectedAccount.id === account.id
-                            ? "rgba(255,255,255,0.2)"
-                            : themes[account.type].primary,
-                      }}
-                    >
-                      {account.type === "Checking"
-                        ? "💳"
-                        : account.type === "Savings"
-                        ? "🏦"
-                        : "💰"}
-                    </div>
-                    <div>
-                      <div
-                        className="font-medium text-sm"
-                        style={{
-                          color:
-                            selectedAccount.id === account.id
-                              ? "white"
-                              : "var(--text-primary)",
-                        }}
-                      >
-                        {account.accountName}
-                      </div>
-                      <div
-                        className="text-xs"
-                        style={{
-                          color:
-                            selectedAccount.id === account.id
-                              ? "rgba(255,255,255,0.75)"
-                              : "var(--text-secondary)",
-                        }}
-                      >
-                        {account.accountNumber}
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    className="font-bold text-sm transition-colors duration-300"
-                    style={{
-                      color:
-                        selectedAccount.id === account.id
-                          ? "white"
-                          : account.balance < 0
-                          ? "#ff3b5c"
-                          : "var(--text-primary)",
-                    }}
-                  >
-                    {account.balance < 0 ? "-" : ""}
-                    {formatCurrency(account.balance)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div
-            className="p-6 rounded-lg transition-all duration-500"
-            style={{
-              background: "var(--surface)",
-              border: `1px solid ${currentTheme.primary}`,
-              borderRadius: "var(--radius-lg)",
-              boxShadow: "var(--shadow-md)",
-            }}
-          >
-            <h3
-              className="text-lg font-semibold mb-4"
-              style={{ color: "var(--text-primary)" }}
-            >
-              Recent Transactions
-            </h3>
-            <div
-              className="text-sm mb-4"
-              style={{ color: currentTheme.primary, fontWeight: "600" }}
-            >
-              {selectedAccount.accountName}
-            </div>
-            <div className="space-y-3">
-              {getAccountTransactions(selectedAccount.id).map((transaction) => (
-                <div
-                  key={transaction.id}
-                  className="flex items-center justify-between p-3 rounded-lg transition-all duration-300 hover:scale-102"
-                  style={{
-                    background: "var(--background)",
-                    border: `1px solid ${currentTheme.primary}20`,
-                  }}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div
-                      className="text-lg w-8 h-8 rounded-full flex items-center justify-center"
-                      style={{ background: `${currentTheme.primary}20` }}
-                    >
-                      {getTransactionIcon(transaction.type)}
-                    </div>
-                    <div>
-                      <div
-                        className="font-medium text-sm"
-                        style={{ color: "var(--text-primary)" }}
-                      >
-                        {transaction.description}
-                      </div>
-                      <div
-                        className="text-xs"
-                        style={{ color: "var(--text-secondary)" }}
-                      >
-                        {new Date(transaction.date).toLocaleDateString()} •{" "}
-                        {transaction.category}
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    className={`font-bold text-sm transition-colors duration-300`}
-                    style={{
-                      color:
-                        transaction.amount < 0
-                          ? chartColors.spending
-                          : chartColors.income,
-                    }}
-                  >
-                    {transaction.amount < 0 ? "-" : "+"}
-                    {formatCurrency(transaction.amount)}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <button
-              className="w-full mt-4 py-2 px-4 rounded-lg font-medium transition-all duration-300 hover:opacity-90 hover:scale-105"
-              style={{
-                background: currentTheme.gradient,
-                color: "white",
-                borderRadius: "var(--radius-sm)",
-                boxShadow: currentTheme.shadow,
-              }}
-            >
-              View All Transactions
-            </button>
-          </div>
-        </div>
-
         {/* BUDGET MANAGEMENT SECTION */}
-        <div className="mt-12">
+        <div className="mt-12 p-5">
           <div className="flex items-center justify-between mb-6">
             <h2
               className="text-2xl font-bold"
@@ -2888,8 +3036,8 @@ const LandingPage = () => {
                 className="px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:opacity-90"
                 style={{
                   background: "var(--background)",
-                  border: `2px solid ${currentTheme.primary}`,
-                  color: currentTheme.primary,
+                  border: `2px solid ${currentTheme?.primary}`,
+                  color: currentTheme?.primary,
                 }}
               >
                 📊 Set Monthly Budget
@@ -2898,8 +3046,8 @@ const LandingPage = () => {
                 onClick={handleAddBudget}
                 className="px-4 py-2 rounded-lg font-medium text-white transition-all duration-300 hover:opacity-90"
                 style={{
-                  background: currentTheme.gradient,
-                  boxShadow: currentTheme.shadow,
+                  background: currentTheme?.gradient,
+                  boxShadow: currentTheme?.shadow,
                 }}
               >
                 ➕ Add Budget Category
@@ -2954,13 +3102,13 @@ const LandingPage = () => {
             <div
               className="p-4 rounded-lg text-center"
               style={{
-                background: `${currentTheme.primary}20`,
-                border: `1px solid ${currentTheme.primary}40`,
+                background: `${currentTheme?.primary}20`,
+                border: `1px solid ${currentTheme?.primary}40`,
               }}
             >
               <div
                 className="text-2xl font-bold"
-                style={{ color: currentTheme.primary }}
+                style={{ color: currentTheme?.primary }}
               >
                 {formatCurrency(
                   Math.abs(getTotalBudgeted() - getTotalActualSpending())
@@ -2979,13 +3127,13 @@ const LandingPage = () => {
             <div
               className="p-4 rounded-lg text-center"
               style={{
-                background: `${currentTheme.primary}20`,
-                border: `1px solid ${currentTheme.primary}40`,
+                background: `${currentTheme?.primary}20`,
+                border: `1px solid ${currentTheme?.primary}40`,
               }}
             >
               <div
                 className="text-2xl font-bold"
-                style={{ color: currentTheme.primary }}
+                style={{ color: currentTheme?.primary }}
               >
                 {formatCurrency(monthlyBudgetLimit)}
               </div>
@@ -3004,7 +3152,7 @@ const LandingPage = () => {
               className="px-4 py-2 my-2 rounded-lg text-sm font-medium transition-all duration-300"
               style={{
                 background: "var(--surface)",
-                border: `1px solid ${currentTheme.primary}`,
+                border: `1px solid ${currentTheme?.primary}`,
                 color: "var(--text-primary)",
                 marginLeft: "auto", // This pushes it to the right
               }}
@@ -3020,7 +3168,7 @@ const LandingPage = () => {
             className="p-6 rounded-lg transition-all duration-500"
             style={{
               background: "var(--surface)",
-              border: `1px solid ${currentTheme.primary}`,
+              border: `1px solid ${currentTheme?.primary}`,
               borderRadius: "var(--radius-lg)",
               boxShadow: "var(--shadow-md)",
               paddingBottom: "60px",
@@ -3065,7 +3213,7 @@ const LandingPage = () => {
                               className="w-8 rounded-t transition-all duration-1000 opacity-40"
                               style={{
                                 height: `${budgetHeight}%`,
-                                background: currentTheme.primary,
+                                background: currentTheme?.primary,
                                 minHeight: "4px",
                               }}
                               title={`Budget: ${formatCurrency(data.budget)}`}
@@ -3123,7 +3271,7 @@ const LandingPage = () => {
                     <div className="flex items-center space-x-2">
                       <div
                         className="w-4 h-4 rounded opacity-40"
-                        style={{ background: currentTheme.primary }}
+                        style={{ background: currentTheme?.primary }}
                       ></div>
                       <span
                         className="text-sm"
@@ -3223,7 +3371,7 @@ const LandingPage = () => {
                         </div>
                         <div
                           className="text-xl font-bold"
-                          style={{ color: currentTheme.primary }}
+                          style={{ color: currentTheme?.primary }}
                         >
                           {formatCurrency(
                             getCategoryWiseSpending().reduce(
@@ -3385,9 +3533,9 @@ const LandingPage = () => {
                                 onClick={() => handleEditBudget(budget)}
                                 className="px-3 py-1 rounded-lg text-xs font-medium transition-all duration-300"
                                 style={{
-                                  background: `${currentTheme.primary}20`,
-                                  color: currentTheme.primary,
-                                  border: `1px solid ${currentTheme.primary}40`,
+                                  background: `${currentTheme?.primary}20`,
+                                  color: currentTheme?.primary,
+                                  border: `1px solid ${currentTheme?.primary}40`,
                                 }}
                               >
                                 Edit
@@ -3519,8 +3667,8 @@ const LandingPage = () => {
                       onClick={handleAddBudget}
                       className="px-6 py-3 rounded-lg font-medium text-white transition-all duration-300 hover:opacity-90"
                       style={{
-                        background: currentTheme.gradient,
-                        boxShadow: currentTheme.shadow,
+                        background: currentTheme?.gradient,
+                        boxShadow: currentTheme?.shadow,
                       }}
                     >
                       Create Your First Budget
@@ -3582,13 +3730,13 @@ const LandingPage = () => {
                     <div
                       className="p-4 rounded-lg text-center"
                       style={{
-                        background: `${currentTheme.primary}20`,
-                        border: `1px solid ${currentTheme.primary}40`,
+                        background: `${currentTheme?.primary}20`,
+                        border: `1px solid ${currentTheme?.primary}40`,
                       }}
                     >
                       <div
                         className="text-2xl font-bold"
-                        style={{ color: currentTheme.primary }}
+                        style={{ color: currentTheme?.primary }}
                       >
                         {formatCurrency(
                           getBudgetVsActual().reduce(
@@ -3612,7 +3760,7 @@ const LandingPage = () => {
         </div>
 
         {/* Transaction History Section */}
-        <div className="mt-12">
+        <div className="mt-12 p-5">
           <div className="flex items-center justify-between mb-6">
             <h2
               className="text-2xl font-bold"
@@ -3627,7 +3775,7 @@ const LandingPage = () => {
                 className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300"
                 style={{
                   background: "var(--surface)",
-                  border: `1px solid ${currentTheme.primary}`,
+                  border: `1px solid ${currentTheme?.primary}`,
                   color: "var(--text-primary)",
                 }}
               >
@@ -3642,7 +3790,7 @@ const LandingPage = () => {
                 className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300"
                 style={{
                   background: "var(--surface)",
-                  border: `1px solid ${currentTheme.primary}`,
+                  border: `1px solid ${currentTheme?.primary}`,
                   color: "var(--text-primary)",
                 }}
               >
@@ -3656,7 +3804,7 @@ const LandingPage = () => {
             className="p-6 rounded-lg transition-all duration-500 mb-8"
             style={{
               background: "var(--surface)",
-              border: `1px solid ${currentTheme.primary}`,
+              border: `1px solid ${currentTheme?.primary}`,
               borderRadius: "var(--radius-lg)",
               boxShadow: "var(--shadow-md)",
               paddingBottom: "55px",
@@ -3855,7 +4003,7 @@ const LandingPage = () => {
               className="lg:col-span-2 p-6 rounded-lg transition-all duration-500 flex flex-col"
               style={{
                 background: "var(--surface)",
-                border: `1px solid ${currentTheme.primary}`,
+                border: `1px solid ${currentTheme?.primary}`,
                 borderRadius: "var(--radius-lg)",
                 boxShadow: "var(--shadow-md)",
                 height: "652px",
@@ -3883,7 +4031,8 @@ const LandingPage = () => {
                   style={{ color: "var(--text-secondary)" }}
                 >
                   Showing {getFilteredTransactions().length} of{" "}
-                  {currentUser.recentTransactions.length} transactions
+                  {transactions.length - getFilteredTransactions().length}{" "}
+                  transactions
                 </div>
               </div>
 
@@ -3895,13 +4044,13 @@ const LandingPage = () => {
                       className="flex items-center justify-between p-4 rounded-lg transition-all duration-300 hover:scale-102"
                       style={{
                         background: "var(--background)",
-                        border: `1px solid ${currentTheme.primary}20`,
+                        border: `1px solid ${currentTheme?.primary}20`,
                       }}
                     >
                       <div className="flex items-center space-x-4">
                         <div
                           className="w-12 h-12 rounded-full flex items-center justify-center text-lg"
-                          style={{ background: `${currentTheme.primary}20` }}
+                          style={{ background: `${currentTheme?.primary}20` }}
                         >
                           {getCategoryIcon(transaction.category)}
                         </div>
@@ -3923,8 +4072,8 @@ const LandingPage = () => {
                             <div
                               className="text-xs px-2 py-1 rounded-full inline-block"
                               style={{
-                                background: `${currentTheme.primary}20`,
-                                color: currentTheme.primary,
+                                background: `${currentTheme?.primary}20`,
+                                color: currentTheme?.primary,
                               }}
                             >
                               {transaction.category}
@@ -3935,12 +4084,12 @@ const LandingPage = () => {
                                 background: `${
                                   themes[
                                     getAccountTypeById(transaction.accountId)
-                                  ]?.primary || currentTheme.primary
+                                  ]?.primary || currentTheme?.primary
                                 }20`,
                                 color:
                                   themes[
                                     getAccountTypeById(transaction.accountId)
-                                  ]?.primary || currentTheme.primary,
+                                  ]?.primary || currentTheme?.primary,
                               }}
                             >
                               {getAccountNameById(transaction.accountId)}
@@ -4002,7 +4151,7 @@ const LandingPage = () => {
               className="p-6 rounded-lg transition-all duration-500"
               style={{
                 background: "var(--surface)",
-                border: `1px solid ${currentTheme.primary}`,
+                border: `1px solid ${currentTheme?.primary}`,
                 borderRadius: "var(--radius-lg)",
                 boxShadow: "var(--shadow-md)",
               }}
@@ -4030,7 +4179,7 @@ const LandingPage = () => {
                     className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300"
                     style={{
                       background: "var(--background)",
-                      border: `1px solid ${currentTheme.primary}40`,
+                      border: `1px solid ${currentTheme?.primary}40`,
                       color: "var(--text-primary)",
                     }}
                   />
@@ -4049,7 +4198,7 @@ const LandingPage = () => {
                     className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300"
                     style={{
                       background: "var(--background)",
-                      border: `1px solid ${currentTheme.primary}40`,
+                      border: `1px solid ${currentTheme?.primary}40`,
                       color: "var(--text-primary)",
                     }}
                   >
@@ -4064,7 +4213,7 @@ const LandingPage = () => {
                     style={{ color: "var(--text-secondary)" }}
                   >
                     {filterAccountType === "all" &&
-                      `Showing transactions from: ${selectedAccount.accountName}`}
+                      `Showing transactions from: ${selectedAccount?.accountName}`}
                     {filterAccountType === "allTransactions" &&
                       "Showing transactions from all accounts"}
                     {filterAccountType !== "all" &&
@@ -4086,7 +4235,7 @@ const LandingPage = () => {
                     className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-300"
                     style={{
                       background: "var(--background)",
-                      border: `1px solid ${currentTheme.primary}40`,
+                      border: `1px solid ${currentTheme?.primary}40`,
                       color: "var(--text-primary)",
                     }}
                   >
@@ -4113,7 +4262,7 @@ const LandingPage = () => {
                       className="px-3 py-2 rounded-lg text-sm transition-all duration-300"
                       style={{
                         background: "var(--background)",
-                        border: `1px solid ${currentTheme.primary}40`,
+                        border: `1px solid ${currentTheme?.primary}40`,
                         color: "var(--text-primary)",
                       }}
                     />
@@ -4124,7 +4273,7 @@ const LandingPage = () => {
                       className="px-3 py-2 rounded-lg text-sm transition-all duration-300"
                       style={{
                         background: "var(--background)",
-                        border: `1px solid ${currentTheme.primary}40`,
+                        border: `1px solid ${currentTheme?.primary}40`,
                         color: "var(--text-primary)",
                       }}
                     />
@@ -4147,7 +4296,7 @@ const LandingPage = () => {
                       className="px-3 py-2 rounded-lg text-sm transition-all duration-300"
                       style={{
                         background: "var(--background)",
-                        border: `1px solid ${currentTheme.primary}40`,
+                        border: `1px solid ${currentTheme?.primary}40`,
                         color: "var(--text-primary)",
                       }}
                     />
@@ -4159,7 +4308,7 @@ const LandingPage = () => {
                       className="px-3 py-2 rounded-lg text-sm transition-all duration-300"
                       style={{
                         background: "var(--background)",
-                        border: `1px solid ${currentTheme.primary}40`,
+                        border: `1px solid ${currentTheme?.primary}40`,
                         color: "var(--text-primary)",
                       }}
                     />
@@ -4171,8 +4320,8 @@ const LandingPage = () => {
                   className="w-full py-2 px-4 rounded-lg font-medium transition-all duration-300 hover:opacity-90"
                   style={{
                     background: "var(--background)",
-                    border: `2px solid ${currentTheme.primary}`,
-                    color: currentTheme.primary,
+                    border: `2px solid ${currentTheme?.primary}`,
+                    color: currentTheme?.primary,
                   }}
                 >
                   Clear All Filters
@@ -4181,13 +4330,13 @@ const LandingPage = () => {
                 <div
                   className="p-3 rounded-lg text-center"
                   style={{
-                    background: `${currentTheme.primary}10`,
-                    border: `1px solid ${currentTheme.primary}30`,
+                    background: `${currentTheme?.primary}10`,
+                    border: `1px solid ${currentTheme?.primary}30`,
                   }}
                 >
                   <div
                     className="text-sm font-medium"
-                    style={{ color: currentTheme.primary }}
+                    style={{ color: currentTheme?.primary }}
                   >
                     {getFilteredTransactions().length} transactions found
                   </div>
@@ -4212,15 +4361,13 @@ const LandingPage = () => {
           <div
             className="p-4 rounded-lg text-center transition-all duration-500 hover:scale-105"
             style={{
-              background: currentTheme.lightGradient,
+              background: currentTheme?.lightGradient,
               color: "white",
               borderRadius: "var(--radius-md)",
-              boxShadow: currentTheme.shadow,
+              boxShadow: currentTheme?.shadow,
             }}
           >
-            <div className="text-2xl font-bold">
-              {currentUser.accounts.length}
-            </div>
+            <div className="text-2xl font-bold">{accounts.length}</div>
             <div className="text-sm opacity-90">Active Accounts</div>
           </div>
 
@@ -4228,19 +4375,16 @@ const LandingPage = () => {
             className="p-4 rounded-lg text-center transition-all duration-500 hover:scale-105"
             style={{
               background: "var(--surface)",
-              border: `2px solid ${currentTheme.primary}`,
+              border: `2px solid ${currentTheme?.primary}`,
               borderRadius: "var(--radius-md)",
               boxShadow: "var(--shadow-sm)",
             }}
           >
             <div
               className="text-2xl font-bold"
-              style={{ color: currentTheme.primary }}
+              style={{ color: currentTheme?.primary }}
             >
-              {
-                currentUser.recentTransactions.filter((t) => t.amount > 0)
-                  .length
-              }
+              {transactions.filter((t) => t.amount > 0).length}
             </div>
             <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
               Recent Deposits
@@ -4251,18 +4395,17 @@ const LandingPage = () => {
             className="p-4 rounded-lg text-center transition-all duration-500 hover:scale-105"
             style={{
               background: "var(--surface)",
-              border: `2px solid ${currentTheme.primary}`,
+              border: `2px solid ${currentTheme?.primary}`,
               borderRadius: "var(--radius-md)",
               boxShadow: "var(--shadow-sm)",
             }}
           >
             <div
               className="text-2xl font-bold"
-              style={{ color: currentTheme.primary }}
+              style={{ color: currentTheme?.primary }}
             >
               {formatCurrency(
-                currentUser.accounts.find((acc) => acc.type === "Credit")
-                  ?.balance || 0
+                accounts.find((acc) => acc.type === "Credit")?.balance || 0
               )}
             </div>
             <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
@@ -4273,10 +4416,10 @@ const LandingPage = () => {
           <div
             className="p-4 rounded-lg text-center transition-all duration-500 hover:scale-105"
             style={{
-              background: currentTheme.gradient,
+              background: currentTheme?.gradient,
               color: "white",
               borderRadius: "var(--radius-md)",
-              boxShadow: currentTheme.shadow,
+              boxShadow: currentTheme?.shadow,
             }}
           >
             <div className="text-2xl font-bold">
@@ -5733,8 +5876,15 @@ const LandingPage = () => {
             </div>
           </div>
         </section>
+        {showTransferForm && (
+          <MoneyTransferForm
+            onClose={() => setShowTransferForm(false)}
+            onTransferComplete={handleTransferComplete}
+            userAccounts={accounts} // Pass your accounts data
+          />
+        )}
       </div>
     </section>
   );
 };
-export default LandingPage;
+export default User;
