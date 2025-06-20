@@ -556,12 +556,344 @@ async function run() {
         console.log("User ID from token:", userId);
         const budget = await budgetsCollection.findOne({ userId });
         if (!budget) {
-          return res.status(404).send({ success: false, message: "Budget not found" });
+          return res
+            .status(404)
+            .send({ success: false, message: "Budget not found" });
         }
         res.send({ success: true, data: budget });
       } catch (error) {
         console.error("Error fetching budget:", error);
-        res.status(500).send({ success: false, message: "Internal server error" });
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
+      }
+    });
+
+    // Create a new budget entry
+    app.post("/budgets", verifyJWT, async (req, res) => {
+      try {
+        const {
+          uId,
+          category,
+          budgeted,
+          color,
+          description,
+          customCategory,
+          isActive,
+        } = req.body;
+
+        if (!uId || !category || !budgeted) {
+          return res.status(400).send({
+            success: false,
+            message:
+              "Missing required fields: userId, category, and budgeted amount are required",
+          });
+        }
+
+        // Find the user's budget document
+        let userBudget = await budgetsCollection.findOne({ userId: uId });
+
+        // Generate a new ObjectId for this budget item
+        const budgetId = new ObjectId();
+
+        const newBudgetItem = {
+          category,
+          budgeted: parseFloat(budgeted),
+          actual: 0, // Initial actual spending is 0
+          color: color || "#4ecdc4", // Default color if not provided
+          isActive: isActive !== undefined ? isActive : true,
+          description: description || "",
+          customCategory: customCategory || undefined,
+          id: budgetId,
+        };
+
+        if (!userBudget) {
+          // If user doesn't have a budget document yet, create one
+          const result = await budgetsCollection.insertOne({
+            userId: uId,
+            budgets: [newBudgetItem],
+            monthlyBudgetLimit: 0, // Default monthly limit
+          });
+
+          return res.status(201).send({
+            success: true,
+            message: "Budget created successfully",
+            budget: newBudgetItem,
+          });
+        }
+
+        // Check if category already exists
+        if (userBudget.budgets.some((b) => b.category === category)) {
+          return res.status(400).send({
+            success: false,
+            message: "Budget for this category already exists",
+          });
+        }
+
+        // Add new budget to existing budgets array
+        const result = await budgetsCollection.updateOne(
+          { userId: uId },
+          { $push: { budgets: newBudgetItem } }
+        );
+
+        if (result.modifiedCount === 0) {
+          return res
+            .status(400)
+            .send({ success: false, message: "Failed to add budget" });
+        }
+
+        res.status(201).send({
+          success: true,
+          message: "Budget added successfully",
+          budget: newBudgetItem,
+        });
+      } catch (error) {
+        console.error("Error creating budget:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
+      }
+    });
+
+    // Update an existing budget
+    app.put("/budgets/:budgetId", verifyJWT, async (req, res) => {
+      try {
+        const { budgetId } = req.params;
+        const { uId, category, budgeted, color, description, customCategory } =
+          req.body;
+
+        if (!ObjectId.isValid(budgetId)) {
+          return res
+            .status(400)
+            .send({ success: false, message: "Invalid budget ID" });
+        }
+
+        if (!uId || !category || !budgeted) {
+          return res.status(400).send({
+            success: false,
+            message:
+              "Missing required fields: userId, category, and budgeted amount are required",
+          });
+        }
+
+        const budgetObjId = new ObjectId(budgetId);
+
+        // Update the budget item
+        const result = await budgetsCollection.updateOne(
+          {
+            userId: uId,
+            "budgets.id": budgetObjId,
+          },
+          {
+            $set: {
+              "budgets.$.category": category,
+              "budgets.$.budgeted": parseFloat(budgeted),
+              "budgets.$.color": color || "#4ecdc4",
+              "budgets.$.description": description || "",
+              "budgets.$.customCategory": customCategory || undefined,
+            },
+          }
+        );
+
+        if (result.matchedCount === 0) {
+          return res.status(404).send({
+            success: false,
+            message: "Budget not found",
+          });
+        }
+
+        if (result.modifiedCount === 0) {
+          return res.status(400).send({
+            success: false,
+            message: "No changes made to budget",
+          });
+        }
+
+        // Get the updated budget to return
+        const updatedBudget = await budgetsCollection.findOne(
+          { userId: uId },
+          { projection: { budgets: { $elemMatch: { id: budgetObjId } } } }
+        );
+
+        res.send({
+          success: true,
+          message: "Budget updated successfully",
+          budget: updatedBudget?.budgets[0],
+        });
+      } catch (error) {
+        console.error("Error updating budget:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
+      }
+    });
+
+    // Delete a budget
+    app.delete("/budgets/:budgetId", verifyJWT, async (req, res) => {
+      try {
+        const { budgetId } = req.params;
+        const { uId } = req.query;
+
+        if (!ObjectId.isValid(budgetId)) {
+          return res
+            .status(400)
+            .send({ success: false, message: "Invalid budget ID" });
+        }
+
+        if (!uId) {
+          return res
+            .status(400)
+            .send({ success: false, message: "User ID is required" });
+        }
+
+        const budgetObjId = new ObjectId(budgetId);
+
+        // Remove the budget item from the budgets array
+        const result = await budgetsCollection.updateOne(
+          { userId: uId },
+          { $pull: { budgets: { id: budgetObjId } } }
+        );
+
+        if (result.matchedCount === 0) {
+          return res
+            .status(404)
+            .send({ success: false, message: "Budget not found" });
+        }
+
+        if (result.modifiedCount === 0) {
+          return res
+            .status(400)
+            .send({ success: false, message: "Failed to delete budget" });
+        }
+
+        res.send({ success: true, message: "Budget deleted successfully" });
+      } catch (error) {
+        console.error("Error deleting budget:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
+      }
+    });
+
+    // Toggle a budget's active status
+    app.patch("/budgets/:budgetId/toggle", verifyJWT, async (req, res) => {
+      try {
+        const { budgetId } = req.params;
+        const { uId, isActive } = req.body;
+
+        if (!ObjectId.isValid(budgetId)) {
+          return res
+            .status(400)
+            .send({ success: false, message: "Invalid budget ID" });
+        }
+
+        if (!uId || isActive === undefined) {
+          return res.status(400).send({
+            success: false,
+            message: "User ID and isActive status are required",
+          });
+        }
+
+        const budgetObjId = new ObjectId(budgetId);
+
+        // Update the isActive status
+        const result = await budgetsCollection.updateOne(
+          {
+            userId: uId,
+            "budgets.id": budgetObjId,
+          },
+          {
+            $set: { "budgets.$.isActive": isActive },
+          }
+        );
+
+        if (result.matchedCount === 0) {
+          return res
+            .status(404)
+            .send({ success: false, message: "Budget not found" });
+        }
+
+        if (result.modifiedCount === 0) {
+          return res.status(400).send({
+            success: false,
+            message: "No changes made to budget status",
+          });
+        }
+
+        res.send({
+          success: true,
+          message: `Budget ${
+            isActive ? "activated" : "deactivated"
+          } successfully`,
+        });
+      } catch (error) {
+        console.error("Error toggling budget status:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
+      }
+    });
+
+    // Update monthly budget limit
+    app.post("/budgets/monthly-limit", verifyJWT, async (req, res) => {
+      try {
+        const { uId, monthlyBudgetLimit } = req.body;
+
+        if (!uId || monthlyBudgetLimit === undefined) {
+          return res.status(400).send({
+            success: false,
+            message: "User ID and monthly budget limit are required",
+          });
+        }
+
+        // Validate budget limit
+        const limit = parseFloat(monthlyBudgetLimit);
+        if (isNaN(limit) || limit < 0) {
+          return res.status(400).send({
+            success: false,
+            message: "Monthly budget limit must be a valid positive number",
+          });
+        }
+
+        // Find the user's budget document
+        let userBudget = await budgetsCollection.findOne({ userId: uId });
+
+        if (!userBudget) {
+          // If user doesn't have a budget document yet, create one
+          const result = await budgetsCollection.insertOne({
+            userId: uId,
+            budgets: [],
+            monthlyBudgetLimit: limit,
+          });
+
+          return res.send({
+            success: true,
+            message: "Monthly budget limit set successfully",
+          });
+        }
+
+        // Update the monthly budget limit
+        const result = await budgetsCollection.updateOne(
+          { userId: uId },
+          { $set: { monthlyBudgetLimit: limit } }
+        );
+
+        if (result.modifiedCount === 0) {
+          return res.status(400).send({
+            success: false,
+            message: "No changes made to monthly budget limit",
+          });
+        }
+
+        res.send({
+          success: true,
+          message: "Monthly budget limit updated successfully",
+        });
+      } catch (error) {
+        console.error("Error updating monthly budget limit:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
       }
     });
 

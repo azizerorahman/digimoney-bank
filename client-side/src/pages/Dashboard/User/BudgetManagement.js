@@ -14,6 +14,14 @@ const BudgetManagement = () => {
   const [accounts, setAccounts] = useState([]);
   const [accountsLoading, setAccountsLoading] = useState(false);
 
+  const [tempBudgetInput, setTempBudgetInput] = useState("");
+  const openMonthlyBudgetModal = () => {
+    setTempBudgetInput(
+      monthlyBudgetLimit > 0 ? monthlyBudgetLimit.toString() : ""
+    );
+    setShowMonthlyBudgetModal(true);
+  };
+
   useEffect(() => {
     const fetchAccounts = async () => {
       if (!uId) return;
@@ -118,7 +126,7 @@ const BudgetManagement = () => {
   console.log(transactions);
 
   // Budget State Management
-  const [budgets, setBudgets] = useState(null);
+  const [budgets, setBudgets] = useState({ budgets: [] });
   const [budgetLoading, setBudgetLoading] = useState(false);
   const [budgetError, setBudgetError] = useState(null);
   const [monthlyBudgetLimit, setMonthlyBudgetLimit] = useState(0);
@@ -142,11 +150,16 @@ const BudgetManagement = () => {
         );
 
         if (res.data && res.data.success) {
-          setBudgets(res.data.data);
+          // Fix this part to ensure consistent structure
+          const budgetData = res.data.data || {};
+          setBudgets({
+            budgets: budgetData.budgets || [],
+            ...budgetData,
+          });
 
           // Update monthly budget limit if available
-          if (res.data.data.monthlyBudgetLimit) {
-            setMonthlyBudgetLimit(res.data.data.monthlyBudgetLimit);
+          if (budgetData.monthlyBudgetLimit) {
+            setMonthlyBudgetLimit(budgetData.monthlyBudgetLimit);
           }
         } else {
           setBudgetError("Failed to fetch budget data");
@@ -185,8 +198,6 @@ const BudgetManagement = () => {
   // Monthly Budget States
 
   const [showMonthlyBudgetModal, setShowMonthlyBudgetModal] = useState(false);
-  const [tempMonthlyBudget, setTempMonthlyBudget] =
-    useState(monthlyBudgetLimit);
 
   // Available categories for budgeting (now includes "Others")
   const availableCategories = [
@@ -305,7 +316,7 @@ const BudgetManagement = () => {
     setShowBudgetModal(true);
   };
 
-  const handleSaveBudget = () => {
+  const handleSaveBudget = async () => {
     let finalCategory = budgetForm.category;
 
     // Handle "Others" category with custom name
@@ -329,74 +340,202 @@ const BudgetManagement = () => {
     }
 
     // Check if category already exists (when adding new)
-    if (!editingBudget && budgets.some((b) => b.category === finalCategory)) {
+    if (
+      !editingBudget &&
+      budgets?.budgets?.some((b) => b.category === finalCategory)
+    ) {
       alert("Budget for this category already exists");
       return;
     }
 
-    if (editingBudget) {
-      // Update existing budget
-      
-      setBudgets(
-        budgets.budgets.map((budget) =>
-          budget.id === editingBudget.id
-            ? {
-                ...budget,
-                category: finalCategory,
-                budgeted: budgetAmount,
-                color: budgetForm.color,
-                description: budgetForm.description,
-                customCategory:
-                  budgetForm.category === "Others"
-                    ? budgetForm.customCategory
-                    : undefined,
-              }
-            : budget
-        )
-      );
-    } else {
-      // Add new budget
-      const newBudget = {
-        id: Date.now(),
-        category: finalCategory,
-        budgeted: budgetAmount,
-        actual: calculateActualSpending(finalCategory),
-        color: budgetForm.color,
-        isActive: true,
-        description: budgetForm.description,
-        customCategory:
-          budgetForm.category === "Others"
-            ? budgetForm.customCategory
-            : undefined,
-      };
-      setBudgets([...budgets, newBudget]);
-    }
+    // Prepare budget data for API
+    const budgetData = {
+      uId,
+      category: finalCategory,
+      budgeted: budgetAmount,
+      color: budgetForm.color,
+      description: budgetForm.description,
+      customCategory:
+        budgetForm.category === "Others"
+          ? budgetForm.customCategory
+          : undefined,
+      isActive: true,
+    };
 
-    setShowBudgetModal(false);
-    setBudgetForm({
-      category: "",
-      budgeted: "",
-      color: "#4ecdc4",
-      description: "",
-      customCategory: "",
-    });
-    setEditingBudget(null);
+    try {
+      const token = localStorage.getItem("accessToken");
+      let response;
+
+      if (editingBudget) {
+        // Update existing budget via API
+        response = await axios.put(
+          `${process.env.REACT_APP_API_URL}/budgets/${editingBudget.id}`,
+          budgetData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.data && response.data.success) {
+          // Update local state after successful API call
+          setBudgets({
+            ...budgets,
+            budgets: budgets.budgets.map((budget) =>
+              budget.id === editingBudget.id
+                ? {
+                    ...budget,
+                    category: finalCategory,
+                    budgeted: budgetAmount,
+                    color: budgetForm.color,
+                    description: budgetForm.description,
+                    customCategory:
+                      budgetForm.category === "Others"
+                        ? budgetForm.customCategory
+                        : undefined,
+                  }
+                : budget
+            ),
+          });
+          toast.success("Budget updated successfully");
+        } else {
+          throw new Error(response.data?.message || "Failed to update budget");
+        }
+      } else {
+        // Create new budget via API
+        response = await axios.post(
+          `${process.env.REACT_APP_API_URL}/budgets`,
+          budgetData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.data && response.data.success) {
+          // Use the returned budget from API (which should include the ID)
+          const newBudget = response.data.budget || {
+            id: Date.now(),
+            ...budgetData,
+            actual: calculateActualSpending(finalCategory),
+          };
+
+          // Update local state with the new budget from API
+          setBudgets({
+            ...budgets,
+            budgets: [...(budgets.budgets || []), newBudget],
+          });
+          toast.success("Budget created successfully");
+        } else {
+          throw new Error(response.data?.message || "Failed to create budget");
+        }
+      }
+
+      // Close modal and reset form after successful API call
+      setShowBudgetModal(false);
+      setBudgetForm({
+        category: "",
+        budgeted: "",
+        color: "#4ecdc4",
+        description: "",
+        customCategory: "",
+      });
+      setEditingBudget(null);
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || error.message || "An error occurred";
+      toast.error(errorMessage);
+      console.error("Budget save error:", error);
+    }
   };
 
-  const handleDeleteBudget = (budgetId) => {
+  const handleDeleteBudget = async (budgetId) => {
     if (window.confirm("Are you sure you want to delete this budget?")) {
-      setBudgets(budgets.budgets.filter((budget) => budget.id !== budgetId));
+      try {
+        const token = localStorage.getItem("accessToken");
+        const response = await axios.delete(
+          `${process.env.REACT_APP_API_URL}/budgets/${budgetId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            params: { uId },
+          }
+        );
+
+        if (response.data && response.data.success) {
+          // Update local state after successful API call
+          setBudgets({
+            ...budgets,
+            budgets: budgets.budgets.filter((budget) => budget.id !== budgetId),
+          });
+          toast.success("Budget deleted successfully");
+        } else {
+          throw new Error(response.data?.message || "Failed to delete budget");
+        }
+      } catch (error) {
+        const errorMessage =
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to delete budget";
+        toast.error(errorMessage);
+        console.error("Budget delete error:", error);
+      }
     }
   };
 
-  const handleToggleBudget = (budgetId) => {
-    setBudgets(
-      budgets.budgets.map((budget) =>
-        budget.id === budgetId
-          ? { ...budget, isActive: !budget.isActive }
-          : budget
-      )
-    );
+  const handleToggleBudget = async (budgetId) => {
+    try {
+      // Find the current budget to toggle
+      const currentBudget = budgets.budgets.find(
+        (budget) => budget.id === budgetId
+      );
+      if (!currentBudget) return;
+
+      const newActiveState = !currentBudget.isActive;
+
+      const token = localStorage.getItem("accessToken");
+      const response = await axios.patch(
+        `${process.env.REACT_APP_API_URL}/budgets/${budgetId}/toggle`,
+        {
+          uId,
+          isActive: newActiveState,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data && response.data.success) {
+        // Update local state after successful API call
+        setBudgets({
+          ...budgets,
+          budgets: budgets.budgets.map((budget) =>
+            budget.id === budgetId
+              ? { ...budget, isActive: newActiveState }
+              : budget
+          ),
+        });
+        toast.success(
+          `Budget ${newActiveState ? "activated" : "deactivated"} successfully`
+        );
+      } else {
+        throw new Error(
+          response.data?.message || "Failed to update budget status"
+        );
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to update budget status";
+      toast.error(errorMessage);
+      console.error("Budget toggle error:", error);
+    }
   };
 
   const calculateActualSpending = (category) => {
@@ -405,25 +544,65 @@ const BudgetManagement = () => {
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
   };
 
-  const handleSaveMonthlyBudget = () => {
-    if (tempMonthlyBudget <= 0) {
+  const handleSaveMonthlyBudget = async () => {
+    const budgetValue =
+      tempBudgetInput === "" ? 0 : parseFloat(tempBudgetInput);
+
+    if (isNaN(budgetValue) || budgetValue < 0) {
       alert("Please enter a valid monthly budget amount");
       return;
     }
-    setMonthlyBudgetLimit(tempMonthlyBudget);
-    setShowMonthlyBudgetModal(false);
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/budgets/monthly-limit`,
+        {
+          uId,
+          monthlyBudgetLimit: budgetValue,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data && response.data.success) {
+        setMonthlyBudgetLimit(budgetValue);
+        setShowMonthlyBudgetModal(false);
+        toast.success("Monthly budget limit updated successfully");
+      } else {
+        throw new Error(
+          response.data?.message || "Failed to update monthly budget limit"
+        );
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to update monthly budget limit";
+      toast.error(errorMessage);
+      console.error("Monthly budget limit error:", error);
+    }
   };
 
   const getTotalBudgeted = () => {
+    if (!budgets || !budgets.budgets || !Array.isArray(budgets.budgets)) {
+      return 0;
+    }
     return budgets.budgets
       .filter((b) => b.isActive)
-      .reduce((sum, budget) => sum + budget.budgeted, 0);
+      .reduce((sum, budget) => sum + (budget.budgeted || 0), 0);
   };
 
   const getTotalActualSpending = () => {
+    if (!budgets || !budgets.budgets || !Array.isArray(budgets.budgets)) {
+      return 0;
+    }
     return budgets.budgets
       .filter((b) => b.isActive)
-      .reduce((sum, budget) => sum + budget.actual, 0);
+      .reduce((sum, budget) => sum + (budget.actual || 0), 0);
   };
 
   const getCategoryIcon = (category) => {
@@ -819,10 +998,8 @@ const BudgetManagement = () => {
                   <input
                     type="number"
                     placeholder="Enter monthly budget limit"
-                    value={tempMonthlyBudget}
-                    onChange={(e) =>
-                      setTempMonthlyBudget(parseFloat(e.target.value) || 0)
-                    }
+                    value={tempBudgetInput}
+                    onChange={(e) => setTempBudgetInput(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
                   />
                   <div className="text-xs mt-1 text-gray-600 dark:text-gray-300 ">
@@ -869,7 +1046,7 @@ const BudgetManagement = () => {
             </h2>
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => setShowMonthlyBudgetModal(true)}
+                onClick={openMonthlyBudgetModal}
                 className="px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:opacity-90 bg-white dark:bg-gray-700 border-2 border-indigo-500 dark:border-indigo-400 text-indigo-500 dark:text-indigo-400"
               >
                 📊 Set Monthly Budget
@@ -972,7 +1149,8 @@ const BudgetManagement = () => {
                           Math.max(d.totalSpending, d.budget)
                         )
                       );
-                      const spendingHeight = (data.totalSpending / maxValue) * 100;
+                      const spendingHeight =
+                        (data.totalSpending / maxValue) * 100;
                       const budgetHeight = (data.budget / maxValue) * 100;
                       const isOverBudget = data.totalSpending > data.budget;
 
@@ -1314,26 +1492,76 @@ const BudgetManagement = () => {
             )}
           </div>
         </div>
-
-        {/* Budget Alert */}
-        <div className="p-4 rounded-lg border-l-4 bg-yellow-50 border-yellow-400">
-          <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
-              <span className="text-white">📊</span>
-            </div>
-            <div className="flex-1">
-              <h4 className="font-bold text-gray-800">Budget Exceeded</h4>
-              <p className="text-sm text-gray-600">
-                You've exceeded your Transportation budget by $74.75
-              </p>
-              <p className="text-xs text-gray-500 mt-1">May 30, 2025</p>
-            </div>
-            <div className="text-right">
-              <span className="text-lg font-bold text-yellow-600">107.9%</span>
-              <p className="text-xs text-gray-500">of Budget Used</p>
+        
+        {/* Budget Alerts */}
+        {getBudgetVsActual().filter((budget) => budget.variance > 0).length >
+        0 ? (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
+              Budget Alerts
+            </h3>
+            <div className="space-y-4">
+              {getBudgetVsActual()
+                .filter((budget) => budget.variance > 0)
+                .map((budget) => (
+                  <div
+                    key={budget.id}
+                    className="p-4 rounded-lg border-l-4 bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400"
+                  >
+                    <div className="flex items-start space-x-3">
+                      <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+                        <span className="text-white">
+                          {getCategoryIcon(budget.category)}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-gray-800 dark:text-white">
+                          Budget Exceeded
+                        </h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          You've exceeded your {budget.category} budget by{" "}
+                          {formatCurrency(budget.variance)}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {new Date().toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
+                          {budget.variancePercentage > 0
+                            ? `${(100 + budget.variancePercentage).toFixed(1)}%`
+                            : "100%"}
+                        </span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          of Budget Used
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="mt-6 p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700">
+            <div className="flex items-start space-x-3">
+              <div className="w-8 h-8 bg-green-400 rounded-full flex items-center justify-center">
+                <span className="text-white">✓</span>
+              </div>
+              <div>
+                <h4 className="font-bold text-gray-800 dark:text-white">
+                  All Budgets On Track
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Great job! You're staying within all your budget categories.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
