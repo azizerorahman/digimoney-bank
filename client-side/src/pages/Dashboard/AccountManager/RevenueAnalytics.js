@@ -929,118 +929,12 @@ const [newCustomerData, setNewCustomerData] = useState({
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-black dark:text-white">Account Manager Dashboard</h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Welcome back, {accountManagerData.managerInfo.name} - {accountManagerData.managerInfo.title}
-              </p>
-            </div>
-            
-            {/* Search Bar */}
-            <div className="relative w-96">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search customers, accounts, transactions..."
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-              />
-              
-              {/* Search Results Dropdown */}
-              {showSearchResults && (
-                <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg mt-1 z-50">
-                  {searchResults.length > 0 ? (
-                    searchResults.map(customer => (
-                      <div
-                        key={customer.customerId}
-                        onClick={() => selectCustomer(customer)}
-                        className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0"
-                      >
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <div className="font-medium text-black dark:text-white">{customer.name}</div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">{customer.customerId}</div>
-                          </div>
-                          <span className={`px-2 py-1 rounded-full text-xs ${getCustomerTypeColor(customer.type)}`}>
-                            {customer.type}
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-3 text-gray-500 dark:text-gray-400">No customers found</div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* Quick Stats */}
-          <div className="grid grid-cols-4 gap-6 mt-6">
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-blue-600 dark:text-blue-400">Today's Meetings</p>
-                  <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
-                    {accountManagerData.managerInfo.todayStats.scheduledMeetings}
-                  </p>
-                </div>
-                <Calendar className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
-            
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-green-600 dark:text-green-400">Portfolio Value</p>
-                  <p className="text-2xl font-bold text-green-700 dark:text-green-300">
-                    {accountManagerData.managerInfo.todayStats.portfolioValue}
-                  </p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-green-600 dark:text-green-400" />
-              </div>
-            </div>
-            
-            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-purple-600 dark:text-purple-400">New Leads</p>
-                  <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">
-                    {accountManagerData.managerInfo.todayStats.newLeads}
-                  </p>
-                </div>
-                <Target className="h-8 w-8 text-purple-600 dark:text-purple-400" />
-              </div>
-            </div>
-            
-            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-orange-600 dark:text-orange-400">Revenue Generated</p>
-                  <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">
-                    {accountManagerData.managerInfo.todayStats.revenueGenerated}
-                  </p>
-                </div>
-                <DollarSign className="h-8 w-8 text-orange-600 dark:text-orange-400" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-
       {/* Main Content */}
-      <div className="px-6 py-6">
         {/* Revenue Analytics Tab */}
           <div className="space-y-6">
             {/* Revenue Overview */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">This Month</p>
@@ -1060,7 +954,7 @@ const [newCustomerData, setNewCustomerData] = useState({
                 </div>
               </div>
               
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Target Progress</p>
@@ -1082,7 +976,7 @@ const [newCustomerData, setNewCustomerData] = useState({
                 </div>
               </div>
               
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Fees</p>
@@ -1094,7 +988,7 @@ const [newCustomerData, setNewCustomerData] = useState({
                 </div>
               </div>
               
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Commissions</p>
@@ -1108,7 +1002,7 @@ const [newCustomerData, setNewCustomerData] = useState({
             </div>
             
             {/* Revenue by Customer */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Revenue by Customer</h3>
               <div className="space-y-4">
                 {accountManagerData.revenueMetrics.byCustomer.map((customer, idx) => (
@@ -1140,7 +1034,7 @@ const [newCustomerData, setNewCustomerData] = useState({
             
             {/* Revenue Breakdown */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Revenue Breakdown</h3>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
@@ -1172,7 +1066,7 @@ const [newCustomerData, setNewCustomerData] = useState({
                 </div>
               </div>
               
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Performance Metrics</h3>
                 <div className="space-y-4">
                   <div>
@@ -1210,7 +1104,6 @@ const [newCustomerData, setNewCustomerData] = useState({
               </div>
             </div>
           </div>
-      </div>
 
       {/* Customer Details Modal */}
       {showCustomerDetails && selectedCustomer && (
@@ -1369,256 +1262,6 @@ const [newCustomerData, setNewCustomerData] = useState({
             </div>
           </div>
         )}
-
-{/* Quick Actions Panel - Collapsible */}
-<div className={`fixed bottom-6 right-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 ${
-  isQuickActionsCollapsed ? 'w-12 h-12' : 'w-64'
-}`}>
-  {isQuickActionsCollapsed ? (
-    // Collapsed state - just the icon
-    <button
-      onClick={() => setIsQuickActionsCollapsed(false)}
-      className="w-full h-full flex items-center justify-center text-blue-600 dark:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
-    >
-      <Zap className="h-6 w-6" />
-    </button>
-  ) : (
-    // Expanded state - full panel
-    <div className="p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h4 className="font-semibold text-black dark:text-white">Quick Actions</h4>
-        <button
-          onClick={() => setIsQuickActionsCollapsed(true)}
-          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-        >
-          <ArrowRight className="h-4 w-4" />
-        </button>
-      </div>
-      
-      <div className="space-y-2">
-        <button 
-          onClick={() => setShowMeetingModal(true)}
-          className="w-full flex items-center space-x-2 px-3 py-2 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/30 transition-colors"
-        >
-          <Calendar className="h-4 w-4" />
-          <span>Schedule Meeting</span>
-        </button>
-        <button 
-          onClick={handleGenerateReport}
-          className="w-full flex items-center space-x-2 px-3 py-2 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400 rounded-lg hover:bg-green-200 dark:hover:bg-green-900/30 transition-colors"
-        >
-          <FileText className="h-4 w-4" />
-          <span>Generate Report</span>
-        </button>
-        <button 
-          onClick={handleNewCustomer}
-          className="w-full flex items-center space-x-2 px-3 py-2 bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-400 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/30 transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          <span>New Customer</span>
-        </button>
-      </div>
-    </div>
-  )}
-</div>
-
-<MeetingModal 
-        isOpen={showMeetingModal} 
-        onClose={() => setShowMeetingModal(false)} 
-      />
-
-<ReportModal 
-        isOpen={showReportModal} 
-        onClose={() => setShowReportModal(false)} 
-      />
-
-    {/* New Customer Modal */}
-{showNewCustomerModal && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-    <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-      <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold text-black dark:text-white">New Customer</h2>
-          <button 
-            onClick={() => setShowNewCustomerModal(false)} 
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-          >
-            <XCircle className="h-6 w-6" />
-          </button>
-        </div>
-      </div>
-
-      <form onSubmit={handleNewCustomerSubmit} className="p-6 space-y-8">
-        {/* Basic Information Section */}
-        <div>
-          <h3 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center">
-            <User className="h-5 w-5 mr-2" />
-            Basic Information
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-red-600 mb-1">Customer Name *</label>
-              <input
-                type="text"
-                value={newCustomerData.name}
-                onChange={(e) => handleNewCustomerChange('name', e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-red-600 mb-1">Customer Type *</label>
-              <select
-                value={newCustomerData.type}
-                onChange={(e) => handleNewCustomerChange('type', e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                required
-              >
-                <option value="">Select Type...</option>
-                <option value="High Net Worth">High Net Worth</option>
-                <option value="Corporate">Corporate</option>
-                <option value="Small Business">Small Business</option>
-                <option value="Individual">Individual</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-red-600 mb-1">Email *</label>
-              <input
-                type="email"
-                value={newCustomerData.email}
-                onChange={(e) => handleNewCustomerChange('email', e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-red-600 mb-1">Phone *</label>
-              <input
-                type="tel"
-                value={newCustomerData.phone}
-                onChange={(e) => handleNewCustomerChange('phone', e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Address Information */}
-        <div>
-          <h3 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center">
-            <MapPin className="h-5 w-5 mr-2" />
-            Address Information
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">Address</label>
-              <input
-                type="text"
-                value={newCustomerData.address}
-                onChange={(e) => handleNewCustomerChange('address', e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">City</label>
-              <input
-                type="text"
-                value={newCustomerData.city}
-                onChange={(e) => handleNewCustomerChange('city', e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">State</label>
-              <select
-                value={newCustomerData.state}
-                onChange={(e) => handleNewCustomerChange('state', e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-              >
-                <option value="">Select State...</option>
-                <option value="CA">California</option>
-                <option value="NY">New York</option>
-                <option value="TX">Texas</option>
-                <option value="FL">Florida</option>
-                {/* Add more states as needed */}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Financial Information */}
-        <div>
-          <h3 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center">
-            <DollarSign className="h-5 w-5 mr-2" />
-            Financial Information
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">Estimated Net Worth</label>
-              <input
-                type="number"
-                value={newCustomerData.estimatedNetWorth}
-                onChange={(e) => handleNewCustomerChange('estimatedNetWorth', e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">Annual Income</label>
-              <input
-                type="number"
-                value={newCustomerData.annualIncome}
-                onChange={(e) => handleNewCustomerChange('annualIncome', e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">Risk Profile</label>
-              <select
-                value={newCustomerData.riskProfile}
-                onChange={(e) => handleNewCustomerChange('riskProfile', e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-              >
-                <option value="">Select Risk Profile...</option>
-                <option value="Conservative">Conservative</option>
-                <option value="Moderate">Moderate</option>
-                <option value="Moderate Aggressive">Moderate Aggressive</option>
-                <option value="Aggressive">Aggressive</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">Investment Goals</label>
-              <input
-                type="text"
-                value={newCustomerData.investmentGoals}
-                onChange={(e) => handleNewCustomerChange('investmentGoals', e.target.value)}
-                placeholder="e.g., Retirement, Growth, Income"
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Form Actions */}
-        <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <button
-            type="button"
-            onClick={() => setShowNewCustomerModal(false)}
-            className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-6 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600"
-          >
-            Create Customer
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-)}
       </div>
     );
   };
