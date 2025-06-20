@@ -296,7 +296,7 @@ const BudgetManagement = () => {
       if (editingBudget) {
         // Update existing budget via API
         response = await axios.put(
-          `${process.env.REACT_APP_API_URL}/budgets/${editingBudget.id}`,
+          `${process.env.REACT_APP_API_URL}/budgets/${editingBudget._id}`,
           budgetData,
           {
             headers: {
@@ -310,7 +310,7 @@ const BudgetManagement = () => {
           setBudgets({
             ...budgets,
             budgets: budgets.budgets.map((budget) =>
-              budget.id === editingBudget.id
+              budget._id === editingBudget._id
                 ? {
                     ...budget,
                     category: finalCategory,
@@ -396,7 +396,7 @@ const BudgetManagement = () => {
           // Update local state after successful API call
           setBudgets({
             ...budgets,
-            budgets: budgets.budgets.filter((budget) => budget.id !== budgetId),
+            budgets: budgets.budgets.filter((budget) => budget._id !== budgetId),
           });
           toast.success("Budget deleted successfully");
         } else {
@@ -417,7 +417,7 @@ const BudgetManagement = () => {
     try {
       // Find the current budget to toggle
       const currentBudget = budgets.budgets.find(
-        (budget) => budget.id === budgetId
+        (budget) => budget._id === budgetId
       );
       if (!currentBudget) return;
 
@@ -442,7 +442,7 @@ const BudgetManagement = () => {
         setBudgets({
           ...budgets,
           budgets: budgets.budgets.map((budget) =>
-            budget.id === budgetId
+            budget._id === budgetId
               ? { ...budget, isActive: newActiveState }
               : budget
           ),
@@ -1067,7 +1067,7 @@ const BudgetManagement = () => {
 
                       return (
                         <div
-                          key={budget.id}
+                          key={budget._id}
                           className={`p-4 rounded-lg transition-all duration-300 bg-gray-50 dark:bg-gray-700 border ${
                             budget.isActive
                               ? "border-gray-300 dark:border-gray-600"
@@ -1102,7 +1102,7 @@ const BudgetManagement = () => {
 
                             <div className="flex items-center space-x-2">
                               <button
-                                onClick={() => handleToggleBudget(budget.id)}
+                                onClick={() => handleToggleBudget(budget._id)}
                                 className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-300 ${
                                   budget.isActive
                                     ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-700"
@@ -1118,7 +1118,7 @@ const BudgetManagement = () => {
                                 Edit
                               </button>
                               <button
-                                onClick={() => handleDeleteBudget(budget.id)}
+                                onClick={() => handleDeleteBudget(budget._id)}
                                 className="px-3 py-1 rounded-lg text-xs font-medium transition-all duration-300 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700"
                               >
                                 Delete
@@ -1303,7 +1303,7 @@ const BudgetManagement = () => {
                 .filter((budget) => budget.variance > 0)
                 .map((budget) => (
                   <div
-                    key={budget.id}
+                    key={budget._id}
                     className="p-4 rounded-lg border-l-4 bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400"
                   >
                     <div className="flex items-start space-x-3">
