@@ -76,7 +76,159 @@ const TransactionHistory = ({ userInfo }) => {
     fetchTransactions();
   }, [uId]);
 
-  console.log(transactions);
+  console.log(transactions, "dsvsffsbsfb");
+
+  // Fetch transaction history
+  const [transactionHistory, setTransactionHistory] = useState([]);
+  const [transactionHistoryLoading, setTransactionHistoryLoading] =
+    useState(false);
+
+  useEffect(() => {
+    const fetchTransactionHistory = async () => {
+      if (!uId) return;
+      setTransactionHistoryLoading(true);
+      try {
+        const token = localStorage.getItem("accessToken");
+        const res = await axios.get(
+          `${process.env.REACT_APP_API_URL}/transaction-history`,
+          {
+            params: { uId },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (res.data && res.data.success) {
+          // Transform the data to match the expected format for the chart
+          const transformedData = res.data.transactions.map((transaction) => ({
+            date: transaction.date,
+            income: transaction.credit || 0,
+            spending: Math.abs(transaction.debit) || 0, // Convert negative values to positive
+          }));
+          setTransactionHistory(transformedData);
+        } else {
+          toast.error("Failed to fetch transaction history");
+        }
+      } catch (error) {
+        toast.error("Failed to fetch transaction history");
+      } finally {
+        setTransactionHistoryLoading(false);
+      }
+    };
+    fetchTransactionHistory();
+  }, [uId]);
+
+  console.log("Transaction History:", transactionHistory);
+
+  const [spendingData, setSpendingData] = useState({
+    totalSpending: 0,
+    categories: [],
+  });
+  const [displayData, setDisplayData] = useState([]);
+  const [spendingDataLoading, setSpendingDataLoading] = useState(false);
+
+  const [timeRange, setTimeRange] = useState("7days");
+
+  useEffect(() => {
+    const fetchSpendingByCategory = async () => {
+      setSpendingDataLoading(true);
+      try {
+        const token = localStorage.getItem("accessToken");
+        console.log("Token exists:", !!token); // Debug if token exists
+
+        if (!token) {
+          toast.error("You are not logged in");
+          return;
+        }
+
+        const res = await axios.get(
+          `${process.env.REACT_APP_API_URL}/spending-by-category`,
+          {
+            params: { uId },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        console.log("API Response:", res.data);
+
+        if (res.data && res.data.success) {
+          setSpendingData(res.data.data.categories);
+        } else {
+          toast.error(
+            res.data?.message || "Failed to fetch spending by category"
+          );
+        }
+      } catch (error) {
+        toast.error("Failed to fetch spending by category");
+        console.error("Error fetching spending by category:", error);
+
+        // Additional error logging
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          console.error("Error response data:", error.response.data);
+          console.error("Error response status:", error.response.status);
+          console.error("Error response headers:", error.response.headers);
+        } else if (error.request) {
+          // The request was made but no response was received
+          console.error("Error request:", error.request);
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          console.error("Error message:", error.message);
+        }
+      } finally {
+        setSpendingDataLoading(false);
+      }
+    };
+
+    fetchSpendingByCategory();
+  }, [uId]);
+
+  useEffect(() => {
+    if (spendingData && spendingData.length > 0) {
+      const transformedData = transformDataByTimeRange(spendingData, timeRange);
+      setDisplayData(transformedData);
+    }
+  }, [timeRange, spendingData]);
+
+  const transformDataByTimeRange = (data, selectedTimeRange) => {
+    if (!data || data.length === 0) return [];
+
+    return data
+      .map((category) => {
+        let amount, percentage;
+
+        switch (selectedTimeRange) {
+          case "7days":
+            amount = category.last7Days.amount;
+            percentage = category.last7Days.percentage;
+            break;
+          case "30days":
+            amount = category.last30Days.amount;
+            percentage = category.last30Days.percentage;
+            break;
+          case "90days":
+            amount = category.last90Days.amount;
+            percentage = category.last90Days.percentage;
+            break;
+          default:
+            amount = category.totalAmount;
+            percentage = category.percentage;
+        }
+
+        return {
+          category: category.category,
+          amount: amount,
+          percentage: percentage,
+        };
+      })
+      .filter((item) => item.amount > 0) // Only show categories with spending
+      .sort((a, b) => b.amount - a.amount); // Sort by amount descending
+  };
+
+  console.log("Spending Data:", spendingData);
 
   const currentUser = {
     id: 1,
@@ -1328,7 +1480,7 @@ const TransactionHistory = ({ userInfo }) => {
   };
 
   // Transaction History States
-  const [timeRange, setTimeRange] = useState("7days");
+
   const [chartType, setChartType] = useState("timeline");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
@@ -1387,8 +1539,6 @@ const TransactionHistory = ({ userInfo }) => {
     }
   }, [accounts]);
 
-  console.log("sfsfb", selectedAccount);
-
   const currentTheme = themes[selectedAccount?.type];
 
   const getCategoryIcon = (category) => {
@@ -1433,12 +1583,12 @@ const TransactionHistory = ({ userInfo }) => {
   };
 
   const getAccountTypeById = (accountId) => {
-    const account = accounts.find((acc) => acc.id === accountId);
+    const account = accounts.find((acc) => acc._id === accountId);
     return account ? account.type : null;
   };
 
   const getAccountNameById = (accountId) => {
-    const account = accounts.find((acc) => acc.id === accountId);
+    const account = accounts.find((acc) => acc._id === accountId);
     return account ? account.accountName : "Unknown Account";
   };
 
@@ -1461,9 +1611,9 @@ const TransactionHistory = ({ userInfo }) => {
       if (filterAccountType === "allTransactions") {
         // Show all transactions from all accounts
       } else {
-        const accountsOfType = currentUser.accounts
+         const accountsOfType = accounts
           .filter((acc) => acc.type === filterAccountType)
-          .map((acc) => acc.id);
+          .map((acc) => acc._id);
         filtered = filtered.filter((t) => accountsOfType.includes(t.accountId));
       }
     }
@@ -1473,6 +1623,7 @@ const TransactionHistory = ({ userInfo }) => {
         (t) => new Date(t.date) >= new Date(filterDateFrom)
       );
     }
+
     if (filterDateTo) {
       filtered = filtered.filter(
         (t) => new Date(t.date) <= new Date(filterDateTo)
@@ -1484,6 +1635,7 @@ const TransactionHistory = ({ userInfo }) => {
         (t) => Math.abs(t.amount) >= parseFloat(filterAmountMin)
       );
     }
+
     if (filterAmountMax) {
       filtered = filtered.filter(
         (t) => Math.abs(t.amount) <= parseFloat(filterAmountMax)
@@ -1526,7 +1678,7 @@ const TransactionHistory = ({ userInfo }) => {
 
   const getTimelineData = () => {
     const days = timeRange === "7days" ? 7 : timeRange === "30days" ? 30 : 90;
-    return currentUser.transactionHistory.slice(-days);
+    return transactionHistory.slice(-days);
   };
 
   const getMaxValue = (data) => {
@@ -1748,6 +1900,9 @@ const TransactionHistory = ({ userInfo }) => {
     }
   };
 
+  const titleCasedString = (str) =>
+    str.toLowerCase().replace(/\b\w/g, (s) => s.toUpperCase());
+
   if (accountsLoading || transactionsLoading) {
     return (
       <div className="loading-spinner">
@@ -1795,9 +1950,10 @@ const TransactionHistory = ({ userInfo }) => {
 
   const accountTypeOptions = [
     { value: "allTransactions", label: "All Transactions" },
-    { value: "Checking", label: "Checking Accounts" },
-    { value: "Savings", label: "Savings Accounts" },
-    { value: "Credit", label: "Credit Accounts" },
+    ...accounts.map((a) => ({
+      value: a.type,
+      label: `${a.type} Account`,
+    })),
   ];
 
   return (
@@ -1805,12 +1961,12 @@ const TransactionHistory = ({ userInfo }) => {
       <div className="max-w-7xl mx-auto">
         <div className="mt-12 p-5">
           <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">
-          Transaction{" "}
-                <span className="text-[#6160DC] dark:text-[#8B7EFF]">
+            <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">
+              Transaction{" "}
+              <span className="text-[#6160DC] dark:text-[#8B7EFF]">
                 History
-                </span>
-              </h2>
+              </span>
+            </h2>
             <div className="flex items-center space-x-4">
               <select
                 value={timeRange}
@@ -1848,60 +2004,68 @@ const TransactionHistory = ({ userInfo }) => {
             style={{
               paddingBottom: "55px",
             }}
-            
           >
             {chartType === "timeline" ? (
               <>
-                <h3
-                  className="text-lg font-semibold mb-6 text-gray-800 dark:text-white"
-                >
+                <h3 className="text-lg font-semibold mb-6 text-gray-800 dark:text-white">
                   Income vs Spending Timeline
                 </h3>
                 <div className="relative h-64">
-                  <div className="flex items-end justify-between h-full space-x-2">
-                    {getTimelineData().map((data, index) => {
-                      const maxValue = getMaxValue(getTimelineData());
-                      const incomeHeight = (data.income / maxValue) * 100;
-                      const spendingHeight = (data.spending / maxValue) * 100;
+                  {/* Add an overflow container for horizontal scrolling */}
+                  <div className="w-full overflow-x-auto pb-2">
+                    <div
+                      className="flex items-end justify-between h-full"
+                      style={{
+                        minWidth:
+                          timeRange === "7days"
+                            ? "100%"
+                            : timeRange === "30days"
+                            ? "200%"
+                            : "400%",
+                      }}
+                    >
+                      {getTimelineData().map((data, index) => {
+                        const maxValue = getMaxValue(getTimelineData());
+                        const incomeHeight = (data.income / maxValue) * 100;
+                        const spendingHeight = (data.spending / maxValue) * 100;
 
-                      return (
-                        <div
-                          key={index}
-                          className="flex-1 flex flex-col items-center space-y-1"
-                        >
-                          <div className="flex items-end space-x-1 h-48">
-                            <div
-                              className="w-4 rounded-t transition-all duration-1000 hover:opacity-80"
-                              style={{
-                                height: `${incomeHeight}%`,
-                                background: chartColors.income,
-                                minHeight: data.income > 0 ? "4px" : "0",
-                              }}
-                              title={`Income: ${formatCurrency(data.income)}`}
-                            ></div>
-                            <div
-                              className="w-4 rounded-t transition-all duration-1000 hover:opacity-80"
-                              style={{
-                                height: `${spendingHeight}%`,
-                                background: chartColors.spending,
-                                minHeight: data.spending > 0 ? "4px" : "0",
-                              }}
-                              title={`Spending: ${formatCurrency(
-                                data.spending
-                              )}`}
-                            ></div>
-                          </div>
+                        return (
                           <div
-                            className="text-xs text-center text-gray-600 dark:text-gray-300"
+                            key={index}
+                            className="flex-1 flex flex-col items-center space-y-1"
                           >
-                            {new Date(data.date).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                            })}
+                            <div className="flex items-end space-x-1 h-48">
+                              <div
+                                className="w-4 rounded-t transition-all duration-1000 hover:opacity-80"
+                                style={{
+                                  height: `${incomeHeight}%`,
+                                  background: chartColors.income,
+                                  minHeight: data.income > 0 ? "4px" : "0",
+                                }}
+                                title={`Income: ${formatCurrency(data.income)}`}
+                              ></div>
+                              <div
+                                className="w-4 rounded-t transition-all duration-1000 hover:opacity-80"
+                                style={{
+                                  height: `${spendingHeight}%`,
+                                  background: chartColors.spending,
+                                  minHeight: data.spending > 0 ? "4px" : "0",
+                                }}
+                                title={`Spending: ${formatCurrency(
+                                  data.spending
+                                )}`}
+                              ></div>
+                            </div>
+                            <div className="text-xs text-center text-gray-600 dark:text-gray-300">
+                              {new Date(data.date).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
 
                   <div className="flex items-center justify-center space-x-6 mt-4">
@@ -1910,9 +2074,7 @@ const TransactionHistory = ({ userInfo }) => {
                         className="w-4 h-4 rounded"
                         style={{ background: chartColors.income }}
                       ></div>
-                      <span
-                        className="text-sm text-gray-600 dark:text-gray-300"
-                      >
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
                         Income
                       </span>
                     </div>
@@ -1921,48 +2083,27 @@ const TransactionHistory = ({ userInfo }) => {
                         className="w-4 h-4 rounded"
                         style={{ background: chartColors.spending }}
                       ></div>
-                      <span
-                        className="text-sm text-gray-600 dark:text-gray-300"
-                      >
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
                         Spending
                       </span>
                     </div>
                   </div>
+
+                  {/* Optional: Add scroll indicators for better UX */}
+                  {(timeRange === "30days" || timeRange === "90days") && (
+                    <div className="text-xs text-center text-gray-500 mt-2">
+                      ← Scroll horizontally to view all data →
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
               <>
-                <h3
-                  className="text-lg font-semibold mb-6 text-gray-800 dark:text-white"
-                >
+                <h3 className="text-lg font-semibold mb-6 text-gray-800 dark:text-white">
                   Spending by Category
-                  {filterAccountType !== "all" &&
-                    filterAccountType !== "allTransactions" && (
-                      <span
-                        className="text-sm font-normal ml-2 text-gray-600 dark:text-gray-300"
-                      >
-                        ({filterAccountType} accounts only)
-                      </span>
-                    )}
-                  {filterAccountType === "allTransactions" && (
-                    <span
-                      className="text-sm font-normal ml-2 text-gray-600 dark:text-gray-300"
-                    >
-                      (All accounts)
-                    </span>
-                  )}
                 </h3>
                 <div className="space-y-4">
-                  {getCategoryBreakdown().map((item, index) => {
-                    const totalSpending = getCategoryBreakdown().reduce(
-                      (sum, cat) => sum + cat.amount,
-                      0
-                    );
-                    const percentage =
-                      totalSpending > 0
-                        ? (item.amount / totalSpending) * 100
-                        : 0;
-
+                  {displayData.map((item, index) => {
                     return (
                       <div key={index} className="space-y-2">
                         <div className="flex items-center justify-between">
@@ -1970,32 +2111,24 @@ const TransactionHistory = ({ userInfo }) => {
                             <span className="text-lg">
                               {getCategoryIcon(item.category)}
                             </span>
-                            <span
-                              className="font-medium text-gray-800 dark:text-white"
-                            >
+                            <span className="font-medium text-gray-800 dark:text-white">
                               {item.category}
                             </span>
                           </div>
                           <div className="text-right">
-                            <div
-                              className="font-bold text-gray-800 dark:text-white"
-                            >
+                            <div className="font-bold text-gray-800 dark:text-white">
                               {formatCurrency(item.amount)}
                             </div>
-                            <div
-                              className="text-xs text-gray-600 dark:text-gray-300"
-                            >
-                              {percentage.toFixed(1)}%
+                            <div className="text-xs text-gray-600 dark:text-gray-300">
+                              {item.percentage}%
                             </div>
                           </div>
                         </div>
-                        <div
-                          className="w-full h-3 rounded-full bg-gray-200 dark:bg-gray-600"
-                        >
+                        <div className="w-full h-3 rounded-full bg-gray-200 dark:bg-gray-600">
                           <div
                             className="h-3 rounded-full transition-all duration-1000"
                             style={{
-                              width: `${percentage}%`,
+                              width: `${item.percentage}%`,
                               background: `hsl(${index * 45}, 70%, 60%)`,
                             }}
                           ></div>
@@ -2003,17 +2136,13 @@ const TransactionHistory = ({ userInfo }) => {
                       </div>
                     );
                   })}
-                  {getCategoryBreakdown().length === 0 && (
+                  {displayData.length === 0 && (
                     <div className="text-center py-8">
                       <div className="text-4xl mb-4">📊</div>
-                      <div
-                        className="text-lg font-medium mb-2 text-gray-800 dark:text-white"
-                      >
+                      <div className="text-lg font-medium mb-2 text-gray-800 dark:text-white">
                         No spending data found
                       </div>
-                      <div
-                        className="text-sm text-gray-600 dark:text-gray-300"
-                      >
+                      <div className="text-sm text-gray-600 dark:text-gray-300">
                         No spending transactions match the current filter
                         criteria
                       </div>
@@ -2026,30 +2155,21 @@ const TransactionHistory = ({ userInfo }) => {
 
           {/* Transaction Details and Filter Section */}
           <div className="grid lg:grid-cols-3 gap-8">
-            <div
-className="lg:col-span-2 p-6 rounded-lg transition-all duration-500 flex flex-col bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 h-[652px]"
-            >
+            <div className="lg:col-span-2 p-6 rounded-lg transition-all duration-500 flex flex-col bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 h-[652px]">
               <div className="flex items-center justify-between mb-6">
-                <h3
-                  className="text-lg font-semibold text-gray-800 dark:text-white"
-                >
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                   Transaction Details
                   {filterAccountType !== "all" && (
-                    <span
-                      className="text-sm font-normal ml-2 text-gray-600 dark:text-gray-300"
-                    >
+                    <span className="text-sm font-normal ml-2 text-gray-600 dark:text-gray-300">
                       {filterAccountType === "allTransactions"
                         ? "(All Accounts)"
                         : `(${filterAccountType} Accounts)`}
                     </span>
                   )}
                 </h3>
-                <div
-                  className="text-sm text-gray-600 dark:text-gray-300"
-                >
+                <div className="text-sm text-gray-600 dark:text-gray-300">
                   Showing {getFilteredTransactions().length} of{" "}
-                  {transactions.length - getFilteredTransactions().length}{" "}
-                  transactions
+                  {transactions.length} transactions
                 </div>
               </div>
 
@@ -2068,14 +2188,10 @@ className="lg:col-span-2 p-6 rounded-lg transition-all duration-500 flex flex-co
                           {getCategoryIcon(transaction.category)}
                         </div>
                         <div>
-                          <div
-                            className="font-medium text-gray-800 dark:text-white"
-                          >
+                          <div className="font-medium text-gray-800 dark:text-white">
                             {transaction.description}
                           </div>
-                          <div
-                            className="text-sm text-gray-600 dark:text-gray-300"
-                          >
+                          <div className="text-sm text-gray-600 dark:text-gray-300">
                             {transaction.merchant} •{" "}
                             {new Date(transaction.date).toLocaleDateString()}
                           </div>
@@ -2103,7 +2219,7 @@ className="lg:col-span-2 p-6 rounded-lg transition-all duration-500 flex flex-co
                                   ]?.primary || currentTheme?.primary,
                               }}
                             >
-                              {getAccountNameById(transaction.accountId)}
+                              {getAccountNameById(transaction?.accountId)}
                             </div>
                           </div>
                         </div>
@@ -2121,15 +2237,11 @@ className="lg:col-span-2 p-6 rounded-lg transition-all duration-500 flex flex-co
                           {transaction.amount < 0 ? "-" : "+"}
                           {formatCurrency(transaction.amount)}
                         </div>
-                        <div
-                          className="text-xs text-gray-600 dark:text-gray-300"
-                        >
+                        <div className="text-xs text-gray-600 dark:text-gray-300">
                           {getTransactionIcon(transaction.type)}{" "}
-                          {transaction.type}
+                          {titleCasedString(transaction.type)}
                         </div>
-                        <div
-                          className="text-xs mt-1 text-gray-600 dark:text-gray-300"
-                        >
+                        <div className="text-xs mt-1 text-gray-600 dark:text-gray-300">
                           {getAccountTypeById(transaction.accountId)} Account
                         </div>
                       </div>
@@ -2138,14 +2250,10 @@ className="lg:col-span-2 p-6 rounded-lg transition-all duration-500 flex flex-co
                 ) : (
                   <div className="text-center py-8">
                     <div className="text-4xl mb-4">🔍</div>
-                    <div
-                      className="text-lg font-medium mb-2 text-gray-800 dark:text-white"
-                    >
+                    <div className="text-lg font-medium mb-2 text-gray-800 dark:text-white">
                       No transactions found
                     </div>
-                    <div
-                      className="text-sm text-gray-600 dark:text-gray-300"
-                    >
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
                       Try adjusting your search criteria or filters
                     </div>
                   </div>
@@ -2154,20 +2262,14 @@ className="lg:col-span-2 p-6 rounded-lg transition-all duration-500 flex flex-co
             </div>
 
             {/* Search and Filter Section */}
-            <div
-className="p-6 rounded-lg transition-all duration-500 bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700"
-            >
-              <h3
-                className="text-lg font-semibold mb-4 text-gray-800 dark:text-white"
-              >
+            <div className="p-6 rounded-lg transition-all duration-500 bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
                 Search & Filter
               </h3>
 
               <div className="space-y-4">
                 <div>
-                  <label
-                    className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300"
-                  >
+                  <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
                     Search Transactions
                   </label>
                   <input
@@ -2180,9 +2282,7 @@ className="p-6 rounded-lg transition-all duration-500 bg-white dark:bg-gray-800 
                 </div>
 
                 <div>
-                  <label
-                    className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300"
-                  >
+                  <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
                     Account Type
                   </label>
                   <select
@@ -2196,9 +2296,7 @@ className="p-6 rounded-lg transition-all duration-500 bg-white dark:bg-gray-800 
                       </option>
                     ))}
                   </select>
-                  <div
-                    className="text-xs mt-1 text-gray-600 dark:text-gray-300"
-                  >
+                  <div className="text-xs mt-1 text-gray-600 dark:text-gray-300">
                     {filterAccountType === "all" &&
                       `Showing transactions from: ${selectedAccount?.accountName}`}
                     {filterAccountType === "allTransactions" &&
@@ -2210,9 +2308,7 @@ className="p-6 rounded-lg transition-all duration-500 bg-white dark:bg-gray-800 
                 </div>
 
                 <div>
-                  <label
-                    className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300"
-                  >
+                  <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
                     Category
                   </label>
                   <select
@@ -2229,9 +2325,7 @@ className="p-6 rounded-lg transition-all duration-500 bg-white dark:bg-gray-800 
                 </div>
 
                 <div>
-                  <label
-                    className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300"
-                  >
+                  <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
                     Date Range
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -2251,9 +2345,7 @@ className="p-6 rounded-lg transition-all duration-500 bg-white dark:bg-gray-800 
                 </div>
 
                 <div>
-                  <label
-                    className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300"
-                  >
+                  <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
                     Amount Range
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -2281,9 +2373,7 @@ className="p-6 rounded-lg transition-all duration-500 bg-white dark:bg-gray-800 
                   Clear All Filters
                 </button>
 
-                <div
-                  className="p-3 rounded-lg text-center bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700"
-                >
+                <div className="p-3 rounded-lg text-center bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700">
                   <div
                     className="text-sm font-medium"
                     style={{ color: currentTheme?.primary }}
@@ -2291,9 +2381,7 @@ className="p-6 rounded-lg transition-all duration-500 bg-white dark:bg-gray-800 
                     {getFilteredTransactions().length} transactions found
                   </div>
                   {filterAccountType !== "all" && (
-                    <div
-                      className="text-xs mt-1 text-gray-600 dark:text-gray-300"
-                    >
+                    <div className="text-xs mt-1 text-gray-600 dark:text-gray-300">
                       {filterAccountType === "allTransactions"
                         ? "From all accounts"
                         : `From ${filterAccountType} accounts`}

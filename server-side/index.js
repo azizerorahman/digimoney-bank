@@ -149,6 +149,7 @@ async function run() {
     const usersCollection = db.collection("users");
     const accountsCollection = db.collection("accounts");
     const transactionsCollection = db.collection("transactions");
+    const budgetsCollection = db.collection("budgets");
     // const approvedUsersCollection = client
     //   .db("dgm-database")
     //   .collection("approvedUsers");
@@ -275,9 +276,6 @@ async function run() {
 
         // If accountId is provided, filter by both userId and accountId
         const query = { userId: uId };
-        if (req.query.accountId) {
-          query.accountId = req.query.accountId;
-        }
 
         // Fetch transactions for the user (and account if provided)
         const transactions = await transactionsCollection.find(query).toArray();
@@ -287,6 +285,283 @@ async function run() {
         res
           .status(500)
           .send({ success: false, message: "Failed to fetch transactions" });
+      }
+    });
+
+    app.get("/transaction-history", verifyJWT, async (req, res) => {
+      try {
+        const uId = req.query.uId;
+        if (!uId) {
+          return res
+            .status(400)
+            .send({ success: false, message: "User ID is required" });
+        }
+
+        // Use MongoDB aggregation to group by date and calculate credit/debit amounts
+        const formattedTransactions = await transactionsCollection
+          .aggregate([
+            // Match documents for the specific user
+            { $match: { userId: uId } },
+
+            // Add fields to help with grouping
+            {
+              $addFields: {
+                dateString: {
+                  $dateToString: {
+                    format: "%Y-%m-%d",
+                    date: { $toDate: "$date" },
+                  },
+                },
+              },
+            },
+
+            // Group by date and calculate sums
+            {
+              $group: {
+                _id: "$dateString",
+                credit: {
+                  $sum: {
+                    $cond: [
+                      { $eq: ["$transactionType", "credit"] },
+                      "$amount",
+                      0,
+                    ],
+                  },
+                },
+                debit: {
+                  $sum: {
+                    $cond: [
+                      { $eq: ["$transactionType", "debit"] },
+                      "$amount",
+                      0,
+                    ],
+                  },
+                },
+              },
+            },
+
+            // Format the output
+            {
+              $project: {
+                _id: 0,
+                date: "$_id",
+                credit: 1,
+                debit: 1,
+              },
+            },
+
+            // Sort by date (descending)
+            { $sort: { date: -1 } },
+          ])
+          .toArray();
+
+        res.send({ success: true, transactions: formattedTransactions });
+      } catch (error) {
+        console.error("Failed to fetch transaction history:", error);
+        res.status(500).send({
+          success: false,
+          message: "Failed to fetch transaction history",
+        });
+      }
+    });
+
+    app.get("/spending-by-category", verifyJWT, async (req, res) => {
+      console.log(req.query, "vvs");
+      try {
+        // Check if user exists in the request
+        if (!req.query) {
+          console.log("User object is missing in request");
+          return res.status(401).json({
+            success: false,
+            message: "User authentication failed",
+          });
+        }
+
+        const uId = req.query.uId;
+        console.log("User ID from token:", uId);
+
+        if (!uId) {
+          console.log("User ID is undefined or null");
+          return res.status(400).json({
+            success: false,
+            message: "User ID is required",
+          });
+        }
+
+        // Set reference date (today) to 2025-06-20
+        const referenceDate = new Date("2025-06-20");
+
+        // Calculate dates for different time periods and convert to ISO strings
+        const last7DaysDate = new Date(referenceDate);
+        last7DaysDate.setDate(referenceDate.getDate() - 7);
+        const last7DaysISOString = last7DaysDate.toISOString();
+
+        const last30DaysDate = new Date(referenceDate);
+        last30DaysDate.setDate(referenceDate.getDate() - 30);
+        const last30DaysISOString = last30DaysDate.toISOString();
+
+        const last90DaysDate = new Date(referenceDate);
+        last90DaysDate.setDate(referenceDate.getDate() - 90);
+        const last90DaysISOString = last90DaysDate.toISOString();
+
+        console.log("Date ranges for filtering:");
+        console.log("Reference date:", referenceDate.toISOString());
+        console.log("Last 7 days from:", last7DaysISOString);
+        console.log("Last 30 days from:", last30DaysISOString);
+        console.log("Last 90 days from:", last90DaysISOString);
+
+        // Base query for spending transactions
+        const baseQuery = {
+          userId: uId,
+          transactionType: "debit",
+          amount: { $lt: 0 },
+        };
+
+        // Check if any spending transactions exist
+        const spendingTransactionsCount =
+          await transactionsCollection.countDocuments(baseQuery);
+        console.log(
+          `User has ${spendingTransactionsCount} spending transactions`
+        );
+
+        // If no transactions, return empty result early
+        if (spendingTransactionsCount === 0) {
+          console.log("No spending transactions found for this user");
+          return res.json({
+            success: true,
+            data: {
+              totalSpending: 0,
+              categories: [],
+            },
+          });
+        }
+
+        // Get all transactions first to calculate time-based amounts
+        const allTransactions = await transactionsCollection
+          .find(baseQuery)
+          .toArray();
+        console.log(
+          `Retrieved ${allTransactions.length} transactions for processing`
+        );
+
+        // Group transactions by category
+        const categoryMap = {};
+
+        // Track total spending for each time period
+        let totalLast7Days = 0;
+        let totalLast30Days = 0;
+        let totalLast90Days = 0;
+        let totalAmount = 0;
+
+        allTransactions.forEach((transaction) => {
+          const category = transaction.category || "Uncategorized";
+          const amount = Math.abs(transaction.amount);
+          const transactionDate = transaction.date; // This is already an ISO string
+
+          if (!categoryMap[category]) {
+            categoryMap[category] = {
+              category,
+              totalAmount: 0,
+              last7Days: {
+                amount: 0,
+                percentage: 0,
+              },
+              last30Days: {
+                amount: 0,
+                percentage: 0,
+              },
+              last90Days: {
+                amount: 0,
+                percentage: 0,
+              },
+            };
+          }
+
+          // Add to total amount
+          categoryMap[category].totalAmount += amount;
+          totalAmount += amount;
+
+          // Add to period amounts based on date comparison
+          if (transactionDate >= last7DaysISOString) {
+            categoryMap[category].last7Days.amount += amount;
+            totalLast7Days += amount;
+          }
+
+          if (transactionDate >= last30DaysISOString) {
+            categoryMap[category].last30Days.amount += amount;
+            totalLast30Days += amount;
+          }
+
+          if (transactionDate >= last90DaysISOString) {
+            categoryMap[category].last90Days.amount += amount;
+            totalLast90Days += amount;
+          }
+        });
+
+        // Calculate percentages for each time period
+        Object.values(categoryMap).forEach((category) => {
+          // Calculate overall percentage
+          category.percentage =
+            totalAmount > 0
+              ? Math.round((category.totalAmount / totalAmount) * 100)
+              : 0;
+
+          // Calculate percentages for each time period
+          category.last7Days.percentage =
+            totalLast7Days > 0
+              ? Math.round((category.last7Days.amount / totalLast7Days) * 100)
+              : 0;
+
+          category.last30Days.percentage =
+            totalLast30Days > 0
+              ? Math.round((category.last30Days.amount / totalLast30Days) * 100)
+              : 0;
+
+          category.last90Days.percentage =
+            totalLast90Days > 0
+              ? Math.round((category.last90Days.amount / totalLast90Days) * 100)
+              : 0;
+        });
+
+        // Convert map to array and sort by totalAmount
+        const result = Object.values(categoryMap).sort(
+          (a, b) => b.totalAmount - a.totalAmount
+        );
+
+        console.log("Processed categories:", result);
+
+        // Return the final result
+        res.json({
+          success: true,
+          data: {
+            totalSpending: totalAmount,
+            totalLast7Days,
+            totalLast30Days,
+            totalLast90Days,
+            categories: result,
+          },
+        });
+      } catch (error) {
+        console.error("Error fetching spending by category:", error);
+        res.status(500).json({
+          success: false,
+          message: error.message || "Failed to fetch spending by category",
+        });
+      }
+    });
+
+    app.get("/budgets", verifyJWT, async (req, res) => {
+      try {
+        const userId = req.query.uId;
+        console.log("User ID from token:", userId);
+        const budget = await budgetsCollection.findOne({ userId });
+        if (!budget) {
+          return res.status(404).send({ success: false, message: "Budget not found" });
+        }
+        res.send({ success: true, data: budget });
+      } catch (error) {
+        console.error("Error fetching budget:", error);
+        res.status(500).send({ success: false, message: "Internal server error" });
       }
     });
 
