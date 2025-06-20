@@ -1810,152 +1810,12 @@ const RiskAssessment = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <div className="bg-blue-100 dark:bg-blue-900/20 p-2 rounded-lg">
-                  <Building className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-black dark:text-white">
-                    Loan Officer Dashboard
-                  </h1>
-                  <p className="text-sm text-black dark:text-white">
-                    {loanOfficerData.officerInfo.name} •{" "}
-                    {loanOfficerData.officerInfo.title}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Search */}
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
-                <input
-                  type="text"
-                  placeholder="Search applications, customers..."
-                  value={searchQuery}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-black dark:text-white w-80"
-                />
-                {showSearchResults && searchResults.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10">
-                    {searchResults.map((result) => (
-                      <div
-                        key={result.id}
-                        onClick={() => selectApplication(result)}
-                        className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0"
-                      >
-                        <div className="font-medium text-black dark:text-white">
-                          {result.applicantName}
-                        </div>
-                        <div className="text-sm text-black dark:text-white">
-                          {result.id} • {result.loanType} • $
-                          {result.amount.toLocaleString()}
-                        </div>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <span
-                            className={`px-2 py-1 text-xs rounded-full ${getStatusColor(
-                              result.status
-                            )}`}
-                          >
-                            {result.status}
-                          </span>
-                          <span
-                            className={`text-xs ${getRiskColor(
-                              result.riskLevel
-                            )}`}
-                          >
-                            {result.riskLevel} Risk
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <div className="bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400 px-3 py-1 rounded-full text-sm">
-                  {loanOfficerData.officerInfo.status}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Officer Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-black dark:text-white">
-                  Today's Reviews
-                </p>
-                <p className="text-2xl font-bold text-black dark:text-white">
-                  {loanOfficerData.officerInfo.todayStats.applicationsReviewed}
-                </p>
-              </div>
-              <FileText className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-black dark:text-white">
-                  Approval Rate
-                </p>
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {loanOfficerData.officerInfo.todayStats.approvalRate}
-                </p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-black dark:text-white">
-                  Avg Processing
-                </p>
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                  {loanOfficerData.officerInfo.todayStats.avgProcessingTime}
-                </p>
-              </div>
-              <Clock className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-black dark:text-white">
-                  Portfolio Value
-                </p>
-                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                  {loanOfficerData.officerInfo.todayStats.portfolioValue}
-                </p>
-              </div>
-              <DollarSign className="h-8 w-8 text-purple-600 dark:text-purple-400" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-6">
-          <div className="p-6">
+        <div className="bg-white bg-opacity-0 dark:bg-gray-800 dark:bg-opacity-0 rounded-lg shadow-sm mb-6">
             {/* Risk Assessment Tab */}
             <div className="space-y-6">
               {/* Risk Overview */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
                   <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
                     Risk Distribution
                   </h3>
@@ -2011,7 +1871,7 @@ const RiskAssessment = () => {
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
                   <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
                     Fraud Alerts
                   </h3>
@@ -2040,7 +1900,7 @@ const RiskAssessment = () => {
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
                   <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
                     Risk Scoring Model
                   </h3>
@@ -2090,7 +1950,7 @@ const RiskAssessment = () => {
               </div>
 
               {/* High Risk Applications */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+              <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
                   High Risk Applications Requiring Review
                 </h3>
@@ -2176,39 +2036,9 @@ const RiskAssessment = () => {
                 </div>
               </div>
             </div>
-          </div>
+
         </div>
 
-        {/* Quick Actions Panel */}
-        <div className="fixed bottom-6 right-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4">
-          <h4 className="font-semibold text-black dark:text-white mb-3">
-            Quick Actions
-          </h4>
-          <div className="space-y-2">
-            <button
-              onClick={handleNewApplication}
-              className="w-full flex items-center space-x-2 px-3 py-2 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/30 transition-colors"
-            >
-              <FileText className="h-4 w-4" />
-              <span>New Application</span>
-            </button>
-            <button
-              onClick={handleBulkApprove}
-              className="w-full flex items-center space-x-2 px-3 py-2 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400 rounded-lg hover:bg-green-200 dark:hover:bg-green-900/30 transition-colors"
-            >
-              <CheckCircle className="h-4 w-4" />
-              <span>Bulk Approve</span>
-            </button>
-            <button
-              onClick={handleExportReport}
-              className="w-full flex items-center space-x-2 px-3 py-2 bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-400 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/30 transition-colors"
-            >
-              <Download className="h-4 w-4" />
-              <span>Export Report</span>
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* Modals */}
       <ApplicationDetailsModal
