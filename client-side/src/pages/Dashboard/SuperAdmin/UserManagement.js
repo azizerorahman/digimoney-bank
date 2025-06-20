@@ -503,176 +503,13 @@ const UserManagement = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-black dark:text-white">
-                Super Admin Dashboard
-              </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                System-wide monitoring and administration
-              </p>
-            </div>
-
-            {/* Search Bar */}
-            <div className="relative w-96">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search users, logs, configurations..."
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-              />
-
-              {/* Search Results Dropdown */}
-              {showSearchResults && (
-                <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg mt-1 z-50">
-                  {searchResults.length > 0 ? (
-                    searchResults.map((user) => (
-                      <div
-                        key={user.id}
-                        onClick={() => selectUser(user)}
-                        className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0"
-                      >
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <div className="font-medium text-black dark:text-white">
-                              {user.name}
-                            </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
-                              {user.email}
-                            </div>
-                          </div>
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs ${getRoleColor(
-                              user.role
-                            )}`}
-                          >
-                            {user.role}
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-3 text-gray-500 dark:text-gray-400">
-                      No users found
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* System Status Bar */}
-          <div className="grid grid-cols-6 gap-6 mt-6">
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-green-600 dark:text-green-400">
-                    System Uptime
-                  </p>
-                  <p className="text-xl font-bold text-green-700 dark:text-green-300">
-                    {superAdminData.systemOverview.systemHealth.serverUptime}%
-                  </p>
-                </div>
-                <Server className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-            </div>
-
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-blue-600 dark:text-blue-400">
-                    Active Users
-                  </p>
-                  <p className="text-xl font-bold text-blue-700 dark:text-blue-300">
-                    {formatNumber(
-                      realTimeData.activeUsers ||
-                        superAdminData.systemOverview.bankWideMetrics
-                          .activeUsers
-                    )}
-                  </p>
-                </div>
-                <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
-
-            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-purple-600 dark:text-purple-400">
-                    Transactions/min
-                  </p>
-                  <p className="text-xl font-bold text-purple-700 dark:text-purple-300">
-                    {formatNumber(
-                      realTimeData.transactionThroughput ||
-                        superAdminData.systemOverview.systemHealth
-                          .transactionThroughput
-                    )}
-                  </p>
-                </div>
-                <Activity className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-              </div>
-            </div>
-
-            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-orange-600 dark:text-orange-400">
-                    Security Alerts
-                  </p>
-                  <p className="text-xl font-bold text-orange-700 dark:text-orange-300">
-                    {
-                      superAdminData.complianceAndSecurity.fraudDetection
-                        .highRiskAlerts
-                    }
-                  </p>
-                </div>
-                <Shield className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-              </div>
-            </div>
-
-            <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-red-600 dark:text-red-400">
-                    Failed Logins
-                  </p>
-                  <p className="text-xl font-bold text-red-700 dark:text-red-300">
-                    {superAdminData.systemOverview.recentActivity.failedLogins}
-                  </p>
-                </div>
-                <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
-              </div>
-            </div>
-
-            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    System Load
-                  </p>
-                  <p className="text-xl font-bold text-gray-700 dark:text-gray-300">
-                    {realTimeData.systemLoad ||
-                      superAdminData.systemOverview.systemHealth.cpuUsage}
-                    %
-                  </p>
-                </div>
-                <Gauge className="h-6 w-6 text-gray-600 dark:text-gray-400" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Main Content */}
       <div className="py-6">
         <div className="space-y-6">
           {/* User Statistics */}
           <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -688,7 +525,7 @@ const UserManagement = () => {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -704,7 +541,7 @@ const UserManagement = () => {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -720,7 +557,7 @@ const UserManagement = () => {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -736,7 +573,7 @@ const UserManagement = () => {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -750,7 +587,7 @@ const UserManagement = () => {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -906,7 +743,7 @@ const UserManagement = () => {
           </div>
 
           {/* Role Management */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
               Role Management
             </h3>
@@ -1323,7 +1160,7 @@ const UserManagement = () => {
       )}
 
       {/* Footer */}
-      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-4 mt-8">
+      <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
         <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
           <div>
             <span>© 2024 Bank Management System - Super Admin Dashboard</span>

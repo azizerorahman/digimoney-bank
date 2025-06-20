@@ -503,177 +503,12 @@ const SystemConfig = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-black dark:text-white">
-                Super Admin Dashboard
-              </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                System-wide monitoring and administration
-              </p>
-            </div>
-
-            {/* Search Bar */}
-            <div className="relative w-96">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search users, logs, configurations..."
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-              />
-
-              {/* Search Results Dropdown */}
-              {showSearchResults && (
-                <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg mt-1 z-50">
-                  {searchResults.length > 0 ? (
-                    searchResults.map((user) => (
-                      <div
-                        key={user.id}
-                        onClick={() => selectUser(user)}
-                        className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0"
-                      >
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <div className="font-medium text-black dark:text-white">
-                              {user.name}
-                            </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
-                              {user.email}
-                            </div>
-                          </div>
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs ${getRoleColor(
-                              user.role
-                            )}`}
-                          >
-                            {user.role}
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-3 text-gray-500 dark:text-gray-400">
-                      No users found
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* System Status Bar */}
-          <div className="grid grid-cols-6 gap-6 mt-6">
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-green-600 dark:text-green-400">
-                    System Uptime
-                  </p>
-                  <p className="text-xl font-bold text-green-700 dark:text-green-300">
-                    {superAdminData.systemOverview.systemHealth.serverUptime}%
-                  </p>
-                </div>
-                <Server className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-            </div>
-
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-blue-600 dark:text-blue-400">
-                    Active Users
-                  </p>
-                  <p className="text-xl font-bold text-blue-700 dark:text-blue-300">
-                    {formatNumber(
-                      realTimeData.activeUsers ||
-                        superAdminData.systemOverview.bankWideMetrics
-                          .activeUsers
-                    )}
-                  </p>
-                </div>
-                <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
-
-            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-purple-600 dark:text-purple-400">
-                    Transactions/min
-                  </p>
-                  <p className="text-xl font-bold text-purple-700 dark:text-purple-300">
-                    {formatNumber(
-                      realTimeData.transactionThroughput ||
-                        superAdminData.systemOverview.systemHealth
-                          .transactionThroughput
-                    )}
-                  </p>
-                </div>
-                <Activity className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-              </div>
-            </div>
-
-            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-orange-600 dark:text-orange-400">
-                    Security Alerts
-                  </p>
-                  <p className="text-xl font-bold text-orange-700 dark:text-orange-300">
-                    {
-                      superAdminData.complianceAndSecurity.fraudDetection
-                        .highRiskAlerts
-                    }
-                  </p>
-                </div>
-                <Shield className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-              </div>
-            </div>
-
-            <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-red-600 dark:text-red-400">
-                    Failed Logins
-                  </p>
-                  <p className="text-xl font-bold text-red-700 dark:text-red-300">
-                    {superAdminData.systemOverview.recentActivity.failedLogins}
-                  </p>
-                </div>
-                <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
-              </div>
-            </div>
-
-            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    System Load
-                  </p>
-                  <p className="text-xl font-bold text-gray-700 dark:text-gray-300">
-                    {realTimeData.systemLoad ||
-                      superAdminData.systemOverview.systemHealth.cpuUsage}
-                    %
-                  </p>
-                </div>
-                <Gauge className="h-6 w-6 text-gray-600 dark:text-gray-400" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="py-6">
-        <div className="space-y-6">
+      <div className="space-y-6">
           {/* System Parameters */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-black dark:text-white">
                   Interest Rates
@@ -750,7 +585,7 @@ const SystemConfig = () => {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-black dark:text-white">
                   Fee Structure
@@ -830,7 +665,7 @@ const SystemConfig = () => {
 
           {/* Transaction Limits */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-black dark:text-white">
                   Transaction Limits
@@ -895,7 +730,7 @@ const SystemConfig = () => {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-black dark:text-white">
                   Security Settings
@@ -968,7 +803,7 @@ const SystemConfig = () => {
 
           {/* Backup and System Status */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
                 Backup Status
               </h3>
@@ -1043,7 +878,7 @@ const SystemConfig = () => {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
                 System Maintenance
               </h3>
@@ -1909,174 +1744,8 @@ const SystemConfig = () => {
           </div>
         </div>
       )}
-
-      {/* Quick Actions Sidebar */}
-      <div
-        className={`fixed right-0 top-0 h-full bg-white dark:bg-gray-800 shadow-lg border-l border-gray-200 dark:border-gray-700 transition-transform duration-300 z-40 ${
-          isQuickActionsCollapsed ? "translate-x-full" : "translate-x-0"
-        }`}
-        style={{ width: "320px" }}
-      >
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-black dark:text-white">
-              Quick Actions
-            </h3>
-            <button
-              onClick={() =>
-                setIsQuickActionsCollapsed(!isQuickActionsCollapsed)
-              }
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              {isQuickActionsCollapsed ? (
-                <ArrowLeft className="h-5 w-5" />
-              ) : (
-                <ArrowRight className="h-5 w-5" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        <div className="p-4 space-y-4">
-          {/* System Controls */}
-          <div className="space-y-2">
-            <h4 className="font-medium text-black dark:text-white text-sm">
-              System Controls
-            </h4>
-            <button className="w-full flex items-center space-x-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30">
-              <Power className="h-4 w-4" />
-              <span className="text-sm">System Restart</span>
-            </button>
-            <button className="w-full flex items-center space-x-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30">
-              <RefreshCw className="h-4 w-4" />
-              <span className="text-sm">Force Backup</span>
-            </button>
-            <button className="w-full flex items-center space-x-2 px-3 py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30">
-              <AlertTriangle className="h-4 w-4" />
-              <span className="text-sm">Maintenance Mode</span>
-            </button>
-          </div>
-
-          {/* User Actions */}
-          <div className="space-y-2">
-            <h4 className="font-medium text-black dark:text-white text-sm">
-              User Actions
-            </h4>
-            <button
-              onClick={() => setShowUserModal(true)}
-              className="w-full flex items-center space-x-2 px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30"
-            >
-              <UserPlus className="h-4 w-4" />
-              <span className="text-sm">Add New User</span>
-            </button>
-            <button className="w-full flex items-center space-x-2 px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30">
-              <UserX className="h-4 w-4" />
-              <span className="text-sm">Bulk Suspend</span>
-            </button>
-            <button className="w-full flex items-center space-x-2 px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/30">
-              <Key className="h-4 w-4" />
-              <span className="text-sm">Password Reset</span>
-            </button>
-          </div>
-
-          {/* Reports */}
-          <div className="space-y-2">
-            <h4 className="font-medium text-black dark:text-white text-sm">
-              Reports
-            </h4>
-            <button className="w-full flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600">
-              <Download className="h-4 w-4" />
-              <span className="text-sm">Export Audit Log</span>
-            </button>
-            <button className="w-full flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600">
-              <FileText className="h-4 w-4" />
-              <span className="text-sm">System Report</span>
-            </button>
-            <button className="w-full flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600">
-              <BarChart3 className="h-4 w-4" />
-              <span className="text-sm">Performance Report</span>
-            </button>
-          </div>
-
-          {/* Recent Alerts */}
-          <div className="space-y-2">
-            <h4 className="font-medium text-black dark:text-white text-sm">
-              Recent Alerts
-            </h4>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {superAdminData.complianceAndSecurity.recentSecurityEvents
-                .slice(0, 3)
-                .map((event) => (
-                  <div
-                    key={event.id}
-                    className="p-2 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span
-                        className={`px-2 py-1 rounded text-xs ${getSeverityColor(
-                          event.severity
-                        )}`}
-                      >
-                        {event.severity}
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {event.timestamp.split(" ")[1]}
-                      </span>
-                    </div>
-                    <p className="text-xs text-black dark:text-white mt-1 truncate">
-                      {event.type}
-                    </p>
-                  </div>
-                ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Collapse/Expand Button for Quick Actions */}
-      {isQuickActionsCollapsed && (
-        <button
-          onClick={() => setIsQuickActionsCollapsed(false)}
-          className="fixed right-4 top-20 transform -translate-y-1/2 bg-blue-600 dark:bg-blue-700 text-white p-2 rounded-l-lg shadow-lg z-30 hover:bg-blue-700 dark:hover:bg-blue-600"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-      )}
-
-      {/* System Alerts Toast */}
-      {systemAlerts.length > 0 && (
-        <div className="fixed bottom-4 right-4 space-y-2 z-50">
-          {systemAlerts.map((alert, idx) => (
-            <div
-              key={idx}
-              className="bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 max-w-sm"
-            >
-              <div className="flex items-center">
-                <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 mr-2" />
-                <div>
-                  <p className="text-sm font-medium text-red-800 dark:text-red-300">
-                    {alert.title}
-                  </p>
-                  <p className="text-xs text-red-600 dark:text-red-400">
-                    {alert.message}
-                  </p>
-                </div>
-                <button
-                  onClick={() =>
-                    setSystemAlerts(systemAlerts.filter((_, i) => i !== idx))
-                  }
-                  className="ml-2 text-red-400 hover:text-red-600 dark:hover:text-red-300"
-                >
-                  <XCircle className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
       {/* Footer */}
-      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-4 mt-8">
+      <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
         <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
           <div>
             <span>© 2024 Bank Management System - Super Admin Dashboard</span>
