@@ -1,18 +1,12 @@
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import LoadingSpinner from "../../../components/Loading";
 
 const BudgetManagement = () => {
-  const sectionRef = useRef(null);
-  const headingRef = useRef(null);
-  const balanceCardRef = useRef(null);
-  const actionsRef = useRef(null);
-  const accountsRef = useRef(null);
-  const dashboardRef = useRef(null);
-
   const uId = localStorage.getItem("userId");
   const [accounts, setAccounts] = useState([]);
-  const [accountsLoading, setAccountsLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [tempBudgetInput, setTempBudgetInput] = useState("");
   const openMonthlyBudgetModal = () => {
@@ -23,163 +17,99 @@ const BudgetManagement = () => {
   };
 
   useEffect(() => {
-    const fetchAccounts = async () => {
-      if (!uId) return;
-      setAccountsLoading(true);
+    const fetchData = async () => {
+      if (!uId) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
       try {
         const token = localStorage.getItem("accessToken");
-        const res = await axios.get(
+
+        // Fetch accounts
+        const accountsRes = await axios.get(
           `${process.env.REACT_APP_API_URL}/accounts`,
           {
             params: { uId },
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
-        // The API returns { success, accounts }
-        if (res.data && res.data.success) {
-          setAccounts(res.data.accounts);
-        } else {
-          toast.error("Failed to fetch accounts");
+
+        if (accountsRes.data && accountsRes.data.success) {
+          setAccounts(accountsRes.data.accounts);
         }
-      } catch (error) {
-        toast.error("Failed to fetch accounts");
-      } finally {
-        setAccountsLoading(false);
-      }
-    };
-    fetchAccounts();
-  }, [uId]);
 
-  const [transactionHistory, setTransactionHistory] = useState([]);
-  const [transactionHistoryLoading, setTransactionHistoryLoading] =
-    useState(false);
-
-  useEffect(() => {
-    const fetchTransactionHistory = async () => {
-      if (!uId) return;
-      setTransactionHistoryLoading(true);
-      try {
-        const token = localStorage.getItem("accessToken");
-        const res = await axios.get(
+        // Fetch transaction history
+        const historyRes = await axios.get(
           `${process.env.REACT_APP_API_URL}/transaction-history`,
           {
             params: { uId },
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
-        if (res.data && res.data.success) {
-          // Transform the data to match the expected format for the chart
-          const transformedData = res.data.transactions.map((transaction) => ({
-            date: transaction.date,
-            income: transaction.credit || 0,
-            spending: Math.abs(transaction.debit) || 0, // Convert negative values to positive
-          }));
+
+        if (historyRes.data && historyRes.data.success) {
+          const transformedData = historyRes.data.transactions.map(
+            (transaction) => ({
+              date: transaction.date,
+              income: transaction.credit || 0,
+              spending: Math.abs(transaction.debit) || 0,
+            })
+          );
           setTransactionHistory(transformedData);
-        } else {
-          toast.error("Failed to fetch transaction history");
         }
-      } catch (error) {
-        toast.error("Failed to fetch transaction history");
-      } finally {
-        setTransactionHistoryLoading(false);
-      }
-    };
-    fetchTransactionHistory();
-  }, [uId]);
 
-  const [transactions, setTransactions] = useState([]);
-  const [transactionsLoading, setTransactionsLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      if (!uId) return;
-      setTransactionsLoading(true);
-      try {
-        const token = localStorage.getItem("accessToken");
-        const res = await axios.get(
+        // Fetch transactions
+        const transactionsRes = await axios.get(
           `${process.env.REACT_APP_API_URL}/transactions`,
           {
             params: { uId },
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
-        if (res.data && res.data.success) {
-          setTransactions(res.data.transactions);
-        } else {
-          toast.error("Failed to fetch transactions");
+
+        if (transactionsRes.data && transactionsRes.data.success) {
+          setTransactions(transactionsRes.data.transactions);
         }
-      } catch (error) {
-        toast.error("Failed to fetch transactions");
-      } finally {
-        setTransactionsLoading(false);
-      }
-    };
-    fetchTransactions();
-  }, [uId]);
 
-  console.log(transactions);
-
-  // Budget State Management
-  const [budgets, setBudgets] = useState({ budgets: [] });
-  const [budgetLoading, setBudgetLoading] = useState(false);
-  const [budgetError, setBudgetError] = useState(null);
-  const [monthlyBudgetLimit, setMonthlyBudgetLimit] = useState(0);
-
-  // Fetch budget data from API
-  useEffect(() => {
-    const fetchBudget = async () => {
-      if (!uId) return;
-      setBudgetLoading(true);
-      setBudgetError(null);
-      try {
-        const token = localStorage.getItem("accessToken");
-        const res = await axios.get(
+        // Fetch budget data
+        const budgetRes = await axios.get(
           `${process.env.REACT_APP_API_URL}/budgets`,
           {
             params: { uId },
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
 
-        if (res.data && res.data.success) {
-          // Fix this part to ensure consistent structure
-          const budgetData = res.data.data || {};
+        if (budgetRes.data && budgetRes.data.success) {
+          const budgetData = budgetRes.data.data || {};
           setBudgets({
             budgets: budgetData.budgets || [],
             ...budgetData,
           });
 
-          // Update monthly budget limit if available
           if (budgetData.monthlyBudgetLimit) {
             setMonthlyBudgetLimit(budgetData.monthlyBudgetLimit);
           }
-        } else {
-          setBudgetError("Failed to fetch budget data");
-          toast.error("Failed to fetch budget data");
         }
       } catch (error) {
-        const errorMessage =
-          error.response?.data?.message || "Failed to fetch budget data";
-        setBudgetError(errorMessage);
-        toast.error(errorMessage);
-        console.error("Budget fetch error:", error);
+        toast.error("Failed to load data");
+        console.error("Data fetch error:", error);
       } finally {
-        setBudgetLoading(false);
+        setLoading(false);
       }
     };
 
-    fetchBudget();
+    fetchData();
   }, [uId]);
 
-  console.log("Budget Data:", budgets);
+  const [transactionHistory, setTransactionHistory] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+
+  // Budget State Management
+  const [budgets, setBudgets] = useState({ budgets: [] });
+  const [monthlyBudgetLimit, setMonthlyBudgetLimit] = useState(0);
 
   // Spending analysis states
   const [spendingAnalysisView, setSpendingAnalysisView] = useState("trends");
@@ -196,10 +126,9 @@ const BudgetManagement = () => {
   });
 
   // Monthly Budget States
-
   const [showMonthlyBudgetModal, setShowMonthlyBudgetModal] = useState(false);
 
-  // Available categories for budgeting (now includes "Others")
+  // Available categories for budgeting
   const availableCategories = [
     "Food",
     "Transportation",
@@ -220,20 +149,20 @@ const BudgetManagement = () => {
 
   // Predefined colors for new budgets
   const availableColors = [
-    "#ff6b6b",
-    "#4ecdc4",
-    "#45b7d1",
-    "#96ceb4",
-    "#feca57",
-    "#ff9ff3",
-    "#54a0ff",
-    "#5f27cd",
-    "#00d2d3",
-    "#ff9f43",
-    "#10ac84",
-    "#ee5a24",
-    "#0abde3",
-    "#feca57",
+    "#ff6b6b", // Coral red
+    "#4ecdc4", // Turquoise
+    "#45b7d1", // Sky blue
+    "#96ceb4", // Mint green
+    "#feca57", // Mustard yellow
+    "#ff9ff3", // Pink
+    "#54a0ff", // Bright blue
+    "#5f27cd", // Purple
+    "#00d2d3", // Cyan
+    "#ff9f43", // Orange
+    "#10ac84", // Green
+    "#ee5a24", // Red-orange
+    "#0abde3", // Light blue
+    "#a29bfe", // Lavender (replacing the duplicate #feca57)
   ];
 
   // Theme configurations for each card type
@@ -284,8 +213,6 @@ const BudgetManagement = () => {
       setSelectedAccount(accounts[0]);
     }
   }, [accounts]);
-
-  console.log("sfsfb", selectedAccount);
 
   const currentTheme = themes[selectedAccount?.type];
 
@@ -646,117 +573,6 @@ const BudgetManagement = () => {
     }
   };
 
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Simulate loading
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Intersection Observer for scroll animations
-  useEffect(() => {
-    if (isLoading || accountsLoading) return;
-
-    const section = sectionRef.current;
-    const heading = headingRef.current;
-    const balanceCard = balanceCardRef.current;
-    const actions = actionsRef.current;
-    const accounts = accountsRef.current;
-    const dashboard = dashboardRef.current;
-
-    // Initial state (hidden)
-    if (heading) {
-      heading.style.opacity = "0";
-      heading.style.transform = "translateY(20px)";
-    }
-    if (balanceCard) {
-      balanceCard.style.opacity = "0";
-      balanceCard.style.transform = "translateY(30px)";
-    }
-    if (actions) {
-      actions.style.opacity = "0";
-      actions.style.transform = "translateY(30px)";
-    }
-    if (accounts) {
-      accounts.style.opacity = "0";
-      accounts.style.transform = "translateY(30px)";
-    }
-    if (dashboard) {
-      dashboard.style.opacity = "0";
-      dashboard.style.transform = "translateY(30px)";
-    }
-
-    // Create observer
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          // Animate heading
-          setTimeout(() => {
-            if (heading) {
-              heading.style.transition =
-                "opacity 0.6s ease, transform 0.6s ease";
-              heading.style.opacity = "1";
-              heading.style.transform = "translateY(0)";
-            }
-          }, 200);
-
-          setTimeout(() => {
-            if (actions) {
-              actions.style.transition =
-                "opacity 0.8s ease, transform 0.8s ease";
-              actions.style.opacity = "1";
-              actions.style.transform = "translateY(0)";
-            }
-          }, 500);
-
-          // Animate balance card
-          setTimeout(() => {
-            if (balanceCard) {
-              balanceCard.style.transition =
-                "opacity 0.8s ease, transform 0.8s ease";
-              balanceCard.style.opacity = "1";
-              balanceCard.style.transform = "translateY(0)";
-            }
-          }, 400);
-
-          // Animate accounts
-          setTimeout(() => {
-            if (accounts) {
-              accounts.style.transition =
-                "opacity 0.8s ease, transform 0.8s ease";
-              accounts.style.opacity = "1";
-              accounts.style.transform = "translateY(0)";
-            }
-          }, 600);
-
-          // Animate dashboard
-          setTimeout(() => {
-            if (dashboard) {
-              dashboard.style.transition =
-                "opacity 0.8s ease, transform 0.8s ease";
-              dashboard.style.opacity = "1";
-              dashboard.style.transform = "translateY(0)";
-            }
-          }, 800);
-
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.2 }
-    );
-
-    if (section) {
-      observer.observe(section);
-    }
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [accountsLoading, isLoading]);
-
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -764,26 +580,8 @@ const BudgetManagement = () => {
     }).format(Math.abs(amount));
   };
 
-  if (isLoading) {
-    return (
-      <section className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden">
-        <div className="container mx-auto max-w-7xl">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-            <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
-            <div className="h-48 bg-gray-300 dark:bg-gray-700 rounded-2xl mb-8"></div>
-            <div className="grid lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="h-32 bg-gray-300 dark:bg-gray-700 rounded-2xl"
-                ></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-    );
+  if (loading) {
+    return <LoadingSpinner overlay />;
   }
 
   // Updated functions for spending analysis with dynamic budget data
@@ -1492,7 +1290,7 @@ const BudgetManagement = () => {
             )}
           </div>
         </div>
-        
+
         {/* Budget Alerts */}
         {getBudgetVsActual().filter((budget) => budget.variance > 0).length >
         0 ? (
@@ -1566,4 +1364,5 @@ const BudgetManagement = () => {
     </section>
   );
 };
+
 export default BudgetManagement;
