@@ -1,21 +1,12 @@
 import { useState } from "react";
 import {
-  Search,
-  User,
   Users,
-  DollarSign,
-  TrendingUp,
   Calendar,
   Phone,
   Mail,
   FileText,
   XCircle,
-  Target,
   MessageSquare,
-  Plus,
-  ArrowRight,
-  MapPin,
-  Zap,
   ArrowUpDown,
 } from "lucide-react";
 
@@ -27,7 +18,6 @@ const AMCustomerPortfolio = () => {
   const [showCustomerDetails, setShowCustomerDetails] = useState(false);
   const [showMeetingModal, setShowMeetingModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [isQuickActionsCollapsed, setIsQuickActionsCollapsed] = useState(false);
   const [showNewCustomerModal, setShowNewCustomerModal] = useState(false);
 
   const [newCustomerData, setNewCustomerData] = useState({
@@ -603,15 +593,7 @@ const AMCustomerPortfolio = () => {
     }).format(amount);
   };
 
-  // Add this function to handle report generation
-  const handleGenerateReport = () => {
-    setShowReportModal(true);
-  };
 
-  // Add this function to handle new customer creation
-  const handleNewCustomer = () => {
-    setShowNewCustomerModal(true);
-  };
 
   const handleNewCustomerChange = (field, value) => {
     setNewCustomerData((prev) => ({

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { 
-  Search, Clock, 
+  Clock, 
   XCircle, ArrowUp
   } from 'lucide-react';
 
@@ -490,10 +490,7 @@ export const customerSearchResults = [
 ];
 
 const ServiceRequests = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(csrDashboardData.activeCustomer);
-  const [showSearchResults, setShowSearchResults] = useState(false);
   
   // NEW STATE VARIABLES FOR ADDED FEATURES
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -501,27 +498,6 @@ const ServiceRequests = () => {
   const [showTicketDetails, setShowTicketDetails] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
 
-  // Search functionality
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-    if (query.length > 2) {
-      const filtered = customerSearchResults.filter(customer => 
-        customer.name.toLowerCase().includes(query.toLowerCase()) ||
-        customer.phone.includes(query) ||
-        customer.accountNumber.includes(query)
-      );
-      setSearchResults(filtered);
-      setShowSearchResults(true);
-    } else {
-      setShowSearchResults(false);
-    }
-  };
-
-  const selectCustomer = () => {
-    setSelectedCustomer(csrDashboardData.activeCustomer);
-    setShowSearchResults(false);
-    setSearchQuery('');
-  };
 
   // NEW HANDLER FUNCTIONS FOR ADDED FEATURES
   const handleCustomerUpdate = (updatedData) => {
@@ -944,107 +920,7 @@ const ServiceRequests = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-black dark:text-white">CSR Dashboard</h1>
-              <div className="flex items-center space-x-2 text-sm text-black dark:text-white">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>{csrDashboardData.csrInfo.status}</span>
-              </div>
-            </div>
-            <div className="flex items-center space-x-6">
-              <div className="text-right">
-                <div className="text-sm font-medium text-black dark:text-white">
-                  {csrDashboardData.csrInfo.name}
-                </div>
-                <div className="text-xs text-black dark:text-white">
-                  {csrDashboardData.csrInfo.id} • {csrDashboardData.csrInfo.shift}
-                </div>
-              </div>
-              <div className="flex space-x-4 text-sm">
-                <div className="text-center">
-                  <div className="font-semibold text-blue-600 dark:text-blue-400">
-                    {csrDashboardData.csrInfo.todayStats.callsHandled}
-                  </div>
-                  <div className="text-black dark:text-white">Calls Today</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-semibold text-green-600 dark:text-green-400">
-                    {csrDashboardData.csrInfo.todayStats.resolutionRate}%
-                  </div>
-                  <div className="text-black dark:text-white">Resolution</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-semibold text-purple-600 dark:text-purple-400">
-                    {csrDashboardData.csrInfo.todayStats.customerSatisfaction}
-                  </div>
-                  <div className="text-black dark:text-white">Satisfaction</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Customer Search */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
-            <input
-              type="text"
-              placeholder="Search customers by name, phone, or account number..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black dark:text-white bg-white dark:bg-gray-700"
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-            />
-            
-            {/* Search Results Dropdown */}
-            {showSearchResults && (
-              <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg mt-1 z-10">
-                {searchResults.length > 0 ? (
-                  searchResults.map((customer) => (
-                    <div
-                      key={customer.customerId}
-                      className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0"
-                      onClick={() => selectCustomer(customer)}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <div className="font-medium text-black dark:text-white">{customer.name}</div>
-                          <div className="text-sm text-black dark:text-white">
-                            {customer.phone} • Account: {customer.accountNumber}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className={`text-xs px-2 py-1 rounded-full ${
-                            customer.riskLevel === 'Low' ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' :
-                            customer.riskLevel === 'Medium' ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400' :
-                            'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
-                          }`}>
-                            {customer.riskLevel} Risk
-                          </div>
-                          <div className="text-xs text-black dark:text-white mt-1">
-                            Last contact: {customer.lastContact}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="p-3 text-black dark:text-white text-center">No customers found</div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-6">
           {/* Tab Content */}
-          <div className="p-6">
             {/* Service Requests Tab */}
               <div className="space-y-6">
                 {/* Active Ticket for Current Customer */}
@@ -1122,7 +998,7 @@ const ServiceRequests = () => {
                 )}
 
                 {/* My Ticket Queue */}
-                <div>
+                <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-semibold text-black dark:text-white">My Ticket Queue</h3>
                     <div className="text-sm text-black dark:text-white">
@@ -1132,7 +1008,7 @@ const ServiceRequests = () => {
                   
                   <div className="space-y-3">
                     {csrDashboardData.myTicketQueue.map((ticket) => (
-                      <div key={ticket.ticketId} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div key={ticket.ticketId} className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <div className="flex items-center space-x-3 mb-2">
@@ -1165,7 +1041,7 @@ const ServiceRequests = () => {
                                 setSelectedTicket(ticket);
                                 setShowTicketDetails(true);
                               }}
-                              className="mt-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium"
+                              className="bg-blue-500 dark:bg-blue-700 text-white mt-3 px-2 py-1 rounded-lg text-sm hover:bg-blue-700 dark:hover:bg-blue-600 font-medium"
                             >
                               Open Ticket
                             </button>
@@ -1176,49 +1052,6 @@ const ServiceRequests = () => {
                   </div>
                 </div>
               </div>
-          </div>
-        </div>
-
-        {/* Performance Summary */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Performance Summary</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {['today', 'thisWeek', 'thisMonth'].map((period) => (
-              <div key={period} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h4 className="font-medium text-black dark:text-white mb-3 capitalize">
-                  {period === 'thisWeek' ? 'This Week' : period === 'thisMonth' ? 'This Month' : 'Today'}
-                </h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-black dark:text-white">Calls Handled:</span>
-                    <span className="font-medium text-black dark:text-white">{csrDashboardData.performanceMetrics[period].callsHandled}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-black dark:text-white">Avg Call Time:</span>
-                    <span className="font-medium text-black dark:text-white">{csrDashboardData.performanceMetrics[period].avgCallTime}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-black dark:text-white">Resolution Rate:</span>
-                    <span className="font-medium text-green-600 dark:text-green-400">{csrDashboardData.performanceMetrics[period].resolutionRate}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-black dark:text-white">Satisfaction:</span>
-                    <span className="font-medium text-blue-600 dark:text-blue-400">{csrDashboardData.performanceMetrics[period].customerSatisfaction}/5.0</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-black dark:text-white">Tickets Resolved:</span>
-                    <span className="font-medium text-black dark:text-white">{csrDashboardData.performanceMetrics[period].ticketsResolved}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-black dark:text-white">Escalation Rate:</span>
-                    <span className="font-medium text-orange-600 dark:text-orange-400">{csrDashboardData.performanceMetrics[period].escalationRate}%</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* NEW MODALS */}
       <CustomerUpdateModal
