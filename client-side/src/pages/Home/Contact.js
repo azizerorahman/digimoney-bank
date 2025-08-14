@@ -14,8 +14,9 @@ const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState(false);
- const [mapLoadError, setMapLoadError] = useState(false);
-const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [mapLoadError, setMapLoadError] = useState(false);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [isInChina, setIsInChina] = useState(false);
 
   // Create refs for animation elements
   const sectionRef = useRef(null);
@@ -164,24 +165,42 @@ const [iframeLoaded, setIframeLoaded] = useState(false);
   }, []);
 
   useEffect(() => {
-  if (iframeLoaded || mapLoadError) return;
-  const timer = setTimeout(() => {
-    setMapLoadError(true);
-  }, 5000);
-  return () => clearTimeout(timer);
-}, [iframeLoaded, mapLoadError]);
+    if (iframeLoaded || mapLoadError) return;
+    const timer = setTimeout(() => {
+      setMapLoadError(true);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [iframeLoaded, mapLoadError]);
 
-const handleIframeLoad = () => {
-  setIframeLoaded(true);
-  setMapLoadError(false);
-};
+  // Detect if user is in China using IP-based geolocation
+  useEffect(() => {
+    // Use a free IP geolocation API (ipapi.co)
+    fetch("https://ipapi.co/json/")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.country_code === "CN") {
+          setIsInChina(true);
+        } else {
+          setIsInChina(false);
+        }
+      })
+      .catch(() => {
+        // fallback: assume not in China if API fails
+        setIsInChina(false);
+      });
+  }, []);
+
+  const handleIframeLoad = () => {
+    setIframeLoaded(true);
+    setMapLoadError(false);
+  };
   return (
     <section
       ref={sectionRef}
       id="contact"
       className="py-16 md:py-24 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden"
     >
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
         {/* Section heading */}
         <div className="text-center mb-12 md:mb-16">
           <h2
@@ -647,54 +666,64 @@ const handleIframeLoad = () => {
                 Find Us
               </h3>
               <div className="rounded-lg overflow-hidden h-64 bg-gray-100 dark:bg-gray-700">
-  <div className="w-full h-full relative">
-    {!mapLoadError ? (
-      <iframe
-        ref={iframeRef}
-        src="https://www.openstreetmap.org/export/embed.html?bbox=104.00861978530885%2C30.52544836359175%2C104.02278184890748%2C30.53374719811603&amp;layer=mapnik&amp;marker=30.529597869463927%2C104.01570081710815"
-        title="DigiMoney Location Map"
-        className="w-full h-full border-0"
-        loading="lazy"
-        allowFullScreen
-        style={{
-          borderRadius: "inherit",
-          backgroundColor: "transparent",
-        }}
-        onLoad={handleIframeLoad}
-        onError={() => setMapLoadError(true)}
-      />
-    ) : (
-      <img
-        src={map}
-        alt="DigiMoney Location Map"
-        className="w-full h-full object-none"
-        style={{ borderRadius: "inherit" }}
-      />
-    )}
-    <div className="absolute top-2 right-2 z-10">
-      {!mapLoadError ? (
-        <a
-          href="https://www.openstreetmap.org/?mlat=30.5296&mlon=104.0157#map=17/30.5296/104.0157"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs bg-white/80 dark:bg-gray-800/80 px-2 py-1 rounded-md text-primary dark:text-accent hover:bg-white dark:hover:bg-gray-800 transition-colors"
-        >
-          View Larger Map
-        </a>
-      ) : (
-        <a
-          href="https://surl.amap.com/AxLFxgZlaiK"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs bg-white/80 dark:bg-gray-800/80 px-2 py-1 rounded-md text-primary dark:text-accent hover:bg-white dark:hover:bg-gray-800 transition-colors"
-        >
-          View Larger Map
-        </a>
-      )}
-    </div>
-  </div>
-</div>
-
+                <div className="w-full h-full relative">
+                  {!mapLoadError ? (
+                    isInChina ? (
+                      // AMap for users in China
+                      <iframe
+                        ref={iframeRef}
+                        src="https://www.amap.com/place/B0FFFZ7Q1L/30.529597869463927,104.01570081710815"
+                        title="DigiMoney Location Map"
+                        className="w-full h-full border-0"
+                        loading="lazy"
+                        allowFullScreen
+                        style={{
+                          borderRadius: "inherit",
+                          backgroundColor: "transparent",
+                        }}
+                        onLoad={handleIframeLoad}
+                        onError={() => setMapLoadError(true)}
+                      />
+                    ) : (
+                      // Google Maps for users outside China
+                      <iframe
+                        ref={iframeRef}
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3438.055687026946!2d104.01570081710815!3d30.529597869463927!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzDCsDMxJzQ2LjYiTiAxMDTCsDAyJzU2LjUiRQ!5e0!3m2!1sen!2sus!4v1628930864000!5m2!1sen!2sus"
+                        title="DigiMoney Location Map"
+                        className="w-full h-full border-0"
+                        loading="lazy"
+                        allowFullScreen
+                        style={{
+                          borderRadius: "inherit",
+                          backgroundColor: "transparent",
+                        }}
+                        onLoad={handleIframeLoad}
+                        onError={() => setMapLoadError(true)}
+                      />
+                    )
+                  ) : (
+                    <img
+                      src={map}
+                      alt="DigiMoney Location Map"
+                      className="w-full h-full object-none"
+                      style={{ borderRadius: "inherit" }}
+                    />
+                  )}
+                  {/* Only show "View Larger Map" button for AMap (users in China) */}
+                  {isInChina && (
+                    <div className="absolute top-2 right-2 z-10">
+                      <a
+                        href="https://surl.amap.com/AxLFxgZlaiK"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs bg-white/80 dark:bg-gray-800/80 px-2 py-1 rounded-md text-primary dark:text-accent hover:bg-white dark:hover:bg-gray-800 transition-colors"
+                      >
+                        View Larger Map
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>

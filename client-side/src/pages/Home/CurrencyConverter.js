@@ -63,41 +63,44 @@ const CurrencyConverter = () => {
   ];
 
   // Use useMemo to prevent the availableRates object from being recreated on every render
-  const availableRates = React.useMemo(() => ({
-    AUD: 1.5369802457,
-    BGN: 1.7152403329,
-    BRL: 5.7050907095,
-    CAD: 1.3767201571,
-    CHF: 0.8257501468,
-    CNY: 7.2287907519,
-    CZK: 21.9396822056,
-    DKK: 6.5768708058,
-    EUR: 0.8812401351,
-    GBP: 0.7487100997,
-    HKD: 7.7488508024,
-    HRK: 6.3382010433,
-    HUF: 355.937713721,
-    IDR: 16458.676696973,
-    ILS: 3.5972404692,
-    INR: 84.4253456025,
-    ISK: 129.379404676,
-    JPY: 143.0059432502,
-    KRW: 1372.3638159005,
-    MXN: 19.6382223551,
-    MYR: 4.2383807363,
-    NOK: 10.2638520261,
-    NZD: 1.6621401775,
-    PHP: 55.3898292067,
-    PLN: 3.7599605681,
-    RON: 4.4861806268,
-    RUB: 81.6056917129,
-    SEK: 9.5696413794,
-    SGD: 1.2879801708,
-    THB: 32.6455756318,
-    TRY: 38.6625848629,
-    USD: 1,
-    ZAR: 18.1933619443,
-  }), []);
+  const availableRates = React.useMemo(
+    () => ({
+      AUD: 1.5369802457,
+      BGN: 1.7152403329,
+      BRL: 5.7050907095,
+      CAD: 1.3767201571,
+      CHF: 0.8257501468,
+      CNY: 7.2287907519,
+      CZK: 21.9396822056,
+      DKK: 6.5768708058,
+      EUR: 0.8812401351,
+      GBP: 0.7487100997,
+      HKD: 7.7488508024,
+      HRK: 6.3382010433,
+      HUF: 355.937713721,
+      IDR: 16458.676696973,
+      ILS: 3.5972404692,
+      INR: 84.4253456025,
+      ISK: 129.379404676,
+      JPY: 143.0059432502,
+      KRW: 1372.3638159005,
+      MXN: 19.6382223551,
+      MYR: 4.2383807363,
+      NOK: 10.2638520261,
+      NZD: 1.6621401775,
+      PHP: 55.3898292067,
+      PLN: 3.7599605681,
+      RON: 4.4861806268,
+      RUB: 81.6056917129,
+      SEK: 9.5696413794,
+      SGD: 1.2879801708,
+      THB: 32.6455756318,
+      TRY: 38.6625848629,
+      USD: 1,
+      ZAR: 18.1933619443,
+    }),
+    []
+  );
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -131,10 +134,8 @@ const CurrencyConverter = () => {
       try {
         // Using freecurrencyapi.com API
         const API_KEY = process.env.REACT_APP_FC_API_KEY;
-        console.log("API_KEY", API_KEY);
-        console.log("fromCurrency", fromCurrency);
         const response = await axios.get(
-          `https://api.freecurrencyapi.com/v1/latest?apikey=${API_KEY}&base_currency=${fromCurrency}&currencies=${toCurrency},EUR,GBP,JPY,CAD,USD`
+          `https://api.freecurrencyapi.com/v1/latest?apikey=${API_KEY}&base_currency=${fromCurrency}&currencies=${toCurrency},EUR,GBP,JPY,CAD,CNY,AUD,INR,USD`
         );
 
         // Set exchange rate for the selected currency
@@ -143,7 +144,13 @@ const CurrencyConverter = () => {
         setConvertedAmount((amount * rates[toCurrency]).toFixed(2));
 
         // Set popular rates (against selected base currency)
-        const popularCurrencies = ["EUR", "GBP", "JPY", "CAD"];
+        const popularCurrencies = [
+          "EUR",
+          "GBP",
+          "JPY",
+          "CAD",
+          "CNY",
+        ];
         const popularRatesData = {};
         popularCurrencies.forEach((curr) => {
           if (curr !== fromCurrency && rates[curr]) {
@@ -174,7 +181,15 @@ const CurrencyConverter = () => {
           setConvertedAmount((amount * rate).toFixed(2));
 
           // Set popular rates (against selected base currency)
-          const popularCurrencies = ["EUR", "GBP", "JPY", "CAD"];
+          const popularCurrencies = [
+            "EUR",
+            "GBP",
+            "JPY",
+            "CAD",
+            "CNY",
+            "AUD",
+            "INR",
+          ];
           const popularRatesData = {};
           popularCurrencies.forEach((curr) => {
             if (curr !== fromCurrency) {
@@ -316,14 +331,18 @@ const CurrencyConverter = () => {
       ref={sectionRef}
       className="pb-16 md:pb-24 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden"
     >
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
         {/* Section heading */}
         <div className="text-center mb-12 md:mb-16">
           <h2
             ref={headingRef}
             className="text-3xl md:text-4xl font-bold mb-4 text-gray-800 dark:text-white/90"
           >
-            Global <span className="text-primary dark:text-primary-content">Currency</span> Converter
+            Global{" "}
+            <span className="text-primary dark:text-primary-content">
+              Currency
+            </span>{" "}
+            Converter
           </h2>
           <p
             ref={descriptionRef}
@@ -362,7 +381,7 @@ const CurrencyConverter = () => {
             </div>
 
             {/* Amount Input */}
-            <div className="mb-6">
+            <div className="mb-4">
               <label
                 htmlFor="amount"
                 className="block text-sm font-medium text-gray-700 dark:text-white/70 mb-2"
@@ -619,8 +638,8 @@ const CurrencyConverter = () => {
           {/* Right: Exchange Rates & Features */}
           <div ref={ratesRef} className="w-full lg:w-1/2">
             {/* Popular Exchange Rates */}
-            <div className="mb-8 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
-              <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white/90">
+            <div className="bg-white dark:bg-gray-800 pt-6 px-6 rounded-2xl border border-gray-100 dark:border-gray-700 md:pt-8 md:px-8 shadow-xl lg:pb-[52px] pb-6">
+              <h3 className="text-xl font-bold mb-6 text-gray-800 dark:text-white/90">
                 Popular Exchange Rates
               </h3>
               {isLoading ? (
@@ -660,14 +679,18 @@ const CurrencyConverter = () => {
                 </div>
               )}
             </div>
-
-            {/* Features */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-              <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300">
-                <div className="w-12 h-12 rounded-full bg-primary/10 dark:bg-primary-content/20 flex items-center justify-center mb-4">
+          </div>
+        </div>
+        {/* Features */}
+        <div className="mt-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
+            {/* Real-Time Rates */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 h-full flex flex-col">
+              <div className="mb-4">
+                <div className="w-14 h-14 rounded-full bg-primary/10 dark:bg-primary-content/20 flex items-center justify-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-primary dark:text-primary-content"
+                    className="h-7 w-7 text-primary dark:text-primary-content"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -678,20 +701,25 @@ const CurrencyConverter = () => {
                     />
                   </svg>
                 </div>
-                <h4 className="text-lg font-bold mb-1 text-gray-800 dark:text-white/90">
+              </div>
+              <div className="flex-grow">
+                <h4 className="text-xl font-bold mb-3 text-gray-800 dark:text-white/90">
                   Real-Time Rates
                 </h4>
                 <p className="text-gray-600 dark:text-white/70">
                   Our currency converter uses real-time market rates updated
-                  every hour.
+                  every hour, ensuring you always have the most accurate
+                  exchange information.
                 </p>
               </div>
-
-              <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300">
-                <div className="w-12 h-12 rounded-full bg-secondary/10 dark:bg-secondary/20 flex items-center justify-center mb-4">
+            </div>
+            {/* Fee-Free Transfers */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 h-full flex flex-col">
+              <div className="mb-4">
+                <div className="w-14 h-14 rounded-full bg-secondary/10 dark:bg-secondary/20 flex items-center justify-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-secondary"
+                    className="h-7 w-7 text-secondary"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -702,20 +730,25 @@ const CurrencyConverter = () => {
                     />
                   </svg>
                 </div>
-                <h4 className="text-lg font-bold mb-1 text-gray-800 dark:text-white/90">
+              </div>
+              <div className="flex-grow">
+                <h4 className="text-xl font-bold mb-3 text-gray-800 dark:text-white/90">
                   Fee-Free Transfers
                 </h4>
                 <p className="text-gray-600 dark:text-white/70">
                   DigiMoney customers enjoy fee-free currency exchanges up to
-                  $10,000 per month.
+                  $10,000 per month, saving you money on every international
+                  transaction.
                 </p>
               </div>
-
-              <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300">
-                <div className="w-12 h-12 rounded-full bg-accent/10 dark:bg-accent/20 flex items-center justify-center mb-4">
+            </div>
+            {/* Mobile Alerts */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 h-full flex flex-col">
+              <div className="mb-4">
+                <div className="w-14 h-14 rounded-full bg-accent/10 dark:bg-accent/20 flex items-center justify-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-accent"
+                    className="h-7 w-7 text-accent"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -726,32 +759,40 @@ const CurrencyConverter = () => {
                     />
                   </svg>
                 </div>
-                <h4 className="text-lg font-bold mb-1 text-gray-800 dark:text-white/90">
+              </div>
+              <div className="flex-grow">
+                <h4 className="text-xl font-bold mb-3 text-gray-800 dark:text-white/90">
                   Mobile Alerts
                 </h4>
                 <p className="text-gray-600 dark:text-white/70">
                   Set rate alerts and get notified when your target exchange
-                  rate is reached.
+                  rate is reached, allowing you to make exchanges at the best
+                  possible time.
                 </p>
               </div>
-
-              <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300">
-                <div className="w-12 h-12 rounded-full bg-primary/10 dark:bg-primary-content/20 flex items-center justify-center mb-4">
+            </div>
+            {/* Market Analysis */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 h-full flex flex-col">
+              <div className="mb-4">
+                <div className="w-14 h-14 rounded-full bg-primary/10 dark:bg-primary-content/20 flex items-center justify-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-primary dark:text-primary-content"
+                    className="h-7 w-7 text-primary dark:text-primary-content"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
                     <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                   </svg>
                 </div>
-                <h4 className="text-lg font-bold mb-1 text-gray-800 dark:text-white/90">
+              </div>
+              <div className="flex-grow">
+                <h4 className="text-xl font-bold mb-3 text-gray-800 dark:text-white/90">
                   Market Analysis
                 </h4>
                 <p className="text-gray-600 dark:text-white/70">
                   Access expert currency market analysis and forecasts to make
-                  informed decisions.
+                  informed decisions about your international transfers and
+                  investments.
                 </p>
               </div>
             </div>

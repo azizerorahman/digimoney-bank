@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { signOut } from "firebase/auth";
@@ -44,10 +44,10 @@ const NavBar = ({ setDarkMode, darkMode }) => {
       className={`fixed top-0 w-full z-50 transition-all duration-300 dark:text-white/90 ${
         scrolled
           ? "bg-white/90 dark:bg-gray-900/90 backdrop-blur-md text-gray-800 dark:text-white shadow-md"
-          : "bg-gradient-to-r from-indigo-900 to-blue-900 text-white"
+          : "bg-primary dark:from-gray-900 dark:via-primary dark:to-gray-800 text-white"
       }`}
     >
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo and Brand */}
           <Link

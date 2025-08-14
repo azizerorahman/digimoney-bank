@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 const HowItWorks = () => {
@@ -8,8 +8,9 @@ const HowItWorks = () => {
   const descriptionRef = useRef(null);
   const stepsRef = useRef(null);
   const imageRef = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
 
-  // Intersection Observer for scroll animations
+  // Intersection Observer for scroll animations with improved performance
   useEffect(() => {
     const section = sectionRef.current;
     const heading = headingRef.current;
@@ -32,72 +33,94 @@ const HowItWorks = () => {
       item.style.transform = "translateY(30px)";
     });
 
-    // Create observer
+    // Create observer with better options for performance
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          // Animate heading
-          setTimeout(() => {
-            heading.style.transition = "opacity 0.6s ease, transform 0.6s ease";
-            heading.style.opacity = "1";
-            heading.style.transform = "translateY(0)";
-          }, 200);
-
-          // Animate description
-          setTimeout(() => {
-            description.style.transition =
-              "opacity 0.6s ease, transform 0.6s ease";
-            description.style.opacity = "1";
-            description.style.transform = "translateY(0)";
-          }, 400);
-
-          // Animate image
-          setTimeout(() => {
-            image.style.transition = "opacity 0.8s ease, transform 0.8s ease";
-            image.style.opacity = "1";
-            image.style.transform = "translateX(0)";
-          }, 600);
-
-          // Animate step items with staggered delay
-          stepItems.forEach((item, index) => {
-            setTimeout(() => {
-              item.style.transition = "opacity 0.5s ease, transform 0.5s ease";
-              item.style.opacity = "1";
-              item.style.transform = "translateY(0)";
-            }, 800 + index * 200);
-          });
-
-          // Disconnect after animation
+          setIsVisible(true);
           observer.disconnect();
         }
       },
-      { threshold: 0.2 }
+      {
+        threshold: 0.15,
+        rootMargin: "0px 0px -10% 0px", // Trigger slightly before fully in view
+      }
     );
 
     observer.observe(section);
 
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
+    // Animation sequence when visible
+    if (isVisible) {
+      // Animate heading with spring-like motion
+      setTimeout(() => {
+        heading.style.transition =
+          "opacity 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1)";
+        heading.style.opacity = "1";
+        heading.style.transform = "translateY(0)";
+      }, 100);
+
+      // Animate description with improved easing
+      setTimeout(() => {
+        description.style.transition =
+          "opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)";
+        description.style.opacity = "1";
+        description.style.transform = "translateY(0)";
+      }, 250);
+
+      // Animate image with subtle bounce
+      setTimeout(() => {
+        image.style.transition =
+          "opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)";
+        image.style.opacity = "1";
+        image.style.transform = "translateX(0)";
+      }, 400);
+
+      // Animate step items with optimized staggered delay
+      stepItems.forEach((item, index) => {
+        setTimeout(() => {
+          item.style.transition =
+            "opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)";
+          item.style.opacity = "1";
+          item.style.transform = "translateY(0)";
+        }, 600 + index * 150);
+      });
+    }
+
+    // Cleanup observer
+    return () => observer.disconnect();
+  }, [isVisible]);
 
   return (
     <section
       ref={sectionRef}
-      className="py-16 md:py-24 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 overflow-hidden"
+      className="py-20 md:py-28 lg:py-32 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 overflow-hidden relative"
+      aria-label="How DigiMoney Works Section"
     >
-      <div className="container mx-auto px-4">
+      {/* Decorative elements */}
+      <div className="absolute top-40 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-20 right-0 w-80 h-80 bg-accent/5 rounded-full blur-3xl"></div>
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 relative z-10">
         {/* Section heading */}
-        <div className="text-center mb-12 md:mb-16">
+        <div className="text-center mb-16 md:mb-20">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 dark:bg-primary/20 mb-5">
+            <span className="text-sm font-medium text-primary dark:text-primary-content">
+              Simple Process
+            </span>
+          </div>
           <h2
             ref={headingRef}
-            className="text-3xl md:text-4xl font-bold mb-4 text-gray-800 dark:text-white/90"
+            className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 text-gray-800 dark:text-white/90 tracking-tight"
           >
-            How <span className="text-primary dark:text-primary-content">DigiMoney</span> Works for You
+            How{" "}
+            <span className="text-primary dark:text-primary-content">
+              DigiMoney
+            </span>{" "}
+            Works for You
           </h2>
           <p
             ref={descriptionRef}
-            className="max-w-2xl mx-auto text-gray-600 dark:text-white/70 text-lg"
+            className="max-w-2xl mx-auto text-gray-600 dark:text-white/70 text-lg leading-relaxed"
           >
             Our seamless digital banking experience is designed to make your
             financial journey simple, secure, and rewarding from day one.
