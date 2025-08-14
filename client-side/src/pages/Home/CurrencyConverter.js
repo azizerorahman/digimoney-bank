@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import LoadingSpinner from "../../components/Loading";
 
 const CurrencyConverter = () => {
   // Create refs for animation elements
@@ -144,13 +145,7 @@ const CurrencyConverter = () => {
         setConvertedAmount((amount * rates[toCurrency]).toFixed(2));
 
         // Set popular rates (against selected base currency)
-        const popularCurrencies = [
-          "EUR",
-          "GBP",
-          "JPY",
-          "CAD",
-          "CNY",
-        ];
+        const popularCurrencies = ["EUR", "GBP", "JPY", "CAD", "CNY"];
         const popularRatesData = {};
         popularCurrencies.forEach((curr) => {
           if (curr !== fromCurrency && rates[curr]) {
@@ -605,8 +600,8 @@ const CurrencyConverter = () => {
             {/* Result */}
             <div className="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-xl border border-gray-100 dark:border-gray-600 mt-8">
               {isLoading ? (
-                <div className="flex justify-center items-center h-24">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary dark:border-accent"></div>
+                <div className="h-24">
+                  <LoadingSpinner size="md" color="primary" />
                 </div>
               ) : error ? (
                 <div className="text-center text-red-500 dark:text-red-400 py-4">
@@ -643,8 +638,8 @@ const CurrencyConverter = () => {
                 Popular Exchange Rates
               </h3>
               {isLoading ? (
-                <div className="flex justify-center items-center h-24">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary dark:border-accent"></div>
+                <div className="h-24">
+                  <LoadingSpinner size="md" color="primary" />
                 </div>
               ) : (
                 <div className="space-y-4">

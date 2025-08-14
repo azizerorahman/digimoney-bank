@@ -1,13 +1,9 @@
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
+import LoadingSpinner from "../../../components/Loading";
+import AnimatedSection from "../../../components/AnimatedSection";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 const LoanAndMortgageManagement = () => {
   const sectionRef = useRef(null);
@@ -19,12 +15,17 @@ const LoanAndMortgageManagement = () => {
 
   const uId = localStorage.getItem("userId");
   const [accounts, setAccounts] = useState([]);
-  const [accountsLoading, setAccountsLoading] = useState(false);
+
+  // Consolidated loading state
+  const [pageLoading, setPageLoading] = useState(true);
 
   useEffect(() => {
     const fetchAccounts = async () => {
-      if (!uId) return;
-      setAccountsLoading(true);
+      if (!uId) {
+        setPageLoading(false);
+        return;
+      }
+
       try {
         const token = localStorage.getItem("accessToken");
         const res = await axios.get(
@@ -44,12 +45,18 @@ const LoanAndMortgageManagement = () => {
         }
       } catch (error) {
         toast.error("Failed to fetch accounts");
-      } finally {
-        setAccountsLoading(false);
       }
     };
     fetchAccounts();
   }, [uId]);
+
+  // Consolidated loading management
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPageLoading(false);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
 
   const currentUser = {
     id: 1,
@@ -1311,16 +1318,7 @@ const LoanAndMortgageManagement = () => {
 
   console.log("sfsfb", selectedAccount);
 
-
   // Budget Management Functions
-
-
-
-
-
-
-
-
 
   // Update actual spending for budgets based on current transactions
 
@@ -1332,29 +1330,9 @@ const LoanAndMortgageManagement = () => {
 
   // Get account type color
 
-
-
-
-
-
-
-
-
-
-
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Simulate loading
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
   // Intersection Observer for scroll animations
   useEffect(() => {
-    if (isLoading || accountsLoading) return;
+    if (pageLoading) return;
 
     const section = sectionRef.current;
     const heading = headingRef.current;
@@ -1451,32 +1429,19 @@ const LoanAndMortgageManagement = () => {
     return () => {
       observer.disconnect();
     };
-  }, [accountsLoading, isLoading]);
+  }, [pageLoading]);
 
-
-
-
-
-
-
-
-  if (isLoading) {
+  // Single loading screen for better UX
+  if (pageLoading) {
     return (
-      <section className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden">
-        <div className="container mx-auto max-w-7xl">
-          <div className="animate-pulse">
-          <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-<div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
-<div className="h-48 bg-gray-300 dark:bg-gray-700 rounded-2xl mb-8"></div>
-            <div className="grid lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="h-32 bg-gray-300 dark:bg-gray-700 rounded-2xl"
-                ></div>
-              ))}
-            </div>
-          </div>
+      <section className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden min-h-screen">
+        <div className="container mx-auto max-w-7xl py-20">
+          <LoadingSpinner
+            size="xl"
+            color="primary"
+            text="Loading Loan Management..."
+            fullscreen
+          />
         </div>
       </section>
     );
@@ -1486,16 +1451,16 @@ const LoanAndMortgageManagement = () => {
     <section>
       <div className="max-w-7xl mx-auto">
         <section className="mt-12">
-        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">
-        Loan & Mortgage{" "}
-                <span className="text-[#6160DC] dark:text-[#8B7EFF]">
-                Management
-                </span>
-              </h2>
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">
+            Loan & Mortgage{" "}
+            <span className="text-[#6160DC] dark:text-[#8B7EFF]">
+              Management
+            </span>
+          </h2>
 
           {/* Outstanding Balance with Full Circle Gauge */}
           <div className="grid lg:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
+            <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
               <h3 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
                 Outstanding Balance
               </h3>
@@ -1533,14 +1498,13 @@ const LoanAndMortgageManagement = () => {
 
                   {/* Center Content - More space due to larger inner radius */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div className="text-xl font-bold text-gray-800 dark:text-white mb-2">
-  ${currentUser.loans[0].currentBalance.toLocaleString()}
-</div>
-<div className="text-base text-gray-500 dark:text-gray-400 font-medium">
-  Remaining
-</div>
-<div className="text-sm text-green-600 dark:text-green-400 font-semibold mt-2">
-
+                    <div className="text-xl font-bold text-gray-800 dark:text-white mb-2">
+                      ${currentUser.loans[0].currentBalance.toLocaleString()}
+                    </div>
+                    <div className="text-base text-gray-500 dark:text-gray-400 font-medium">
+                      Remaining
+                    </div>
+                    <div className="text-sm text-green-600 dark:text-green-400 font-semibold mt-2">
                       {(
                         ((currentUser.loans[0].originalAmount -
                           currentUser.loans[0].currentBalance) /
@@ -1554,15 +1518,16 @@ const LoanAndMortgageManagement = () => {
 
                 {/* Progress Stats */}
                 <div className="text-center space-y-3 w-full">
-                <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-  <span className="text-sm text-gray-600 dark:text-gray-400">Total Loan</span>
-  <span className="font-semibold text-gray-800 dark:text-white">
-    ${currentUser.loans[0].originalAmount.toLocaleString()}
-  </span>
-</div>
+                  <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Total Loan
+                    </span>
+                    <span className="font-semibold text-gray-800 dark:text-white">
+                      ${currentUser.loans[0].originalAmount.toLocaleString()}
+                    </span>
+                  </div>
 
-
-<div className="text-xs text-gray-400 dark:text-gray-500">
+                  <div className="text-xs text-gray-400 dark:text-gray-500">
                     $
                     {(
                       currentUser.loans[0].originalAmount -
@@ -1576,7 +1541,7 @@ const LoanAndMortgageManagement = () => {
 
             {/* Payment Schedule Timeline */}
             <div className="lg:col-span-2 bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
-            <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
+              <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
                 Payment Schedule Timeline
               </h3>
               <div className="space-y-4">
@@ -1591,8 +1556,10 @@ const LoanAndMortgageManagement = () => {
                         <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                         <div className="flex-1">
                           <div className="flex justify-between">
-                          <span className="font-medium text-gray-800 dark:text-white">{payment.date}</span>
-<span className="text-green-600 dark:text-green-400 font-bold">
+                            <span className="font-medium text-gray-800 dark:text-white">
+                              {payment.date}
+                            </span>
+                            <span className="text-green-600 dark:text-green-400 font-bold">
                               ${payment.amount.toLocaleString()}
                             </span>
                           </div>
@@ -1606,9 +1573,9 @@ const LoanAndMortgageManagement = () => {
 
                 {/* Upcoming Payments */}
                 <div className="border-t pt-4">
-                <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">
-  Upcoming Payments
-</h4>
+                  <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Upcoming Payments
+                  </h4>
                   {["2025-07-01", "2025-08-01", "2025-09-01"].map(
                     (date, index) => (
                       <div
@@ -1618,8 +1585,10 @@ const LoanAndMortgageManagement = () => {
                         <div className="w-3 h-3 bg-red-600 rounded-full"></div>
                         <div className="flex-1">
                           <div className="flex justify-between">
-                          <span className="font-medium text-gray-800 dark:text-white">{date}</span>
-<span className="font-bold text-gray-800 dark:text-white">
+                            <span className="font-medium text-gray-800 dark:text-white">
+                              {date}
+                            </span>
+                            <span className="font-bold text-gray-800 dark:text-white">
                               $
                               {currentUser.loans[0].monthlyPayment.toLocaleString()}
                             </span>
@@ -1675,25 +1644,27 @@ const LoanAndMortgageManagement = () => {
               </div>
 
               <div className="space-y-6">
-              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-  <h4 className="font-bold text-green-800 dark:text-green-400">
-    Total Principal Paid
-  </h4>
-  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <h4 className="font-bold text-green-800 dark:text-green-400">
+                    Total Principal Paid
+                  </h4>
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                     ${currentUser.loans[0].principalPaid.toLocaleString()}
                   </p>
                 </div>
                 <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-  <h4 className="font-bold text-yellow-800 dark:text-yellow-400">
-    Total Interest Paid
-  </h4>
-  <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                  <h4 className="font-bold text-yellow-800 dark:text-yellow-400">
+                    Total Interest Paid
+                  </h4>
+                  <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                     ${currentUser.loans[0].interestPaid.toLocaleString()}
                   </p>
                 </div>
                 <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-  <h4 className="font-bold text-blue-800 dark:text-blue-400">Interest Savings</h4>
-  <p className="text-sm text-blue-600 dark:text-blue-400">
+                  <h4 className="font-bold text-blue-800 dark:text-blue-400">
+                    Interest Savings
+                  </h4>
+                  <p className="text-sm text-blue-600 dark:text-blue-400">
                     Early payments could save $
                     {(
                       currentUser.loans[0].currentBalance * 0.15
@@ -1705,7 +1676,6 @@ const LoanAndMortgageManagement = () => {
             </div>
           </div>
         </section>
-
       </div>
     </section>
   );

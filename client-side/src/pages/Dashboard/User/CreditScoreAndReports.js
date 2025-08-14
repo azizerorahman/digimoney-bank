@@ -1,6 +1,8 @@
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import LoadingSpinner from "../../../components/Loading";
+import AnimatedSection from "../../../components/AnimatedSection";
 import {
   PieChart,
   Pie,
@@ -25,12 +27,17 @@ const CreditScoreAndReports = () => {
 
   const uId = localStorage.getItem("userId");
   const [accounts, setAccounts] = useState([]);
-  const [accountsLoading, setAccountsLoading] = useState(false);
+
+  // Consolidated loading state
+  const [pageLoading, setPageLoading] = useState(true);
 
   useEffect(() => {
     const fetchAccounts = async () => {
-      if (!uId) return;
-      setAccountsLoading(true);
+      if (!uId) {
+        setPageLoading(false);
+        return;
+      }
+
       try {
         const token = localStorage.getItem("accessToken");
         const res = await axios.get(
@@ -42,7 +49,6 @@ const CreditScoreAndReports = () => {
             },
           }
         );
-        // The API returns { success, accounts }
         if (res.data && res.data.success) {
           setAccounts(res.data.accounts);
         } else {
@@ -50,12 +56,18 @@ const CreditScoreAndReports = () => {
         }
       } catch (error) {
         toast.error("Failed to fetch accounts");
-      } finally {
-        setAccountsLoading(false);
       }
     };
     fetchAccounts();
   }, [uId]);
+
+  // Consolidated loading management
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPageLoading(false);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
 
   const currentUser = {
     id: 1,
@@ -1317,19 +1329,9 @@ const CreditScoreAndReports = () => {
 
   console.log("sfsfb", selectedAccount);
 
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Simulate loading
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
   // Intersection Observer for scroll animations
   useEffect(() => {
-    if (isLoading || accountsLoading) return;
+    if (pageLoading) return;
 
     const section = sectionRef.current;
     const heading = headingRef.current;
@@ -1426,25 +1428,19 @@ const CreditScoreAndReports = () => {
     return () => {
       observer.disconnect();
     };
-  }, [accountsLoading, isLoading]);
+  }, [pageLoading]);
 
-  if (isLoading) {
+  // Single loading screen for better UX
+  if (pageLoading) {
     return (
-      <section className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden">
-        <div className="container mx-auto max-w-7xl">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-            <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
-            <div className="h-48 bg-gray-300 dark:bg-gray-700 rounded-2xl mb-8"></div>
-            <div className="grid lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="h-32 bg-gray-300 dark:bg-gray-700 rounded-2xl"
-                ></div>
-              ))}
-            </div>
-          </div>
+      <section className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden min-h-screen">
+        <div className="container mx-auto max-w-7xl py-20">
+          <LoadingSpinner
+            size="xl"
+            color="primary"
+            text="Loading Credit Report..."
+            fullscreen
+          />
         </div>
       </section>
     );
@@ -1454,12 +1450,10 @@ const CreditScoreAndReports = () => {
     <section>
       <div className="max-w-7xl mx-auto">
         <section className="mt-12">
-        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">
-        Credit Score &{" "}
-                <span className="text-[#6160DC] dark:text-[#8B7EFF]">
-                Reports
-                </span>
-              </h2>
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">
+            Credit Score &{" "}
+            <span className="text-[#6160DC] dark:text-[#8B7EFF]">Reports</span>
+          </h2>
 
           {/* Credit Score Trend Line Chart */}
           <div
@@ -1569,17 +1563,21 @@ const CreditScoreAndReports = () => {
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-3xl font-bold text-gray-800 dark:text-white">
-  {currentUser.creditHistory?.utilizationRate || 23.4}%
-</span>
-<span className="text-sm text-gray-500 dark:text-gray-400">Utilized</span>
+                    <span className="text-3xl font-bold text-gray-800 dark:text-white">
+                      {currentUser.creditHistory?.utilizationRate || 23.4}%
+                    </span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      Utilized
+                    </span>
                   </div>
                 </div>
 
                 <div className="w-full space-y-2">
                   <div className="flex justify-between text-sm">
-                  <span className="text-gray-800 dark:text-gray-300">Total Credit Used</span>
-<span className="font-bold text-gray-800 dark:text-white">
+                    <span className="text-gray-800 dark:text-gray-300">
+                      Total Credit Used
+                    </span>
+                    <span className="font-bold text-gray-800 dark:text-white">
                       $
                       {(
                         currentUser.creditHistory?.totalCreditUsed || 5850
@@ -1587,8 +1585,10 @@ const CreditScoreAndReports = () => {
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                  <span className="text-gray-800 dark:text-gray-300">Total Credit Limit</span>
-<span className="font-bold text-gray-800 dark:text-white">
+                    <span className="text-gray-800 dark:text-gray-300">
+                      Total Credit Limit
+                    </span>
+                    <span className="font-bold text-gray-800 dark:text-white">
                       $
                       {(
                         currentUser.creditHistory?.totalCreditLimit || 25000
@@ -1596,8 +1596,10 @@ const CreditScoreAndReports = () => {
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                  <span className="text-gray-800 dark:text-gray-300">Available Credit</span>
-<span className="font-bold text-green-600 dark:text-green-400">
+                    <span className="text-gray-800 dark:text-gray-300">
+                      Available Credit
+                    </span>
+                    <span className="font-bold text-green-600 dark:text-green-400">
                       $
                       {(
                         (currentUser.creditHistory?.totalCreditLimit || 25000) -
@@ -1612,8 +1614,8 @@ const CreditScoreAndReports = () => {
 
           {/* Visual Alerts Section */}
           <h2 className="text-3xl font-bold mb-8 text-gray-800 dark:text-white">
-  Alerts & Notifications
-</h2>
+            Alerts & Notifications
+          </h2>
           <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 transition-all duration-300">
             <h3 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
               Credit Alerts & Notifications
@@ -1624,12 +1626,12 @@ const CreditScoreAndReports = () => {
                   key={index}
                   className={`p-4 rounded-lg border-l-4 ${
                     alert.type === "warning"
-  ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400"
-  : alert.type === "success"
-  ? "bg-green-50 dark:bg-green-900/20 border-green-400"
-  : alert.type === "danger"
-  ? "bg-red-50 dark:bg-red-900/20 border-red-400"
-  : "bg-blue-50 dark:bg-blue-900/20 border-blue-400"
+                      ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400"
+                      : alert.type === "success"
+                      ? "bg-green-50 dark:bg-green-900/20 border-green-400"
+                      : alert.type === "danger"
+                      ? "bg-red-50 dark:bg-red-900/20 border-red-400"
+                      : "bg-blue-50 dark:bg-blue-900/20 border-blue-400"
                   }`}
                 >
                   <div className="flex items-start space-x-3">
@@ -1685,9 +1687,15 @@ const CreditScoreAndReports = () => {
                       </svg>
                     </div>
                     <div className="flex-1">
-                    <h4 className="font-bold text-gray-800 dark:text-white">{alert.title}</h4>
-<p className="text-sm text-gray-600 dark:text-gray-300">{alert.message}</p>
-<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{alert.date}</p>
+                      <h4 className="font-bold text-gray-800 dark:text-white">
+                        {alert.title}
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        {alert.message}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {alert.date}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1699,11 +1707,11 @@ const CreditScoreAndReports = () => {
                 <div className="text-center py-8">
                   <div className="text-4xl mb-4">🔔</div>
                   <div className="text-lg font-medium mb-2 text-gray-800 dark:text-white">
-  No Recent Alerts
-</div>
-<div className="text-sm text-gray-600 dark:text-gray-300">
-  Your credit profile is stable with no recent changes
-</div>
+                    No Recent Alerts
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">
+                    Your credit profile is stable with no recent changes
+                  </div>
                 </div>
               )}
             </div>
