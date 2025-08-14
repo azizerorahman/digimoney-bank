@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { signOut } from "firebase/auth";
@@ -9,6 +9,8 @@ const NavBar = ({ setDarkMode, darkMode }) => {
   const [user] = useAuthState(auth);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [navVisible, setNavVisible] = useState(false);
+  const navRef = useRef(null);
   const location = useLocation();
 
   // Handle scroll effect for header background
@@ -16,9 +18,34 @@ const NavBar = ({ setDarkMode, darkMode }) => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 5);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Animate NavBar in sync with Header (fade in, slide down)
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    nav.style.opacity = "0";
+    nav.style.transform = "translateY(-24px)";
+    // Use IntersectionObserver to trigger animation when in viewport
+    const observer = new window.IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setTimeout(() => {
+            nav.style.transition =
+              "opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)";
+            nav.style.opacity = "1";
+            nav.style.transform = "translateY(0)";
+            setNavVisible(true);
+          }, 100);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(nav);
+    return () => observer.disconnect();
   }, []);
 
   // Handle dark mode toggle
@@ -41,11 +68,16 @@ const NavBar = ({ setDarkMode, darkMode }) => {
 
   return (
     <header
+      ref={navRef}
       className={`fixed top-0 w-full z-50 transition-all duration-300 dark:text-white/90 ${
         scrolled
           ? "bg-white/90 dark:bg-gray-900/90 backdrop-blur-md text-gray-800 dark:text-white shadow-md"
           : "bg-primary dark:from-gray-900 dark:via-primary dark:to-gray-800 text-white"
       }`}
+      style={{
+        opacity: navVisible ? 1 : 0,
+        transform: navVisible ? "translateY(0)" : "translateY(-24px)",
+      }}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
         <div className="flex items-center justify-between h-16 md:h-20">
