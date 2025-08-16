@@ -49,12 +49,15 @@ const Dashboard = () => {
   useEffect(() => {
     if (pathname === "/dashboard" && userInfo && !isLoading) {
       // Get user roles as an array
-      const roles = Array.isArray(userInfo.role) ? userInfo.role : [userInfo.role];
-      
+      const roles = Array.isArray(userInfo.role)
+        ? userInfo.role
+        : [userInfo.role];
+
       // Get active role (from localStorage or default to first role)
       const savedRole = localStorage.getItem("activeRole");
-      const currentRole = (savedRole && roles.includes(savedRole)) ? savedRole : roles[0];
-      
+      const currentRole =
+        savedRole && roles.includes(savedRole) ? savedRole : roles[0];
+
       // Redirect based on role
       switch (currentRole) {
         case "user":
@@ -96,7 +99,10 @@ const Dashboard = () => {
       if (Array.isArray(userInfo.role) && !userInfo.role.includes(activeRole)) {
         setActiveRole(userInfo.role[0]);
         localStorage.setItem("activeRole", userInfo.role[0]);
-      } else if (typeof userInfo.role === 'string' && userInfo.role !== activeRole) {
+      } else if (
+        typeof userInfo.role === "string" &&
+        userInfo.role !== activeRole
+      ) {
         setActiveRole(userInfo.role);
         localStorage.setItem("activeRole", userInfo.role);
       }
@@ -193,7 +199,7 @@ const Dashboard = () => {
       },
       {
         title: "Recommendations",
-        path: "/dashboard/user/comparison-and-recommendation",
+        path: "/dashboard/user/recommendation",
         src: <MdRateReview className="w-5 h-5" />,
         description: "View financial recommendations",
       },
@@ -469,9 +475,7 @@ const Dashboard = () => {
                   </svg>
                 </div>
                 {open && (
-                  <h1 className="text-xl font-bold text-white">
-                    Banking App
-                  </h1>
+                  <h1 className="text-xl font-bold text-white">Banking App</h1>
                 )}
               </div>
 
@@ -563,9 +567,7 @@ const Dashboard = () => {
                   <div className="min-w-[28px] flex justify-center">
                     <FiLogOut className="w-5 h-5" />
                   </div>
-                  {open && (
-                    <span className="mx-4 font-medium">Logout</span>
-                  )}
+                  {open && <span className="mx-4 font-medium">Logout</span>}
                 </button>
               </div>
             </aside>

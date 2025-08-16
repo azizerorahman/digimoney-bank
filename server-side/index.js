@@ -553,7 +553,6 @@ async function run() {
     app.get("/budgets", verifyJWT, async (req, res) => {
       try {
         const userId = req.query.uId;
-        console.log("User ID from token:", userId);
         const budget = await budgetsCollection.findOne({ userId });
         if (!budget) {
           return res
@@ -899,13 +898,36 @@ async function run() {
 
     app.get("/notifications", verifyJWT, async (req, res) => {
       try {
-        const notifications = await db
-          .collection("notifications")
-          .find({})
-          .toArray();
-        res.send({ success: true, notifications });
+      const userId = req.query.uId;
+      if (!userId) {
+        return res.status(400).send({ success: false, message: "User ID is required" });
+      }
+      const notifications = await db
+        .collection("notifications")
+        .find({ userId })
+        .toArray();
+      res.send({ success: true, notifications });
       } catch (error) {
-        console.error("Error fetching notifications:", error);
+      console.error("Error fetching notifications:", error);
+      res
+        .status(500)
+        .send({ success: false, message: "Internal server error" });
+      }
+    });
+
+    app.get("/recommendations", verifyJWT, async (req, res) => {
+      try {
+        const userId = req.query.uId;
+        if (!userId) {
+          return res.status(400).send({ success: false, message: "User ID is required" });
+        }
+        const recommendations = await db
+          .collection("recommendations")
+          .find({ userId })
+          .toArray();
+        res.send({ success: true, recommendations });
+      } catch (error) {
+        console.error("Error fetching recommendations:", error);
         res
           .status(500)
           .send({ success: false, message: "Internal server error" });

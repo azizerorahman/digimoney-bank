@@ -16,7 +16,7 @@ import User from "./pages/Dashboard/User/";
 import UserDashboard from "./pages/Dashboard/User/UserDashboard";
 import AlertsAndNotifications from "./pages/Dashboard/User/AlertsAndNotifications";
 import BudgetManagement from "./pages/Dashboard/User/BudgetManagement";
-import ComparisonAndRecommendations from "./pages/Dashboard/User/ComparisonAndRecommendations";
+import Recommendations from "./pages/Dashboard/User/Recommendations";
 import CreditScoreAndReports from "./pages/Dashboard/User/CreditScoreAndReports";
 import InsuranceCoverage from "./pages/Dashboard/User/InsuranceCoverage";
 import InvestmentPortfolio from "./pages/Dashboard/User/InvestmentPortfolio";
@@ -92,22 +92,28 @@ function App() {
     if (isLoading) {
       return <LoadingSpinner fullscreen overlay />;
     }
-    
+
     // If no user info or no user is logged in, redirect to login
     if (!user || !userInfo) {
       return <Navigate to="/login" replace />;
     }
-    
+
     // If user has no roles, redirect to login (should not happen, but just in case)
-    if (!userInfo.role || (Array.isArray(userInfo.role) && userInfo.role.length === 0)) {
+    if (
+      !userInfo.role ||
+      (Array.isArray(userInfo.role) && userInfo.role.length === 0)
+    ) {
       return <Navigate to="/login" replace />;
     }
-    
+
     // Get the active role (either from localStorage or first available role)
-    const roles = Array.isArray(userInfo.role) ? userInfo.role : [userInfo.role];
+    const roles = Array.isArray(userInfo.role)
+      ? userInfo.role
+      : [userInfo.role];
     const savedRole = localStorage.getItem("activeRole");
-    const activeRole = (savedRole && roles.includes(savedRole)) ? savedRole : roles[0];
-    
+    const activeRole =
+      savedRole && roles.includes(savedRole) ? savedRole : roles[0];
+
     // Redirect based on active role
     switch (activeRole) {
       case "user":
@@ -136,11 +142,10 @@ function App() {
 
         <Route path="/dashboard" element={<Dashboard />}>
           {/* Default dashboard route redirects based on role */}
-          <Route index element={
-            <ProtectedRoute>
-              {getDashboardRedirect()}
-            </ProtectedRoute>
-          } />
+          <Route
+            index
+            element={<ProtectedRoute>{getDashboardRedirect()}</ProtectedRoute>}
+          />
 
           {/* User routes */}
           <Route
@@ -157,10 +162,7 @@ function App() {
               element={<AlertsAndNotifications />}
             />
             <Route path="budget-management" element={<BudgetManagement />} />
-            <Route
-              path="comparison-and-recommendation"
-              element={<ComparisonAndRecommendations />}
-            />
+            <Route path="recommendation" element={<Recommendations />} />
             <Route
               path="credit-score-and-reports"
               element={<CreditScoreAndReports />}

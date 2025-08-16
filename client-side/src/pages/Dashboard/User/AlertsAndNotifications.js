@@ -25,6 +25,9 @@ const AlertsAndNotifications = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
+            params: {
+              uId,
+            },
           }
         );
 
