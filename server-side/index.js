@@ -604,7 +604,7 @@ async function run() {
           isActive: isActive !== undefined ? isActive : true,
           description: description || "",
           customCategory: customCategory || undefined,
-          id: budgetId,
+          _id: budgetId,
         };
 
         if (!userBudget) {
@@ -682,7 +682,7 @@ async function run() {
         const result = await budgetsCollection.updateOne(
           {
             userId: uId,
-            "budgets.id": budgetObjId,
+            "budgets._id": budgetObjId,
           },
           {
             $set: {
@@ -712,7 +712,7 @@ async function run() {
         // Get the updated budget to return
         const updatedBudget = await budgetsCollection.findOne(
           { userId: uId },
-          { projection: { budgets: { $elemMatch: { id: budgetObjId } } } }
+          { projection: { budgets: { $elemMatch: { _id: budgetObjId } } } }
         );
 
         res.send({
@@ -751,7 +751,7 @@ async function run() {
         // Remove the budget item from the budgets array
         const result = await budgetsCollection.updateOne(
           { userId: uId },
-          { $pull: { budgets: { id: budgetObjId } } }
+          { $pull: { budgets: { _id: budgetObjId } } }
         );
 
         if (result.matchedCount === 0) {
@@ -800,7 +800,7 @@ async function run() {
         const result = await budgetsCollection.updateOne(
           {
             userId: uId,
-            "budgets.id": budgetObjId,
+            "budgets._id": budgetObjId,
           },
           {
             $set: { "budgets.$.isActive": isActive },
@@ -891,6 +891,21 @@ async function run() {
         });
       } catch (error) {
         console.error("Error updating monthly budget limit:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
+      }
+    });
+
+    app.get("/notifications", verifyJWT, async (req, res) => {
+      try {
+        const notifications = await db
+          .collection("notifications")
+          .find({})
+          .toArray();
+        res.send({ success: true, notifications });
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
         res
           .status(500)
           .send({ success: false, message: "Internal server error" });
