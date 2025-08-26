@@ -60,7 +60,9 @@ async function run() {
     const accountsCollection = db.collection("accounts");
     const transactionsCollection = db.collection("transactions");
     const budgetsCollection = db.collection("budgets");
-    const investmentPortfolioCollection = db.collection("investment-portfolios");
+    const investmentPortfolioCollection = db.collection(
+      "investment-portfolios"
+    );
     const loansCollection = db.collection("loans");
     const insuranceCollection = db.collection("insurances");
 
@@ -156,6 +158,161 @@ async function run() {
         res
           .status(500)
           .send({ success: false, message: "Internal server error" });
+      }
+    });
+
+    // Search recipients endpoint for money transfer
+    app.get("/recipients", verifyJWT, async (req, res) => {
+      try {
+        const { query, currentUserId } = req.query;
+
+        if (!query || query.length < 3) {
+          // Return all recipients if no search query
+          const allUsers = await usersCollection
+            .find(
+              {
+                verified: true,
+                _id: { $ne: new ObjectId(currentUserId) }, // Exclude current user
+              },
+              {
+                projection: {
+                  name: 1,
+                  email: 1,
+                  _id: 1,
+                },
+              }
+            )
+            .toArray();
+
+          // Get accounts for each user
+          const recipientsWithAccounts = await Promise.all(
+            allUsers.map(async (user) => {
+              const accounts = await accountsCollection
+                .find({ userId: user._id.toString() })
+                .toArray();
+
+              return accounts.map((account) => ({
+                id: user._id.toString(),
+                accountNumber: account.accountNumber,
+                name: user.name,
+                email: user.email,
+                bank: "DigiMoney Bank", // Since it's intra-bank
+                type: account.type,
+                accountId: account._id.toString(),
+              }));
+            })
+          );
+
+          const flattenedRecipients = recipientsWithAccounts.flat();
+          return res.send({ success: true, recipients: flattenedRecipients });
+        }
+
+        // Search functionality
+        const searchRegex = new RegExp(query, "i");
+        const users = await usersCollection
+          .find(
+            {
+              verified: true,
+              _id: { $ne: new ObjectId(currentUserId) }, // Exclude current user
+              $or: [
+                { name: { $regex: searchRegex } },
+                { email: { $regex: searchRegex } },
+              ],
+            },
+            {
+              projection: {
+                name: 1,
+                email: 1,
+                _id: 1,
+              },
+            }
+          )
+          .toArray();
+
+        // Get accounts for matching users and also search by account number
+        const accountMatches = await accountsCollection
+          .find({
+            $or: [
+              { accountNumber: { $regex: searchRegex } },
+              { accountName: { $regex: searchRegex } },
+            ],
+          })
+          .toArray();
+
+        // Get user details for account matches
+        const accountUserIds = accountMatches.map((acc) => acc.userId);
+        const accountUsers = await usersCollection
+          .find(
+            {
+              _id: { $in: accountUserIds.map((id) => new ObjectId(id)) },
+              verified: true,
+              _id: { $ne: new ObjectId(currentUserId) },
+            },
+            {
+              projection: {
+                name: 1,
+                email: 1,
+                _id: 1,
+              },
+            }
+          )
+          .toArray();
+
+        // Combine user search results with their accounts
+        const userRecipients = await Promise.all(
+          users.map(async (user) => {
+            const accounts = await accountsCollection
+              .find({ userId: user._id.toString() })
+              .toArray();
+
+            return accounts.map((account) => ({
+              id: user._id.toString(),
+              accountNumber: account.accountNumber,
+              name: user.name,
+              email: user.email,
+              bank: "DigiMoney Bank",
+              type: account.type,
+              accountId: account._id.toString(),
+            }));
+          })
+        );
+
+        // Add account match results
+        const accountRecipients = accountMatches
+          .filter((account) => account.userId !== currentUserId)
+          .map((account) => {
+            const user = accountUsers.find(
+              (u) => u._id.toString() === account.userId
+            );
+            return user
+              ? {
+                  id: user._id.toString(),
+                  accountNumber: account.accountNumber,
+                  name: user.name,
+                  email: user.email,
+                  bank: "DigiMoney Bank",
+                  type: account.type,
+                  accountId: account._id.toString(),
+                }
+              : null;
+          })
+          .filter(Boolean);
+
+        // Combine and deduplicate results
+        const allRecipients = [...userRecipients.flat(), ...accountRecipients];
+        const uniqueRecipients = allRecipients.filter(
+          (recipient, index, self) =>
+            index ===
+            self.findIndex((r) => r.accountNumber === recipient.accountNumber)
+        );
+
+        res.send({ success: true, recipients: uniqueRecipients });
+      } catch (error) {
+        console.error("Error searching recipients:", error);
+        res.status(500).send({
+          success: false,
+          message: "Failed to search recipients",
+        });
       }
     });
 
@@ -850,19 +1007,22 @@ async function run() {
     app.get("/investment-portfolios", verifyJWT, async (req, res) => {
       try {
         const uId = req.query.uId;
-        
+
         if (!uId) {
           return res
             .status(400)
             .send({ success: false, message: "User ID is required" });
         }
 
-        const portfolio = await investmentPortfolioCollection.findOne({ userId: uId });
-        
+        const portfolio = await investmentPortfolioCollection.findOne({
+          userId: uId,
+        });
+
         if (!portfolio) {
-          return res
-            .status(404)
-            .send({ success: false, message: "Investment portfolio not found" });
+          return res.status(404).send({
+            success: false,
+            message: "Investment portfolio not found",
+          });
         }
 
         res.send({ success: true, portfolio });
@@ -884,10 +1044,8 @@ async function run() {
             .send({ success: false, message: "User ID is required" });
         }
 
-        const loans = await loansCollection
-          .find({ userId: uId })
-          .toArray();
-        
+        const loans = await loansCollection.find({ userId: uId }).toArray();
+
         res.send({ success: true, loans });
       } catch (error) {
         console.error("Error fetching loans:", error);
@@ -908,7 +1066,7 @@ async function run() {
         }
 
         const insurance = await insuranceCollection.findOne({ userId: uId });
-        
+
         if (!insurance) {
           return res
             .status(404)
@@ -924,7 +1082,100 @@ async function run() {
       }
     });
 
+    app.post("/transfer", verifyJWT, async (req, res) => {
+      try {
+        const {
+          fromAccountId,
+          toAccount,
+          recipientName,
+          amount,
+          currency,
+          transferMethod,
+          purpose,
+          description,
+          reference,
+          uId,
+        } = req.body;
 
+        if (!fromAccountId || !toAccount || !recipientName || !amount || !uId) {
+          return res.status(400).send({
+            success: false,
+            message: "Missing required fields",
+          });
+        }
+
+        const senderAccount = await accountsCollection.findOne({
+          _id: new ObjectId(fromAccountId),
+          userId: uId,
+        });
+
+        if (!senderAccount) {
+          return res.status(404).send({
+            success: false,
+            message: "Source account not found",
+          });
+        }
+
+        if (senderAccount.balance < amount) {
+          return res.status(400).send({
+            success: false,
+            message: "Insufficient balance",
+          });
+        }
+
+        const fee = amount > 1000 ? 2.5 : 0;
+        const totalDebit = amount + fee;
+
+        if (senderAccount.balance < totalDebit) {
+          return res.status(400).send({
+            success: false,
+            message: "Insufficient balance including fees",
+          });
+        }
+
+        const transactionId = `TXN${Date.now()}`;
+
+        await accountsCollection.updateOne(
+          { _id: new ObjectId(fromAccountId) },
+          { $inc: { balance: -totalDebit } }
+        );
+
+        const debitTransaction = {
+          userId: uId,
+          accountId: fromAccountId,
+          transactionId: transactionId,
+          type: "transfer",
+          transactionType: "debit",
+          amount: -amount,
+          fee: fee,
+          currency: currency || "USD",
+          description: `Transfer to ${recipientName}`,
+          category: "Transfer",
+          date: new Date().toISOString(),
+          recipientAccount: toAccount,
+          recipientName: recipientName,
+          purpose: purpose,
+          reference: reference,
+          transferMethod: transferMethod,
+          status: "completed",
+        };
+
+        await transactionsCollection.insertOne(debitTransaction);
+
+        res.send({
+          success: true,
+          message: "Transfer completed successfully",
+          transactionId: transactionId,
+          newBalance: senderAccount.balance - totalDebit,
+        });
+      } catch (error) {
+        console.error("Transfer error:", error);
+        res.status(500).send({
+          success: false,
+          message: "Transfer failed",
+        });
+      }
+    });
 
     app.get("/users", async (req, res) => {
       const query = {};

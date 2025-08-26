@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ArrowRight,
   User,
@@ -21,18 +21,25 @@ import {
   EyeOff,
 } from "lucide-react";
 import LoadingSpinner from "../../../components/Loading";
+import { toast } from "react-toastify";
+import axios from "axios";
 
-const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
-  const [transferType, setTransferType] = useState("intra"); // 'intra' or 'inter'
-  const [step, setStep] = useState(1); // 1: Details, 2: Review, 3: Confirmation
+const MoneyTransferForm = ({
+  onClose,
+  onTransferComplete,
+  userAccounts = [],
+}) => {
+  const [transferType, setTransferType] = useState("intra");
+  const [step, setStep] = useState(1);
   const [showAccountSearch, setShowAccountSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [allRecipients, setAllRecipients] = useState([]);
+  const [isLoadingRecipients, setIsLoadingRecipients] = useState(false);
   const [showPin, setShowPin] = useState(false);
   const [errors, setErrors] = useState({});
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Form data state
   const [transferData, setTransferData] = useState({
     fromAccount: "",
     toAccount: "",
@@ -41,7 +48,7 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
     recipientBankCode: "",
     amount: "",
     currency: "USD",
-    transferMethod: "immediate", // 'immediate', 'scheduled'
+    transferMethod: "immediate",
     scheduledDate: "",
     scheduledTime: "",
     purpose: "",
@@ -54,33 +61,14 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
     emailNotification: true,
   });
 
-  // Mock data for accounts and banks
-  const userAccounts = [
-    {
-      id: "ACC-001",
-      accountNumber: "****1234",
-      accountName: "John Doe - Savings",
-      type: "Savings",
-      balance: 15000.0,
-      currency: "USD",
-    },
-    {
-      id: "ACC-002",
-      accountNumber: "****5678",
-      accountName: "John Doe - Checking",
-      type: "Checking",
-      balance: 8500.0,
-      currency: "USD",
-    },
-    {
-      id: "ACC-003",
-      accountNumber: "****9012",
-      accountName: "Business Account",
-      type: "Business",
-      balance: 45000.0,
-      currency: "USD",
-    },
-  ];
+  useEffect(() => {
+    if (userAccounts && userAccounts.length > 0) {
+      setTransferData((prev) => ({
+        ...prev,
+        fromAccount: userAccounts[0]._id,
+      }));
+    }
+  }, [userAccounts]);
 
   const bankList = [
     { code: "BANK001", name: "First National Bank", swift: "FNBKUS33" },
@@ -88,6 +76,39 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
     { code: "BANK003", name: "Metro Trust Bank", swift: "MTBKUS55" },
     { code: "BANK004", name: "Regional Savings Bank", swift: "RSBKUS66" },
   ];
+
+  // Load all recipients when component mounts - but don't display them initially
+  useEffect(() => {
+    const loadAllRecipients = async () => {
+      setIsLoadingRecipients(true);
+      try {
+        const token = localStorage.getItem("accessToken");
+        const currentUserId = localStorage.getItem("userId");
+
+        const response = await axios.get(
+          `${process.env.REACT_APP_API_URL}/recipients`,
+          {
+            params: { currentUserId },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.data && response.data.success) {
+          setAllRecipients(response.data.recipients);
+        }
+      } catch (error) {
+        console.error("Failed to load recipients:", error);
+        // Don't show error toast on component mount, just log it
+        console.log("Recipients will be loaded when searching");
+      } finally {
+        setIsLoadingRecipients(false);
+      }
+    };
+
+    loadAllRecipients();
+  }, []);
 
   const transferPurposes = [
     "Personal Transfer",
@@ -102,49 +123,41 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
     "Other",
   ];
 
-  // Mock search for recipient accounts
-  const searchAccounts = (query) => {
+  const searchAccounts = async (query) => {
+    console.log("Searching for:", query);
     if (query.length < 3) return [];
 
-    const mockResults = [
-      {
-        id: "REC-001",
-        accountNumber: "1234567890",
-        name: "Alice Johnson",
-        bank: "First National Bank",
-        type: "Savings",
-      },
-      {
-        id: "REC-002",
-        accountNumber: "0987654321",
-        name: "Bob Smith",
-        bank: "City Commercial Bank",
-        type: "Checking",
-      },
-      {
-        id: "REC-003",
-        accountNumber: "5555666677",
-        name: "Carol Davis",
-        bank: "Metro Trust Bank",
-        type: "Business",
-      },
-    ];
+    try {
+      const token = localStorage.getItem("accessToken");
+      const currentUserId = localStorage.getItem("userId");
 
-    return mockResults.filter(
-      (result) =>
-        result.name.toLowerCase().includes(query.toLowerCase()) ||
-        result.accountNumber.includes(query)
-    );
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/recipients`,
+        {
+          params: { query, currentUserId },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data && response.data.success) {
+        console.log("Search results:", response.data.recipients);
+        return response.data.recipients;
+      }
+      return [];
+    } catch (error) {
+      console.error("Search error:", error);
+      toast.error("Failed to search recipients");
+      return [];
+    }
   };
-
-  // Handle input changes
   const handleInputChange = (field, value) => {
     setTransferData((prev) => ({
       ...prev,
       [field]: value,
     }));
 
-    // Clear specific error when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({
         ...prev,
@@ -153,18 +166,19 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
     }
   };
 
-  // Handle account search
-  const handleAccountSearch = (query) => {
+  const handleAccountSearch = async (query) => {
+    console.log("handleAccountSearch called with:", query);
     setSearchQuery(query);
     if (query.length >= 3) {
-      const results = searchAccounts(query);
+      const results = await searchAccounts(query);
       setSearchResults(results);
+      console.log("Setting search results:", results);
     } else {
       setSearchResults([]);
+      console.log("Query too short, clearing results");
     }
   };
 
-  // Select recipient from search results
   const selectRecipient = (recipient) => {
     setTransferData((prev) => ({
       ...prev,
@@ -177,7 +191,20 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
     setSearchResults([]);
   };
 
-  // Validate form
+  const fillDemoRecipient = () => {
+    const firstRecipient = allRecipients[0];
+    if (firstRecipient) {
+      setTransferData((prev) => ({
+        ...prev,
+        toAccount: firstRecipient.accountNumber,
+        recipientName: firstRecipient.name,
+        recipientBank: firstRecipient.bank,
+      }));
+    } else {
+      toast.info("No recipients available. Please search for a recipient.");
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -202,9 +229,8 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
     if (!transferData.purpose)
       newErrors.purpose = "Please select transfer purpose";
 
-    // Check if amount exceeds balance
     const selectedAccount = userAccounts.find(
-      (acc) => acc.id === transferData.fromAccount
+      (acc) => acc._id === transferData.fromAccount
     );
     if (
       selectedAccount &&
@@ -217,8 +243,7 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (step === 1) {
@@ -233,31 +258,73 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
         return;
       }
 
+      if (transferData.pin !== "0000") {
+        setErrors({ pin: "Invalid PIN. Use 0000 for demo testing" });
+        return;
+      }
+
       setIsProcessing(true);
 
-      // Simulate processing
-      setTimeout(() => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        const uId = localStorage.getItem("userId");
+
+        const transferPayload = {
+          fromAccountId: transferData.fromAccount,
+          toAccount: transferData.toAccount,
+          recipientName: transferData.recipientName,
+          amount: parseFloat(transferData.amount),
+          currency: transferData.currency,
+          transferMethod: transferData.transferMethod,
+          purpose: transferData.purpose,
+          description: transferData.description,
+          reference: transferData.reference,
+          uId: uId,
+        };
+
+        const response = await axios.post(
+          `${process.env.REACT_APP_API_URL}/transfer`,
+          transferPayload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.data && response.data.success) {
+          setTimeout(() => {
+            setIsProcessing(false);
+            // Don't show toast here - let the parent component handle it
+            onTransferComplete &&
+              onTransferComplete({
+                ...transferData,
+                transactionId:
+                  response.data.transactionId || `TXN${Date.now()}`,
+                status: "completed",
+                timestamp: new Date().toISOString(),
+              });
+          }, 2000);
+        } else {
+          setIsProcessing(false);
+          toast.error(response.data.message || "Transfer failed");
+        }
+      } catch (error) {
         setIsProcessing(false);
-        onTransferComplete &&
-          onTransferComplete({
-            ...transferData,
-            transactionId: `TXN${Date.now()}`,
-            status: "completed",
-            timestamp: new Date().toISOString(),
-          });
-      }, 3000);
+        console.error("Transfer error:", error);
+        toast.error("Transfer failed. Please try again.");
+      }
     }
   };
 
-  // Calculate fees
   const calculateFees = () => {
     const amount = parseFloat(transferData.amount) || 0;
     let fee = 0;
 
     if (transferType === "intra") {
-      fee = amount > 1000 ? 2.5 : 0; // Free for amounts under $1000
+      fee = amount > 1000 ? 2.5 : 0;
     } else {
-      fee = Math.max(5, amount * 0.01); // 1% with minimum $5 for inter-bank
+      fee = Math.max(5, amount * 0.01);
     }
 
     return fee;
@@ -269,7 +336,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        {/* Header */}
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex justify-between items-center">
             <div>
@@ -292,7 +358,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
             </button>
           </div>
 
-          {/* Progress Steps */}
           <div className="flex items-center mt-6 space-x-4">
             <div
               className={`flex items-center ${
@@ -348,10 +413,8 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6">
-          {/* Step 1: Transfer Details */}
           {step === 1 && (
             <div className="space-y-6">
-              {/* Transfer Type Selection */}
               <div>
                 <label className="block text-sm font-medium text-black dark:text-white mb-3">
                   Transfer Type
@@ -404,7 +467,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* From Account */}
                 <div>
                   <label className="block text-sm font-medium text-black dark:text-white mb-2">
                     From Account *
@@ -422,7 +484,7 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
                   >
                     <option value="">Select source account</option>
                     {userAccounts.map((account) => (
-                      <option key={account.id} value={account.id}>
+                      <option key={account._id} value={account._id}>
                         {account.accountName} - {account.accountNumber} ($
                         {account.balance.toLocaleString()})
                       </option>
@@ -435,7 +497,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
                   )}
                 </div>
 
-                {/* To Account */}
                 <div>
                   <label className="block text-sm font-medium text-black dark:text-white mb-2">
                     To Account *
@@ -448,19 +509,29 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
                         handleInputChange("toAccount", e.target.value)
                       }
                       placeholder="Enter account number"
-                      className={`w-full px-3 py-2 pr-10 border rounded-lg text-black dark:text-white bg-white dark:bg-gray-700 ${
+                      className={`w-full px-3 py-2 pr-20 border rounded-lg text-black dark:text-white bg-white dark:bg-gray-700 ${
                         errors.toAccount
                           ? "border-red-500"
                           : "border-gray-300 dark:border-gray-600"
                       }`}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowAccountSearch(true)}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      <Search className="h-4 w-4" />
-                    </button>
+                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex space-x-1">
+                      <button
+                        type="button"
+                        onClick={fillDemoRecipient}
+                        className="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
+                        title="Fill first available recipient for testing"
+                      >
+                        Quick Fill
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowAccountSearch(true)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <Search className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                   {errors.toAccount && (
                     <p className="text-red-500 text-xs mt-1">
@@ -470,7 +541,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
                 </div>
               </div>
 
-              {/* Recipient Details */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-black dark:text-white mb-2">
@@ -535,7 +605,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
                 )}
               </div>
 
-              {/* Amount and Currency */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                   <label className="block text-sm font-medium text-black dark:text-white mb-2">
@@ -583,7 +652,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
                 </div>
               </div>
 
-              {/* Transfer Method */}
               <div>
                 <label className="block text-sm font-medium text-black dark:text-white mb-3">
                   Transfer Method
@@ -639,7 +707,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
                 </div>
               </div>
 
-              {/* Scheduled Transfer Details */}
               {transferData.transferMethod === "scheduled" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -691,7 +758,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
                 </div>
               )}
 
-              {/* Transfer Purpose and Description */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-black dark:text-white mb-2">
@@ -753,7 +819,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
                 />
               </div>
 
-              {/* Options */}
               <div className="space-y-3">
                 <div className="flex items-center">
                   <input
@@ -830,7 +895,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
             </div>
           )}
 
-          {/* Step 2: Review */}
           {step === 2 && (
             <div className="space-y-6">
               <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
@@ -839,7 +903,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
                 </h3>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* From Account Details */}
                   <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
                     <h4 className="font-medium text-black dark:text-white mb-3 flex items-center">
                       <Minus className="h-4 w-4 text-red-500 mr-2" />
@@ -847,7 +910,7 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
                     </h4>
                     {(() => {
                       const fromAccount = userAccounts.find(
-                        (acc) => acc.id === transferData.fromAccount
+                        (acc) => acc._id === transferData.fromAccount
                       );
                       return fromAccount ? (
                         <div className="space-y-2">
@@ -874,7 +937,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
                     })()}
                   </div>
 
-                  {/* To Account Details */}
                   <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
                     <h4 className="font-medium text-black dark:text-white mb-3 flex items-center">
                       <Plus className="h-4 w-4 text-green-500 mr-2" />
@@ -919,7 +981,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
                   </div>
                 </div>
 
-                {/* Amount Breakdown */}
                 <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
                   <h4 className="font-medium text-black dark:text-white mb-3">
                     Amount Breakdown
@@ -955,7 +1016,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
                   </div>
                 </div>
 
-                {/* Transfer Details */}
                 <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
                   <h4 className="font-medium text-black dark:text-white mb-3">
                     Transfer Details
@@ -1010,7 +1070,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
                   </div>
                 </div>
 
-                {/* Notifications */}
                 <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
                   <h4 className="font-medium text-black dark:text-white mb-3">
                     Notification Settings
@@ -1043,7 +1102,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
                   </div>
                 </div>
 
-                {/* Important Notice */}
                 <div className="mt-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
                   <div className="flex items-start">
                     <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mr-3 mt-0.5" />
@@ -1078,7 +1136,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
             </div>
           )}
 
-          {/* Step 3: Confirmation */}
           {step === 3 && (
             <div className="space-y-6">
               {!isProcessing ? (
@@ -1146,11 +1203,12 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
                         <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-3 mt-0.5" />
                         <div>
                           <h5 className="font-medium text-blue-800 dark:text-blue-300">
-                            Security Information
+                            Demo Testing Information
                           </h5>
                           <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">
-                            Your PIN is encrypted and secure. This transaction
-                            will be logged for security purposes.
+                            For demo purposes, use PIN <strong>0000</strong> to
+                            complete the transfer. Your PIN is encrypted and
+                            secure.
                           </p>
                         </div>
                       </div>
@@ -1181,7 +1239,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
             </div>
           )}
 
-          {/* Action Buttons */}
           {!isProcessing && (
             <div className="flex justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
               <div>
@@ -1232,7 +1289,6 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
           )}
         </form>
 
-        {/* Account Search Modal */}
         {showAccountSearch && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4">
@@ -1257,35 +1313,69 @@ const MoneyTransferForm = ({ onClose, onTransferComplete }) => {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => handleAccountSearch(e.target.value)}
-                    placeholder="Search by name or account number"
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
+                    placeholder="Type at least 3 characters to search (name, account, email)"
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700 focus:ring-2 focus:ring-[#6160DC] focus:border-transparent"
                     autoFocus
                   />
                 </div>
 
                 <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {searchResults.length > 0 ? (
-                    searchResults.map((result) => (
-                      <button
-                        key={result.id}
-                        onClick={() => selectRecipient(result)}
-                        className="w-full p-3 text-left border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
-                      >
-                        <div className="font-medium text-black dark:text-white">
-                          {result.name}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          {result.accountNumber} • {result.bank}
-                        </div>
-                      </button>
-                    ))
-                  ) : searchQuery.length >= 3 ? (
+                  {searchQuery.length === 0 ? (
+                    // Show instructions when no search query
                     <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                      No recipients found
+                      <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <div>Search for Recipients</div>
+                      <div className="text-sm mt-1">
+                        Enter at least 3 characters to search by name, account
+                        number, or email
+                      </div>
                     </div>
-                  ) : (
+                  ) : searchQuery.length < 3 ? (
+                    // Search query too short
                     <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                      Enter at least 3 characters to search
+                      <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <div>Keep typing...</div>
+                      <div className="text-sm mt-1">
+                        Enter {3 - searchQuery.length} more character
+                        {3 - searchQuery.length !== 1 ? "s" : ""} to search
+                      </div>
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    // Show search results
+                    <>
+                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-3 px-2">
+                        Found {searchResults.length} recipient
+                        {searchResults.length !== 1 ? "s" : ""}:
+                      </div>
+                      {searchResults.map((result) => (
+                        <button
+                          key={result.accountId}
+                          onClick={() => selectRecipient(result)}
+                          className="w-full p-3 text-left border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <div className="font-medium text-black dark:text-white">
+                            {result.name}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            {result.accountNumber} • {result.bank}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-500">
+                            {result.email} • {result.type} Account
+                          </div>
+                        </button>
+                      ))}
+                    </>
+                  ) : (
+                    // No results found for search query
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <div>No recipients found</div>
+                      <div className="text-sm mt-1">
+                        Try searching by name, account number, or email
+                      </div>
+                      <div className="text-xs mt-2 text-gray-400">
+                        Search term: "{searchQuery}"
+                      </div>
                     </div>
                   )}
                 </div>

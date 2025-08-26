@@ -1,10 +1,9 @@
 import MoneyTransferForm from "./MoneyTransferForm";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import LoadingSpinner from "../../../components/Loading";
-import SmartLoadingWrapper from "../../../components/SmartLoadingWrapper";
 import AnimatedSection from "../../../components/AnimatedSection";
 
 const UserDashboard = ({ userInfo }) => {
@@ -20,15 +19,15 @@ const UserDashboard = ({ userInfo }) => {
   const [transactions, setTransactions] = useState([]);
   const [showTransferForm, setShowTransferForm] = useState(false);
 
-  // Consolidated loading state for better UX
   const [dashboardLoading, setDashboardLoading] = useState(true);
-  const [dataReady, setDataReady] = useState(false);
+  const [accountsLoaded, setAccountsLoaded] = useState(false);
+  const [transactionsLoaded, setTransactionsLoaded] = useState(false);
 
-  // Fetch accounts
   useEffect(() => {
     const fetchAccounts = async () => {
       if (!uId) {
         setDashboardLoading(false);
+        setAccountsLoaded(true);
         return;
       }
 
@@ -49,16 +48,21 @@ const UserDashboard = ({ userInfo }) => {
           toast.error("Failed to fetch accounts");
         }
       } catch (error) {
+        console.error("Failed to fetch accounts:", error);
         toast.error("Failed to fetch accounts");
+      } finally {
+        setAccountsLoaded(true);
       }
     };
     fetchAccounts();
   }, [uId]);
 
-  // Fetch transactions
   useEffect(() => {
     const fetchTransactions = async () => {
-      if (!uId) return;
+      if (!uId) {
+        setTransactionsLoaded(true);
+        return;
+      }
 
       try {
         const token = localStorage.getItem("accessToken");
@@ -77,40 +81,45 @@ const UserDashboard = ({ userInfo }) => {
           toast.error("Failed to fetch transactions");
         }
       } catch (error) {
+        console.error("Failed to fetch transactions:", error);
         toast.error("Failed to fetch transactions");
+      } finally {
+        setTransactionsLoaded(true);
       }
     };
     fetchTransactions();
   }, [uId]);
 
-  console.log(transactions);
-
   const [selectedAccount, setSelectedAccount] = useState(null);
 
-  // Set selectedAccount to the first account when accounts are loaded
   useEffect(() => {
     if (accounts && accounts.length > 0) {
       setSelectedAccount(accounts[0]);
     }
   }, [accounts]);
 
-  console.log("sfsfb", selectedAccount);
-
-  // Consolidated loading management
   useEffect(() => {
-    // Minimum loading time for smooth UX
-    const minLoadingTimer = setTimeout(() => {
-      setDashboardLoading(false);
-      // Small delay for smooth transition
-      setTimeout(() => {
-        setDataReady(true);
-      }, 300);
-    }, 1200);
+    if (accountsLoaded && transactionsLoaded && dashboardLoading) {
+      const timer = setTimeout(() => {
+        setDashboardLoading(false);
+      }, 500);
 
-    return () => clearTimeout(minLoadingTimer);
-  }, []);
+      return () => clearTimeout(timer);
+    }
+  }, [accountsLoaded, transactionsLoaded, dashboardLoading]);
 
-  // Intersection Observer for scroll animations
+  useEffect(() => {
+    const fallbackTimer = setTimeout(() => {
+      if (dashboardLoading) {
+        setDashboardLoading(false);
+        setAccountsLoaded(true);
+        setTransactionsLoaded(true);
+      }
+    }, 10000);
+
+    return () => clearTimeout(fallbackTimer);
+  }, [dashboardLoading]);
+
   useEffect(() => {
     if (dashboardLoading) return;
 
@@ -121,7 +130,6 @@ const UserDashboard = ({ userInfo }) => {
     const accounts = accountsRef.current;
     const dashboard = dashboardRef.current;
 
-    // Initial state (hidden)
     if (heading) {
       heading.style.opacity = "0";
       heading.style.transform = "translateY(20px)";
@@ -143,11 +151,9 @@ const UserDashboard = ({ userInfo }) => {
       dashboard.style.transform = "translateY(30px)";
     }
 
-    // Create observer
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          // Animate heading
           setTimeout(() => {
             if (heading) {
               heading.style.transition =
@@ -166,7 +172,6 @@ const UserDashboard = ({ userInfo }) => {
             }
           }, 500);
 
-          // Animate balance card
           setTimeout(() => {
             if (balanceCard) {
               balanceCard.style.transition =
@@ -176,7 +181,6 @@ const UserDashboard = ({ userInfo }) => {
             }
           }, 400);
 
-          // Animate accounts
           setTimeout(() => {
             if (accounts) {
               accounts.style.transition =
@@ -186,7 +190,6 @@ const UserDashboard = ({ userInfo }) => {
             }
           }, 600);
 
-          // Animate dashboard
           setTimeout(() => {
             if (dashboard) {
               dashboard.style.transition =
@@ -371,7 +374,17 @@ const UserDashboard = ({ userInfo }) => {
 
   const getAccountTransactions = (accountId) => {
     return transactions
-      .filter((transaction) => transaction.accountId === accountId)
+      .filter((transaction) => {
+        // Handle both old format (transaction.accountId) and new format (transaction.accountId)
+        // Also filter by user to ensure we're only showing current user's transactions
+        return (
+          (transaction.accountId === accountId ||
+            transaction.account?._id === accountId ||
+            transaction.accountId === accountId) &&
+          transaction.userId === uId
+        );
+      })
+      .sort((a, b) => new Date(b.date) - new Date(a.date)) // Sort by newest first
       .slice(0, 4);
   };
 
@@ -469,7 +482,6 @@ const UserDashboard = ({ userInfo }) => {
     },
   ];
 
-  // Single loading screen for better UX
   if (dashboardLoading) {
     return (
       <section className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden min-h-screen">
@@ -485,16 +497,59 @@ const UserDashboard = ({ userInfo }) => {
     );
   }
 
-  const handleTransferComplete = (transferDetails) => {
-    console.log("Transfer completed:", transferDetails);
-    // Handle successful transfer (show success message, update balances, etc.)
+  if (!userInfo) {
+    return (
+      <section className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overflow-hidden min-h-screen">
+        <div className="container mx-auto max-w-7xl py-20 text-center">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+            Loading user information...
+          </h2>
+        </div>
+      </section>
+    );
+  }
+
+  const handleTransferComplete = async (transferDetails) => {
     setShowTransferForm(false);
 
-    // Optional: Show success notification using toast
+    // Show success message
     toast.success("Transfer completed successfully!");
 
-    // Optional: Refresh accounts data
-    // You might want to refetch accounts here to update balances
+    // Refresh accounts and transactions immediately
+    try {
+      const token = localStorage.getItem("accessToken");
+
+      // Refresh accounts
+      const accountsRes = await axios.get(
+        `${process.env.REACT_APP_API_URL}/accounts`,
+        {
+          params: { uId },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (accountsRes.data && accountsRes.data.success) {
+        setAccounts(accountsRes.data.accounts);
+      }
+
+      // Refresh transactions
+      const transactionsRes = await axios.get(
+        `${process.env.REACT_APP_API_URL}/transactions`,
+        {
+          params: { uId },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (transactionsRes.data && transactionsRes.data.success) {
+        setTransactions(transactionsRes.data.transactions);
+      }
+    } catch (error) {
+      console.error("Failed to refresh data:", error);
+      toast.error("Data refresh failed. Please reload the page.");
+    }
   };
 
   return (
@@ -511,7 +566,7 @@ const UserDashboard = ({ userInfo }) => {
                 <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 text-gray-800 dark:text-white">
                   Welcome back,{" "}
                   <span className="text-[#6160DC] dark:text-[#8B7EFF]">
-                    {userInfo.name}
+                    {userInfo?.name || "User"}
                   </span>
                 </h1>
                 <p className="text-base md:text-lg text-gray-600 dark:text-gray-300">
@@ -587,7 +642,7 @@ const UserDashboard = ({ userInfo }) => {
                               Card Holder
                             </p>
                             <p className="text-sm md:text-base font-bold truncate max-w-[120px] md:max-w-[150px]">
-                              {userInfo.name}
+                              {userInfo?.name || "User"}
                             </p>
                           </div>
                           <div className="flex items-end">
@@ -619,7 +674,7 @@ const UserDashboard = ({ userInfo }) => {
                     {actions.map((action, index) => (
                       <button
                         key={index}
-                        onClick={action.onClick} // Add this onClick handler
+                        onClick={action.onClick}
                         className={`group p-4 md:p-6 rounded-xl bg-gradient-to-br ${action.color} text-white shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex flex-col items-center justify-center h-full`}
                       >
                         <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
@@ -851,7 +906,7 @@ const UserDashboard = ({ userInfo }) => {
           <MoneyTransferForm
             onClose={() => setShowTransferForm(false)}
             onTransferComplete={handleTransferComplete}
-            userAccounts={accounts} // Pass your accounts data
+            userAccounts={accounts}
           />
         )}
       </div>
