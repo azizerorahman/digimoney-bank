@@ -62,6 +62,7 @@ async function run() {
     const budgetsCollection = db.collection("budgets");
     const investmentPortfolioCollection = db.collection("investment-portfolios");
     const loansCollection = db.collection("loans");
+    const insuranceCollection = db.collection("insurances");
 
     //userCollection for generate web token
     app.put("/token/:email", async (req, res) => {
@@ -890,6 +891,33 @@ async function run() {
         res.send({ success: true, loans });
       } catch (error) {
         console.error("Error fetching loans:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
+      }
+    });
+
+    app.get("/insurances", verifyJWT, async (req, res) => {
+      try {
+        const uId = req.query.uId;
+
+        if (!uId) {
+          return res
+            .status(400)
+            .send({ success: false, message: "User ID is required" });
+        }
+
+        const insurance = await insuranceCollection.findOne({ userId: uId });
+        
+        if (!insurance) {
+          return res
+            .status(404)
+            .send({ success: false, message: "Insurance data not found" });
+        }
+
+        res.send({ success: true, insurance });
+      } catch (error) {
+        console.error("Error fetching insurance data:", error);
         res
           .status(500)
           .send({ success: false, message: "Internal server error" });
