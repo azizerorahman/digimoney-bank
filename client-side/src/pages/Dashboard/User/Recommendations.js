@@ -178,19 +178,16 @@ const Recommendations = () => {
               <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white flex items-center">
                 {selectedCategory === "Saving" && (
                   <>
-                    <span className="mr-3 text-2xl">💰</span>
                     Saving Opportunities ({savingRecommendations.length})
                   </>
                 )}
                 {selectedCategory === "Investment" && (
                   <>
-                    <span className="mr-3 text-2xl">📈</span>
                     Investment Options ({investmentRecommendations.length})
                   </>
                 )}
                 {selectedCategory === "Financial Health" && (
                   <>
-                    <span className="mr-3 text-2xl">🏥</span>
                     Financial Health Tips (
                     {financialHealthRecommendations.length})
                   </>

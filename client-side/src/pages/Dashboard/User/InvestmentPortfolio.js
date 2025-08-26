@@ -306,9 +306,7 @@ const InvestmentPortfolio = () => {
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(value) => [
-                        `$${value.toLocaleString()}`,
-                      ]}
+                      formatter={(value) => [`$${value.toLocaleString()}`]}
                     />
                   </PieChart>
                 </ResponsiveContainer>

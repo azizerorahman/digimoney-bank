@@ -21,6 +21,8 @@ import InsuranceCoverage from "./pages/Dashboard/User/InsuranceCoverage";
 import InvestmentPortfolio from "./pages/Dashboard/User/InvestmentPortfolio";
 import LoanAndMortgageManagement from "./pages/Dashboard/User/LoanAndMortgageManagement";
 import TransactionHistory from "./pages/Dashboard/User/TransactionHistory";
+import Profile from "./pages/Dashboard/User/Profile";
+import MoneyTransferPage from "./pages/Dashboard/User/MoneyTransferPage";
 
 // Super Admin components
 import SuperAdmin from "./pages/Dashboard/SuperAdmin";
@@ -156,6 +158,8 @@ function App() {
             }
           >
             <Route index element={<UserDashboard userInfo={userInfo} />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="money-transfer" element={<MoneyTransferPage />} />
             <Route
               path="alerts-and-notifications"
               element={<AlertsAndNotifications />}

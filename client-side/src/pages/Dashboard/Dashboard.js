@@ -170,6 +170,18 @@ const Dashboard = () => {
         description: "Overview of your account",
       },
       {
+        title: "Profile",
+        path: "/dashboard/user/profile",
+        src: <ImProfile className="w-5 h-5" />,
+        description: "Manage your profile settings",
+      },
+      {
+        title: "Money Transfer",
+        path: "/dashboard/user/money-transfer",
+        src: <FaMoneyCheck className="w-5 h-5" />,
+        description: "Transfer money between accounts",
+      },
+      {
         title: "Transactions",
         path: "/dashboard/user/transaction-history",
         src: <FaMoneyCheck className="w-5 h-5" />,
@@ -210,12 +222,6 @@ const Dashboard = () => {
         path: "/dashboard/user/alerts-and-notifications",
         src: <MdRateReview className="w-5 h-5" />,
         description: "Manage your alerts and notifications",
-      },
-      {
-        title: "Profile",
-        path: "/dashboard/profile",
-        src: <ImProfile className="w-5 h-5" />,
-        description: "Manage your account settings",
       },
     ],
     "super-admin": [
