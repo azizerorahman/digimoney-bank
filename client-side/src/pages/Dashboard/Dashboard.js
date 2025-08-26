@@ -19,7 +19,8 @@ import Logout from "../Auth/Logout";
 
 const Dashboard = () => {
   const [user] = useAuthState(auth);
-  const [open, setOpen] = useState(true);
+  // Sidebar open state: true for desktop, false for mobile by default
+  const [open, setOpen] = useState(() => window.innerWidth >= 1024);
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const check = useSelector((state) => state.checkUser);
@@ -92,6 +93,19 @@ const Dashboard = () => {
     localStorage.setItem("darkMode", JSON.stringify(darkMode));
   }, [darkMode]);
 
+  // Responsive sidebar: auto-close on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setOpen(false);
+      } else {
+        setOpen(true);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   // Update active role when userInfo changes
   useEffect(() => {
     if (userInfo?.role && userInfo.role.length > 0) {
@@ -150,12 +164,6 @@ const Dashboard = () => {
   const menuItems = {
     user: [
       {
-        title: "Home",
-        path: "/",
-        src: <AiFillHome className="w-5 h-5" />,
-        description: "Return to homepage",
-      },
-      {
         title: "Dashboard",
         path: "/dashboard/user",
         src: <MdDashboard className="w-5 h-5" />,
@@ -184,12 +192,6 @@ const Dashboard = () => {
         path: "/dashboard/user/loan-and-mortgage-management",
         src: <FaMoneyCheck className="w-5 h-5" />,
         description: "Manage your loans and mortgages",
-      },
-      {
-        title: "Credit Score",
-        path: "/dashboard/user/credit-score-and-reports",
-        src: <ImProfile className="w-5 h-5" />,
-        description: "View your credit score and reports",
       },
       {
         title: "Insurance",
@@ -435,11 +437,15 @@ const Dashboard = () => {
           <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
             {/* Sidebar */}
             <aside
-              className={`${
-                open ? "w-64" : "w-20"
-              } transition-all duration-300 ease-in-out bg-gradient-to-br from-indigo-950 via-primary to-indigo-900 dark:from-gray-900 dark:via-primary dark:to-gray-800 shadow-xl relative`}
+              className={`
+                ${open ? "w-64" : "w-20"}
+                transition-all duration-300 ease-in-out
+                bg-gradient-to-br from-indigo-950 via-primary to-indigo-900 dark:from-gray-900 dark:via-primary dark:to-gray-800 shadow-xl
+                flex flex-col
+                relative
+              `}
             >
-              {/* Toggle button */}
+              {/* Toggle button (always visible on mobile, sticky on desktop) */}
               <button
                 onClick={() => setOpen(!open)}
                 className="absolute -right-3 top-9 w-7 h-7 rounded-full bg-white dark:bg-gray-800 shadow-md flex items-center justify-center text-primary dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent"
@@ -447,7 +453,7 @@ const Dashboard = () => {
               >
                 <BsArrowLeftCircle
                   className={`w-5 h-5 transition-transform duration-300 ${
-                    !open && "rotate-180"
+                    !open ? "rotate-180" : ""
                   }`}
                 />
               </button>
@@ -455,7 +461,7 @@ const Dashboard = () => {
               {/* Logo */}
               <div
                 className={`flex items-center gap-x-3 px-6 py-5 ${
-                  !open && "justify-center"
+                  !open ? "justify-center" : ""
                 }`}
               >
                 <div className="relative">
@@ -475,14 +481,16 @@ const Dashboard = () => {
                   </svg>
                 </div>
                 {open && (
-                  <h1 className="text-xl font-bold text-white">Banking App</h1>
+                  <h1 className="text-xl font-bold text-white">
+                    DigiMoney Bank
+                  </h1>
                 )}
               </div>
 
               {/* User info */}
               <div
                 className={`flex flex-col items-center mt-6 -mx-2 ${
-                  !open && "px-2"
+                  !open ? "px-2" : ""
                 }`}
               >
                 <div

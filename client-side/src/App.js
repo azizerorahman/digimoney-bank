@@ -17,7 +17,6 @@ import UserDashboard from "./pages/Dashboard/User/UserDashboard";
 import AlertsAndNotifications from "./pages/Dashboard/User/AlertsAndNotifications";
 import BudgetManagement from "./pages/Dashboard/User/BudgetManagement";
 import Recommendations from "./pages/Dashboard/User/Recommendations";
-import CreditScoreAndReports from "./pages/Dashboard/User/CreditScoreAndReports";
 import InsuranceCoverage from "./pages/Dashboard/User/InsuranceCoverage";
 import InvestmentPortfolio from "./pages/Dashboard/User/InvestmentPortfolio";
 import LoanAndMortgageManagement from "./pages/Dashboard/User/LoanAndMortgageManagement";
@@ -163,10 +162,6 @@ function App() {
             />
             <Route path="budget-management" element={<BudgetManagement />} />
             <Route path="recommendation" element={<Recommendations />} />
-            <Route
-              path="credit-score-and-reports"
-              element={<CreditScoreAndReports />}
-            />
             <Route path="insurance-coverage" element={<InsuranceCoverage />} />
             <Route
               path="investment-portfolio"

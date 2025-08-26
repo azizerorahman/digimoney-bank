@@ -21,54 +21,6 @@ const client = new MongoClient(uri, {
   },
 });
 
-// ============================================== Sending to receiver email ==============================================
-
-// function receiverMail(addTransectionToReceiver) {
-//   const {
-//     senderEmail,
-//     senderAccountNumber,
-//     receive_money,
-//     data,
-//     reciverEmail,
-//   } = addTransectionToReceiver.$push.transection;
-//   // sending mail via nodemailer
-
-//   const msg = {
-//     from: "testingdeveloper431@gmail.com", // sender address
-//     to: ` ${reciverEmail}`, // list of receivers
-//     subject: `Money Recived from ${senderEmail}`, // Subject line
-//     text: "hey you got a info", // plain text body
-//     html: `
-//              <p>Hey</p></br>
-//              <p>Your account has recived ${receive_money}$ from Account Number ${senderAccountNumber}
-//              </p> </br>
-//              <p>Best Regards</p> </br>
-//              <p>Digi Money Bank</p>
-
-//           `,
-//   };
-
-//   nodemailer
-//     .createTransport({
-//       service: "gmail",
-//       auth: {
-//         user: "testingdeveloper431@gmail.com",
-//         pass: "ajexwpkgpewiohct",
-//       },
-//       port: 587,
-//       host: "smtp.ethereal.email",
-//     })
-//     .sendMail(msg, (err) => {
-//       if (err) {
-//         return console.log("Error occures", err);
-//       } else {
-//         return console.log("email sent");
-//       }
-//     });
-// }
-
-//======================================== jot web token authorization for all users ===================================
-
 function verifyJWT(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
@@ -98,48 +50,6 @@ function verifyJWT(req, res, next) {
   }
 }
 
-// ============================================== Sending to sender email ==============================================
-
-// function senderMail(addTransection) {
-//   const { senderEmail, receiverAccountnumber, amount, data, reciverEmail } =
-//     addTransection.$push.transection;
-
-//   // sending mail via nodemailer
-//   //
-//   const msg = {
-//     from: "testingdeveloper431@gmail.com", // sender address
-//     to: `${senderEmail}`, // list of receivers
-//     subject: `Money sent to from ${reciverEmail}`, // Subject line
-//     text: "hey you got a info", // plain text body
-//     html: `
-//                <p>Hey</p></br>
-//                <p>Your account has send ${amount}$ to Account Number ${receiverAccountnumber}
-//                </p> </br>
-//                <p>Best Regards</p> </br>
-//                <p>Digi Money Bank</p>
-
-//             `,
-//   };
-
-//   nodemailer
-//     .createTransport({
-//       service: "gmail",
-//       auth: {
-//         user: "testingdeveloper431@gmail.com",
-//         pass: "ajexwpkgpewiohct",
-//       },
-//       port: 587,
-//       host: "smtp.ethereal.email",
-//     })
-//     .sendMail(msg, (err) => {
-//       if (err) {
-//         return console.log("Error occures", err);
-//       } else {
-//         return console.log("email sent");
-//       }
-//     });
-// }
-
 async function run() {
   try {
     await client.connect();
@@ -150,24 +60,8 @@ async function run() {
     const accountsCollection = db.collection("accounts");
     const transactionsCollection = db.collection("transactions");
     const budgetsCollection = db.collection("budgets");
-    // const approvedUsersCollection = client
-    //   .db("dgm-database")
-    //   .collection("approvedUsers");
-    // const usersReviewCollection = client
-    //   .db("dgm-database")
-    //   .collection("reviews");
-    // const transectionCollection = client
-    //   .db("dgm-database")
-    //   .collection("transection");
-    // const tokenUserCollection = client.db("dgm-database").collection("user");
-    // const blogCollection = client.db("dgm-database").collection("blog");
-    // const randomVisitorCollection = client
-    //   .db("dgm-database")
-    //   .collection("randomvisitor");
-    // const subscribeCollection = client
-    //   .db("dgm-database")
-    //   .collection("subscribe");
-    // const bankDataCollection = client.db("dgm-database").collection("bankdata");
+    const investmentPortfolioCollection = db.collection("investment-portfolios");
+    const loansCollection = db.collection("loans");
 
     //userCollection for generate web token
     app.put("/token/:email", async (req, res) => {
@@ -274,12 +168,27 @@ async function run() {
             .send({ success: false, message: "User ID is required" });
         }
 
-        // If accountId is provided, filter by both userId and accountId
         const query = { userId: uId };
 
-        // Fetch transactions for the user (and account if provided)
+        // Fetch transactions and get the most recent date
         const transactions = await transactionsCollection.find(query).toArray();
-        res.send({ success: true, transactions });
+
+        // Find the most recent transaction date
+        const mostRecentTransaction = transactions.reduce((latest, current) => {
+          return new Date(current.date) > new Date(latest.date)
+            ? current
+            : latest;
+        }, transactions[0]);
+
+        const referenceDate = mostRecentTransaction
+          ? mostRecentTransaction.date
+          : new Date().toISOString();
+
+        res.send({
+          success: true,
+          transactions,
+          referenceDate, // Include reference date for frontend
+        });
       } catch (error) {
         console.error("Failed to fetch transactions:", error);
         res
@@ -297,13 +206,16 @@ async function run() {
             .send({ success: false, message: "User ID is required" });
         }
 
+        // First get the most recent transaction date
+        const mostRecentTransaction = await transactionsCollection.findOne(
+          { userId: uId },
+          { sort: { date: -1 } }
+        );
+
         // Use MongoDB aggregation to group by date and calculate credit/debit amounts
         const formattedTransactions = await transactionsCollection
           .aggregate([
-            // Match documents for the specific user
             { $match: { userId: uId } },
-
-            // Add fields to help with grouping
             {
               $addFields: {
                 dateString: {
@@ -314,8 +226,6 @@ async function run() {
                 },
               },
             },
-
-            // Group by date and calculate sums
             {
               $group: {
                 _id: "$dateString",
@@ -339,8 +249,6 @@ async function run() {
                 },
               },
             },
-
-            // Format the output
             {
               $project: {
                 _id: 0,
@@ -349,13 +257,19 @@ async function run() {
                 debit: 1,
               },
             },
-
-            // Sort by date (descending)
             { $sort: { date: -1 } },
           ])
           .toArray();
 
-        res.send({ success: true, transactions: formattedTransactions });
+        const referenceDate = mostRecentTransaction
+          ? mostRecentTransaction.date
+          : new Date().toISOString();
+
+        res.send({
+          success: true,
+          transactions: formattedTransactions,
+          referenceDate, // Include reference date for frontend
+        });
       } catch (error) {
         console.error("Failed to fetch transaction history:", error);
         res.status(500).send({
@@ -366,11 +280,8 @@ async function run() {
     });
 
     app.get("/spending-by-category", verifyJWT, async (req, res) => {
-      console.log(req.query, "vvs");
       try {
-        // Check if user exists in the request
         if (!req.query) {
-          console.log("User object is missing in request");
           return res.status(401).json({
             success: false,
             message: "User authentication failed",
@@ -378,20 +289,34 @@ async function run() {
         }
 
         const uId = req.query.uId;
-        console.log("User ID from token:", uId);
 
         if (!uId) {
-          console.log("User ID is undefined or null");
           return res.status(400).json({
             success: false,
             message: "User ID is required",
           });
         }
 
-        // Set reference date (today) to 2025-06-20
-        const referenceDate = new Date("2025-06-20");
+        // First, find the most recent transaction date for this user
+        const mostRecentTransaction = await transactionsCollection.findOne(
+          { userId: uId },
+          { sort: { date: -1 } }
+        );
 
-        // Calculate dates for different time periods and convert to ISO strings
+        if (!mostRecentTransaction) {
+          return res.json({
+            success: true,
+            data: {
+              totalSpending: 0,
+              categories: [],
+            },
+          });
+        }
+
+        // Use the most recent transaction date as our "reference date" (simulated "today")
+        const referenceDate = new Date(mostRecentTransaction.date);
+
+        // Calculate dates for different time periods
         const last7DaysDate = new Date(referenceDate);
         last7DaysDate.setDate(referenceDate.getDate() - 7);
         const last7DaysISOString = last7DaysDate.toISOString();
@@ -404,12 +329,6 @@ async function run() {
         last90DaysDate.setDate(referenceDate.getDate() - 90);
         const last90DaysISOString = last90DaysDate.toISOString();
 
-        console.log("Date ranges for filtering:");
-        console.log("Reference date:", referenceDate.toISOString());
-        console.log("Last 7 days from:", last7DaysISOString);
-        console.log("Last 30 days from:", last30DaysISOString);
-        console.log("Last 90 days from:", last90DaysISOString);
-
         // Base query for spending transactions
         const baseQuery = {
           userId: uId,
@@ -420,13 +339,8 @@ async function run() {
         // Check if any spending transactions exist
         const spendingTransactionsCount =
           await transactionsCollection.countDocuments(baseQuery);
-        console.log(
-          `User has ${spendingTransactionsCount} spending transactions`
-        );
 
-        // If no transactions, return empty result early
         if (spendingTransactionsCount === 0) {
-          console.log("No spending transactions found for this user");
           return res.json({
             success: true,
             data: {
@@ -440,9 +354,6 @@ async function run() {
         const allTransactions = await transactionsCollection
           .find(baseQuery)
           .toArray();
-        console.log(
-          `Retrieved ${allTransactions.length} transactions for processing`
-        );
 
         // Group transactions by category
         const categoryMap = {};
@@ -456,7 +367,7 @@ async function run() {
         allTransactions.forEach((transaction) => {
           const category = transaction.category || "Uncategorized";
           const amount = Math.abs(transaction.amount);
-          const transactionDate = transaction.date; // This is already an ISO string
+          const transactionDate = transaction.date;
 
           if (!categoryMap[category]) {
             categoryMap[category] = {
@@ -500,13 +411,11 @@ async function run() {
 
         // Calculate percentages for each time period
         Object.values(categoryMap).forEach((category) => {
-          // Calculate overall percentage
           category.percentage =
             totalAmount > 0
               ? Math.round((category.totalAmount / totalAmount) * 100)
               : 0;
 
-          // Calculate percentages for each time period
           category.last7Days.percentage =
             totalLast7Days > 0
               ? Math.round((category.last7Days.amount / totalLast7Days) * 100)
@@ -528,9 +437,7 @@ async function run() {
           (a, b) => b.totalAmount - a.totalAmount
         );
 
-        console.log("Processed categories:", result);
-
-        // Return the final result
+        // Return the final result with reference date info
         res.json({
           success: true,
           data: {
@@ -539,6 +446,7 @@ async function run() {
             totalLast30Days,
             totalLast90Days,
             categories: result,
+            referenceDate: referenceDate.toISOString(), // Include reference date for frontend
           },
         });
       } catch (error) {
@@ -898,20 +806,22 @@ async function run() {
 
     app.get("/notifications", verifyJWT, async (req, res) => {
       try {
-      const userId = req.query.uId;
-      if (!userId) {
-        return res.status(400).send({ success: false, message: "User ID is required" });
-      }
-      const notifications = await db
-        .collection("notifications")
-        .find({ userId })
-        .toArray();
-      res.send({ success: true, notifications });
+        const userId = req.query.uId;
+        if (!userId) {
+          return res
+            .status(400)
+            .send({ success: false, message: "User ID is required" });
+        }
+        const notifications = await db
+          .collection("notifications")
+          .find({ userId })
+          .toArray();
+        res.send({ success: true, notifications });
       } catch (error) {
-      console.error("Error fetching notifications:", error);
-      res
-        .status(500)
-        .send({ success: false, message: "Internal server error" });
+        console.error("Error fetching notifications:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
       }
     });
 
@@ -919,7 +829,9 @@ async function run() {
       try {
         const userId = req.query.uId;
         if (!userId) {
-          return res.status(400).send({ success: false, message: "User ID is required" });
+          return res
+            .status(400)
+            .send({ success: false, message: "User ID is required" });
         }
         const recommendations = await db
           .collection("recommendations")
@@ -933,6 +845,58 @@ async function run() {
           .send({ success: false, message: "Internal server error" });
       }
     });
+
+    app.get("/investment-portfolios", verifyJWT, async (req, res) => {
+      try {
+        const uId = req.query.uId;
+        
+        if (!uId) {
+          return res
+            .status(400)
+            .send({ success: false, message: "User ID is required" });
+        }
+
+        const portfolio = await investmentPortfolioCollection.findOne({ userId: uId });
+        
+        if (!portfolio) {
+          return res
+            .status(404)
+            .send({ success: false, message: "Investment portfolio not found" });
+        }
+
+        res.send({ success: true, portfolio });
+      } catch (error) {
+        console.error("Error fetching investment portfolio:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
+      }
+    });
+
+    app.get("/loans", verifyJWT, async (req, res) => {
+      try {
+        const uId = req.query.uId;
+
+        if (!uId) {
+          return res
+            .status(400)
+            .send({ success: false, message: "User ID is required" });
+        }
+
+        const loans = await loansCollection
+          .find({ userId: uId })
+          .toArray();
+        
+        res.send({ success: true, loans });
+      } catch (error) {
+        console.error("Error fetching loans:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
+      }
+    });
+
+
 
     app.get("/users", async (req, res) => {
       const query = {};
