@@ -470,7 +470,7 @@ const UserDashboard = ({ userInfo }) => {
             <AnimatedSection delay={400}>
               <div className="grid lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
                 {/* Account Summary */}
-                <div className="group p-4 md:p-6 rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-500 hover:shadow-2xl hover:shadow-gray-200/50 dark:hover:shadow-gray-900/30">
+                <div className="p-4 md:p-6 rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50">
                   <h3 className="text-lg sm:text-xl lg:text-2xl font-bold mb-4 sm:mb-6 text-gray-800 dark:text-white">
                     Account Summary
                   </h3>
@@ -479,7 +479,7 @@ const UserDashboard = ({ userInfo }) => {
                       <div
                         key={account.id}
                         className={`flex items-center justify-between p-3 md:p-4 rounded-xl cursor-pointer transition-all duration-500 group ${
-                          selectedAccount?.id === account.id
+                          selectedAccount?._id === account._id
                             ? "bg-gradient-to-br from-[#6160DC]/10 to-[#8B7EFF]/5 dark:from-[#8B7EFF]/20 dark:to-[#6160DC]/10 ring-2 ring-[#6160DC] dark:ring-[#8B7EFF] shadow-lg hover:shadow-xl hover:shadow-[#6160DC]/20 dark:hover:shadow-[#8B7EFF]/20"
                             : "bg-gray-50 dark:bg-gray-700 hover:bg-gradient-to-br hover:from-gray-100 hover:to-gray-50 dark:hover:from-gray-600 dark:hover:to-gray-700 hover:shadow-lg"
                         }`}
@@ -489,10 +489,10 @@ const UserDashboard = ({ userInfo }) => {
                           <div
                             className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-white font-bold text-xs md:text-sm group-hover:scale-110 transition-transform duration-300 ${
                               account.type === "Checking"
-                                ? "bg-blue-500"
+                                ? "bg-blue-400"
                                 : account.type === "Savings"
-                                ? "bg-green-500"
-                                : "bg-purple-500"
+                                ? "bg-green-400"
+                                : "bg-purple-400"
                             }`}
                           >
                             {getAccountIcon(account.type)}

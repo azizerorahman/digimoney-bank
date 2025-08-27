@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { BsArrowLeftCircle } from "react-icons/bs";
 import { RiBarChartHorizontalLine } from "react-icons/ri";
 import { AiFillHome } from "react-icons/ai";
 import { FiLogOut } from "react-icons/fi";
-import { FaMoneyCheck, FaMoneyBill, FaUsers } from "react-icons/fa";
-import { MdRateReview, MdDashboard } from "react-icons/md";
-import { ImProfile } from "react-icons/im";
 import { toast } from "react-toastify";
 import { useAuthState } from "react-firebase-hooks/auth";
 import auth from "../../firebase.init";
@@ -16,6 +13,20 @@ import useUserInfo from "../../hooks/useUserInfo";
 import AccountUnderVerification from "./AccountUnderVerification";
 import LoadingSpinner from "../../components/Loading";
 import Logout from "../Auth/Logout";
+import {
+  FaMoneyCheck,
+  FaMoneyBill,
+  FaUsers,
+  FaChartLine,
+  FaHandHoldingUsd,
+  FaShieldAlt,
+  FaLightbulb,
+  FaBell,
+  FaMoneyBillTransfer,
+} from "react-icons/fa";
+import { MdRateReview, MdDashboard } from "react-icons/md";
+import { ImProfile } from "react-icons/im";
+import { RiHistoryLine } from "react-icons/ri";
 
 const Dashboard = () => {
   const [user] = useAuthState(auth);
@@ -184,7 +195,7 @@ const Dashboard = () => {
       {
         title: "Transactions",
         path: "/dashboard/user/transaction-history",
-        src: <FaMoneyCheck className="w-5 h-5" />,
+        src: <RiHistoryLine className="w-5 h-5" />,
         description: "View your transaction history",
       },
       {
@@ -196,31 +207,31 @@ const Dashboard = () => {
       {
         title: "Investments",
         path: "/dashboard/user/investment-portfolio",
-        src: <MdRateReview className="w-5 h-5" />,
+        src: <FaChartLine className="w-5 h-5" />,
         description: "Manage your investment portfolio",
       },
       {
         title: "Loans & Mortgages",
         path: "/dashboard/user/loan-and-mortgage-management",
-        src: <FaMoneyCheck className="w-5 h-5" />,
+        src: <FaHandHoldingUsd className="w-5 h-5" />,
         description: "Manage your loans and mortgages",
       },
       {
         title: "Insurance",
         path: "/dashboard/user/insurance-coverage",
-        src: <FaUsers className="w-5 h-5" />,
+        src: <FaShieldAlt className="w-5 h-5" />,
         description: "Manage your insurance coverage",
       },
       {
         title: "Recommendations",
         path: "/dashboard/user/recommendation",
-        src: <MdRateReview className="w-5 h-5" />,
+        src: <FaLightbulb className="w-5 h-5" />,
         description: "View financial recommendations",
       },
       {
         title: "Alerts",
         path: "/dashboard/user/alerts-and-notifications",
-        src: <MdRateReview className="w-5 h-5" />,
+        src: <FaBell className="w-5 h-5" />,
         description: "Manage your alerts and notifications",
       },
     ],
@@ -258,13 +269,13 @@ const Dashboard = () => {
       {
         title: "System Config",
         path: "/dashboard/super-admin/system-config",
-        src: <MdDashboard className="w-5 h-5" />,
+        src: <RiBarChartHorizontalLine className="w-5 h-5" />,
         description: "Configure system settings",
       },
       {
         title: "Security",
         path: "/dashboard/super-admin/security-and-compliance",
-        src: <ImProfile className="w-5 h-5" />,
+        src: <FiLogOut className="w-5 h-5" />,
         description: "Manage security settings",
       },
       {
@@ -302,7 +313,7 @@ const Dashboard = () => {
       {
         title: "Communications",
         path: "/dashboard/account-manager/communications",
-        src: <MdRateReview className="w-5 h-5" />,
+        src: <FiLogOut className="w-5 h-5" />,
         description: "Customer communications",
       },
       {
@@ -320,7 +331,7 @@ const Dashboard = () => {
       {
         title: "Transaction Alerts",
         path: "/dashboard/account-manager/transaction-alerts",
-        src: <FaMoneyCheck className="w-5 h-5" />,
+        src: <RiBarChartHorizontalLine className="w-5 h-5" />,
         description: "Monitor transaction alerts",
       },
       {
@@ -370,7 +381,7 @@ const Dashboard = () => {
       {
         title: "Communications",
         path: "/dashboard/loan-officer/communications",
-        src: <MdRateReview className="w-5 h-5" />,
+        src: <RiBarChartHorizontalLine className="w-5 h-5" />,
         description: "Client communications",
       },
       {
@@ -414,7 +425,7 @@ const Dashboard = () => {
       {
         title: "Quick Actions",
         path: "/dashboard/csr/quick-actions",
-        src: <MdDashboard className="w-5 h-5" />,
+        src: <RiBarChartHorizontalLine className="w-5 h-5" />,
         description: "Perform quick actions",
       },
       {
@@ -424,6 +435,20 @@ const Dashboard = () => {
         description: "Manage your account settings",
       },
     ],
+  };
+
+  // Helper function to format role names
+  const formatRoleName = (role) => {
+    if (!role) return "User";
+
+    // Handle special case for CSR
+    if (role.toLowerCase() === "csr") return "CSR";
+
+    // Split by hyphens and capitalize each word
+    return role
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   };
 
   // Show loading spinner while direct navigation is being processed
@@ -454,7 +479,7 @@ const Dashboard = () => {
               {/* Toggle button (always visible on mobile, sticky on desktop) */}
               <button
                 onClick={() => setOpen(!open)}
-                className="absolute -right-3 top-9 w-7 h-7 rounded-full bg-white dark:bg-gray-800 shadow-md flex items-center justify-center text-primary dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent"
+                className="absolute -right-3 top-16 w-7 h-7 rounded-full bg-white dark:bg-gray-800 shadow-md flex items-center justify-center text-primary dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 focus:outline-none"
                 aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
               >
                 <BsArrowLeftCircle
@@ -495,29 +520,34 @@ const Dashboard = () => {
 
               {/* User info */}
               <div
-                className={`flex flex-col items-center mt-6 -mx-2 ${
-                  !open ? "px-2" : ""
+                className={`flex flex-col items-center mt-6 ${
+                  !open ? "px-2" : "px-4 w-full"
                 }`}
               >
+                {/* User avatar */}
                 <div
                   className={`${color} w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-semibold uppercase`}
                 >
                   {initial}
                 </div>
+
+                {/* User details - shown when sidebar is open */}
                 {open && (
-                  <div className="mt-3 text-center">
-                    <h4 className="mx-2 text-sm font-medium text-white">
+                  <div className="mt-3 text-center w-full">
+                    <h4 className="text-sm font-medium text-white truncate">
                       {user?.displayName || user?.email}
                     </h4>
+
+                    {/* Role display/selector */}
                     {userInfo?.role && (
-                      <div className="mt-1">
-                        {/* Role selector dropdown */}
+                      <div className="mt-3 w-full">
+                        {/* Role selector dropdown - for multiple roles */}
                         {Array.isArray(userInfo.role) &&
                         userInfo.role.length > 1 ? (
                           <select
                             value={activeRole}
                             onChange={(e) => handleRoleChange(e.target.value)}
-                            className="text-xs bg-transparent text-gray-300 border border-gray-600 rounded-md p-1 focus:outline-none focus:ring-1 focus:ring-accent"
+                            className="w-full text-xs bg-transparent text-gray-300 border border-gray-600 rounded-md p-1 focus:outline-none focus:ring-1 focus:ring-accent"
                           >
                             {userInfo.role.map((r) => (
                               <option
@@ -525,17 +555,18 @@ const Dashboard = () => {
                                 value={r}
                                 className="bg-gray-800 text-white"
                               >
-                                {r.charAt(0).toUpperCase() + r.slice(1)}
+                                {formatRoleName(r)}
                               </option>
                             ))}
                           </select>
                         ) : (
-                          <p className="text-xs text-gray-300">
-                            {typeof userInfo.role === "string"
-                              ? userInfo.role.charAt(0).toUpperCase() +
-                                userInfo.role.slice(1)
-                              : userInfo.role[0].charAt(0).toUpperCase() +
-                                userInfo.role[0].slice(1)}
+                          /* Single role display */
+                          <p className="text-xs text-gray-300 bg-indigo-800 dark:bg-gray-700 py-1 px-2 rounded-md">
+                            {formatRoleName(
+                              typeof userInfo.role === "string"
+                                ? userInfo.role
+                                : userInfo.role[0]
+                            )}
                           </p>
                         )}
                       </div>
@@ -547,29 +578,50 @@ const Dashboard = () => {
               {/* Menu items */}
               <div className="flex flex-col justify-between flex-1 mt-6 overflow-y-auto">
                 <nav>
-                  {currentMenu.map((item, index) => (
-                    <Link
-                      key={index}
-                      to={item.path}
-                      className={`flex items-center px-4 py-3 ${
-                        pathname.includes(item.path) &&
-                        item.path !== "/" &&
-                        "bg-indigo-800 dark:bg-gray-700"
-                      } ${
-                        pathname === item.path &&
-                        pathname === "/" &&
-                        "bg-indigo-800 dark:bg-gray-700"
-                      } text-white transition-colors duration-300 transform hover:bg-indigo-800 dark:hover:bg-gray-700 hover:text-white`}
-                      title={item.description}
-                    >
-                      <div className="min-w-[28px] flex justify-center">
-                        {item.src}
-                      </div>
-                      {open && (
-                        <span className="mx-4 font-medium">{item.title}</span>
-                      )}
-                    </Link>
-                  ))}
+                  {currentMenu.map((item, index) => {
+                    // More precise active state detection
+                    const isActive =
+                      // Exact match for home path
+                      (item.path === "/" && pathname === "/") ||
+                      // For dashboard root paths like "/dashboard/user"
+                      (item.path.includes("/dashboard/") &&
+                        !item.path.split("/").slice(3).join("/") &&
+                        pathname === item.path) ||
+                      // For specific subpaths, ensure exact match or direct parent
+                      (item.path !== "/" &&
+                        pathname !== "/dashboard/user" &&
+                        pathname.startsWith(item.path) &&
+                        // Check if this is the most specific match
+                        currentMenu.every(
+                          (otherItem) =>
+                            otherItem === item ||
+                            !pathname.startsWith(otherItem.path) ||
+                            otherItem.path.length < item.path.length
+                        ));
+
+                    return (
+                      <Link
+                        key={index}
+                        to={item.path}
+                        className={`flex items-center px-4 py-3 
+            ${isActive ? "bg-indigo-800 dark:bg-gray-700" : ""} 
+            text-white transition-colors duration-300 transform 
+            hover:bg-indigo-800 dark:hover:bg-gray-700 hover:text-white`}
+                        title={item.description}
+                      >
+                        <div
+                          className={`${
+                            open ? "min-w-[28px]" : "w-full"
+                          } flex ${open ? "" : "justify-center"}`}
+                        >
+                          {item.src}
+                        </div>
+                        {open && (
+                          <span className="mx-4 font-medium">{item.title}</span>
+                        )}
+                      </Link>
+                    );
+                  })}
                 </nav>
 
                 {/* Logout button */}
@@ -578,7 +630,11 @@ const Dashboard = () => {
                   className="flex items-center px-4 py-3 text-white transition-colors duration-300 transform hover:bg-indigo-800 dark:hover:bg-gray-700 hover:text-white mb-4"
                   title="Log out of your account"
                 >
-                  <div className="min-w-[28px] flex justify-center">
+                  <div
+                    className={`${open ? "min-w-[28px]" : "w-full"} flex ${
+                      open ? "" : "justify-center"
+                    }`}
+                  >
                     <FiLogOut className="w-5 h-5" />
                   </div>
                   {open && <span className="mx-4 font-medium">Logout</span>}
