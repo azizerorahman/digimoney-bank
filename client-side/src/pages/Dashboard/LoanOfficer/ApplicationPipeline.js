@@ -1,2082 +1,1131 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import useUserInfo from "../../../hooks/useUserInfo";
+import useLoanOfficerData from "../../../hooks/useLoanOfficerData";
+import LoadingSpinner from "../../../components/Loading";
+import AnimatedSection from "../../../components/AnimatedSection";
+import { toast } from "react-toastify";
+import axios from "axios";
 import {
   User,
   FileText,
   CheckCircle,
   XCircle,
   DollarSign,
-  Upload,
-  Download,
   Eye,
   ArrowUp,
   ArrowDown,
-  Filter,
-  CreditCard,
   Building,
   Home,
   Car,
   GraduationCap,
-  Flag,
-  MapPin,
-  Briefcase,
-  Users,
+  Search,
+  Plus,
+  AlertTriangle,
 } from "lucide-react";
 
 const ApplicationPipeline = () => {
+  const uId = localStorage.getItem("userId");
+  const { userInfo, isLoading: userLoading } = useUserInfo(uId);
+  const {
+    data: loanOfficerData,
+    loading,
+    error,
+    refetch,
+  } = useLoanOfficerData(userInfo);
+
+  // State management
   const [searchQuery, setSearchQuery] = useState("");
-  const [showSearchResults, setShowSearchResults] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
-  const [selectedApplication, setSelectedApplication] = useState(null);
-  const [showApplicationDetails, setShowApplicationDetails] = useState(false);
-  const [showDocumentViewer, setShowDocumentViewer] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterLoanType, setFilterLoanType] = useState("all");
-  // Add these two new state variables after your existing useState declarations
+  const [selectedApplication, setSelectedApplication] = useState(null);
   const [showNewApplicationModal, setShowNewApplicationModal] = useState(false);
-  const [newApplicationData, setNewApplicationData] = useState({
-    // Personal Information
-    firstName: "",
-    lastName: "",
+  const [newApplicationForm, setNewApplicationForm] = useState({
+    applicantName: "",
     email: "",
     phone: "",
-    dateOfBirth: "",
-    ssn: "",
-    maritalStatus: "",
-    dependents: "",
-
-    // Address Information
-    streetAddress: "",
-    city: "",
-    state: "",
-    zipCode: "",
-    residenceType: "",
-    monthsAtAddress: "",
-
-    // Employment Information
-    employmentStatus: "",
-    employer: "",
-    jobTitle: "",
-    monthsEmployed: "",
-    annualIncome: "",
-    additionalIncome: "",
-
-    // Loan Information
     loanType: "",
-    loanAmount: "",
-    loanPurpose: "",
-    downPayment: "",
-
-    // Financial Information
-    monthlyRent: "",
-    monthlyDebt: "",
-    assets: "",
-    bankName: "",
-    accountType: "",
-
-    // References
-    reference1Name: "",
-    reference1Phone: "",
-    reference1Relationship: "",
-    reference2Name: "",
-    reference2Phone: "",
-    reference2Relationship: "",
+    amount: "",
+    purpose: "",
+    creditScore: "",
+    annualIncome: "",
+    employmentStatus: "",
+    address: "",
   });
 
-  // Mock data for Loan Officer Dashboard
-  const loanOfficerData = {
-    officerInfo: {
-      name: "Sarah Martinez",
-      id: "LO-2024-SM",
-      title: "Senior Loan Officer",
-      branch: "Downtown Branch",
-      status: "Available",
-      todayStats: {
-        applicationsReviewed: 12,
-        approvalRate: "78%",
-        avgProcessingTime: "2.3 days",
-        portfolioValue: "$2.4M",
-      },
-      certifications: ["NMLS Licensed", "FHA Approved", "VA Certified"],
-      performance: {
-        thisMonth: {
-          applications: 45,
-          approved: 35,
-          rejected: 8,
-          pending: 2,
-          volume: "$1.8M",
-        },
-        thisQuarter: {
-          applications: 128,
-          approved: 98,
-          rejected: 24,
-          pending: 6,
-          volume: "$5.2M",
-        },
-      },
-    },
+  // Filter and search applications using useMemo for performance
+  const filteredApplications = useMemo(() => {
+    if (!loanOfficerData?.loanApplications) return [];
 
-    loanApplications: [
-      {
-        id: "APP-2024-001",
-        applicantName: "John Smith",
-        applicantId: "CUST-789123",
-        loanType: "Mortgage",
-        amount: 350000,
-        purpose: "Home Purchase",
-        status: "In Review",
-        priority: "High",
-        submittedDate: "2024-06-01",
-        lastUpdated: "2024-06-03",
-        daysInProcess: 3,
-        slaDeadline: "2024-06-08",
-        creditScore: 742,
-        creditTrend: "up",
-        riskLevel: "Low",
-        employment: {
-          status: "Employed",
-          income: 85000,
-          employer: "Tech Solutions Inc",
-          yearsEmployed: 3.5,
-        },
-        financials: {
-          downPayment: 70000,
-          debtToIncome: 28,
-          liquidAssets: 125000,
-          monthlyExpenses: 3200,
-        },
-        property: {
-          address: "123 Oak Street, Springfield",
-          value: 375000,
-          type: "Single Family",
-          yearBuilt: 2018,
-        },
-        documents: [
-          {
-            name: "W-2 Forms",
-            status: "Received",
-            date: "2024-06-01",
-            type: "income",
-          },
-          {
-            name: "Pay Stubs",
-            status: "Received",
-            date: "2024-06-01",
-            type: "income",
-          },
-          {
-            name: "Bank Statements",
-            status: "Received",
-            date: "2024-06-02",
-            type: "assets",
-          },
-          {
-            name: "Property Appraisal",
-            status: "Pending",
-            date: null,
-            type: "property",
-          },
-          {
-            name: "Credit Report",
-            status: "Received",
-            date: "2024-06-01",
-            type: "credit",
-          },
-        ],
-        notes: [
-          {
-            date: "2024-06-03",
-            author: "Sarah Martinez",
-            note: "Credit score excellent. Reviewing employment verification.",
-          },
-          {
-            date: "2024-06-02",
-            author: "System",
-            note: "All income documents received and verified.",
-          },
-        ],
-        flags: [],
-        nextAction: "Awaiting property appraisal",
-      },
-      {
-        id: "APP-2024-002",
-        applicantName: "Maria Garcia",
-        applicantId: "CUST-456789",
-        loanType: "Auto Loan",
-        amount: 45000,
-        purpose: "Vehicle Purchase",
-        status: "Pending Approval",
-        priority: "Medium",
-        submittedDate: "2024-05-28",
-        lastUpdated: "2024-06-03",
-        daysInProcess: 7,
-        slaDeadline: "2024-06-05",
-        creditScore: 689,
-        creditTrend: "stable",
-        riskLevel: "Medium",
-        employment: {
-          status: "Employed",
-          income: 62000,
-          employer: "Healthcare Partners",
-          yearsEmployed: 5.2,
-        },
-        financials: {
-          downPayment: 8000,
-          debtToIncome: 35,
-          liquidAssets: 15000,
-          monthlyExpenses: 2100,
-        },
-        vehicle: {
-          make: "Toyota",
-          model: "Camry Hybrid",
-          year: 2024,
-          vin: "1234567890ABCDEFG",
-        },
-        documents: [
-          {
-            name: "Employment Letter",
-            status: "Received",
-            date: "2024-05-28",
-            type: "income",
-          },
-          {
-            name: "Bank Statements",
-            status: "Received",
-            date: "2024-05-29",
-            type: "assets",
-          },
-          {
-            name: "Vehicle Invoice",
-            status: "Received",
-            date: "2024-05-30",
-            type: "collateral",
-          },
-          {
-            name: "Insurance Quote",
-            status: "Received",
-            date: "2024-06-01",
-            type: "insurance",
-          },
-        ],
-        notes: [
-          {
-            date: "2024-06-03",
-            author: "Sarah Martinez",
-            note: "Ready for final approval. All conditions met.",
-          },
-          {
-            date: "2024-06-01",
-            author: "Sarah Martinez",
-            note: "Insurance requirements verified.",
-          },
-        ],
-        flags: [],
-        nextAction: "Final approval pending",
-      },
-      {
-        id: "APP-2024-003",
-        applicantName: "David Chen",
-        applicantId: "CUST-321654",
-        loanType: "Personal Loan",
-        amount: 25000,
-        purpose: "Debt Consolidation",
-        status: "Flagged",
-        priority: "High",
-        submittedDate: "2024-05-25",
-        lastUpdated: "2024-06-02",
-        daysInProcess: 10,
-        slaDeadline: "2024-06-04",
-        creditScore: 598,
-        creditTrend: "down",
-        riskLevel: "High",
-        employment: {
-          status: "Self-Employed",
-          income: 48000,
-          employer: "Freelance Consulting",
-          yearsEmployed: 2.0,
-        },
-        financials: {
-          downPayment: 0,
-          debtToIncome: 52,
-          liquidAssets: 3500,
-          monthlyExpenses: 2800,
-        },
-        documents: [
-          {
-            name: "Tax Returns",
-            status: "Under Review",
-            date: "2024-05-25",
-            type: "income",
-          },
-          {
-            name: "Bank Statements",
-            status: "Received",
-            date: "2024-05-26",
-            type: "assets",
-          },
-          {
-            name: "Debt Summary",
-            status: "Received",
-            date: "2024-05-27",
-            type: "liabilities",
-          },
-        ],
-        notes: [
-          {
-            date: "2024-06-02",
-            author: "Sarah Martinez",
-            note: "High DTI ratio. Requesting additional income verification.",
-          },
-          {
-            date: "2024-05-30",
-            author: "Risk Team",
-            note: "Flagged for manual review due to credit score decline.",
-          },
-        ],
-        flags: [
-          {
-            type: "Credit",
-            message: "Credit score declined 45 points in last 6 months",
-            severity: "high",
-          },
-          {
-            type: "Income",
-            message: "Self-employment income requires additional verification",
-            severity: "medium",
-          },
-        ],
-        nextAction: "Additional documentation required",
-      },
-    ],
+    return loanOfficerData.loanApplications.filter((app) => {
+      const statusMatch =
+        filterStatus === "all" ||
+        app.status?.toLowerCase() === filterStatus.toLowerCase();
+      const typeMatch =
+        filterLoanType === "all" ||
+        app.loanType?.toLowerCase().includes(filterLoanType.toLowerCase());
+      const searchMatch =
+        !searchQuery ||
+        app.applicantName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        app.applicantId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        app._id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        app.loanType?.toLowerCase().includes(searchQuery.toLowerCase());
+      return statusMatch && typeMatch && searchMatch;
+    });
+  }, [
+    loanOfficerData?.loanApplications,
+    filterStatus,
+    filterLoanType,
+    searchQuery,
+  ]);
 
-    creditScoreData: {
-      "APP-2024-001": {
-        current: 742,
-        history: [
-          { date: "2024-01", score: 725 },
-          { date: "2024-02", score: 728 },
-          { date: "2024-03", score: 735 },
-          { date: "2024-04", score: 738 },
-          { date: "2024-05", score: 742 },
-        ],
-        factors: [
-          { factor: "Payment History", impact: "Positive", score: 95 },
-          { factor: "Credit Utilization", impact: "Positive", score: 12 },
-          { factor: "Length of History", impact: "Positive", score: 8.5 },
-          { factor: "New Credit", impact: "Neutral", score: 2 },
-          { factor: "Credit Mix", impact: "Positive", score: 8 },
-        ],
-      },
-    },
+  // Calculate statistics using useMemo
+  const applicationStats = useMemo(() => {
+    if (!loanOfficerData?.loanApplications) return {};
 
-    riskAssessment: {
-      highRiskApplications: [
-        {
-          id: "APP-2024-003",
-          applicant: "David Chen",
-          riskScore: 78,
-          factors: ["High DTI", "Credit Decline", "Self-Employment"],
-          recommendation: "Additional Review Required",
-        },
-        {
-          id: "APP-2024-015",
-          applicant: "Jennifer Wilson",
-          riskScore: 72,
-          factors: ["Multiple Recent Inquiries", "Job Change"],
-          recommendation: "Enhanced Verification",
-        },
-      ],
-      riskDistribution: {
-        low: 65,
-        medium: 25,
-        high: 10,
-      },
-      fraudAlerts: [
-        {
-          id: "FRAUD-001",
-          applicant: "Robert Johnson",
-          alert: "Identity verification mismatch",
-          severity: "Critical",
-          date: "2024-06-03",
-        },
-      ],
-    },
+    const apps = loanOfficerData.loanApplications;
+    return {
+      total: apps.length,
+      pending: apps.filter(
+        (app) =>
+          app.status?.toLowerCase() === "pending" ||
+          app.status?.toLowerCase() === "pending approval"
+      ).length,
+      approved: apps.filter((app) => app.status?.toLowerCase() === "approved")
+        .length,
+      inReview: apps.filter((app) => app.status?.toLowerCase() === "in review")
+        .length,
+      rejected: apps.filter((app) => app.status?.toLowerCase() === "rejected")
+        .length,
+      flagged: apps.filter((app) => app.status?.toLowerCase() === "flagged")
+        .length,
+      totalAmount: apps.reduce((sum, app) => sum + (app.amount || 0), 0),
+    };
+  }, [loanOfficerData?.loanApplications]);
 
-    activeLoanPortfolio: [
-      {
-        loanId: "LOAN-2023-445",
-        borrower: "Michael Brown",
-        type: "Mortgage",
-        originalAmount: 425000,
-        currentBalance: 398500,
-        monthlyPayment: 2850,
-        interestRate: 4.25,
-        termRemaining: "27 years",
-        status: "Current",
-        nextPaymentDue: "2024-06-15",
-        lastPayment: "2024-05-15",
-        paymentHistory: "On Time",
-        riskRating: "Low",
-      },
-      {
-        loanId: "LOAN-2024-112",
-        borrower: "Lisa Anderson",
-        type: "Auto Loan",
-        originalAmount: 38000,
-        currentBalance: 32500,
-        monthlyPayment: 645,
-        interestRate: 3.75,
-        termRemaining: "4.2 years",
-        status: "Current",
-        nextPaymentDue: "2024-06-10",
-        lastPayment: "2024-05-10",
-        paymentHistory: "On Time",
-        riskRating: "Low",
-      },
-      {
-        loanId: "LOAN-2023-889",
-        borrower: "James Wilson",
-        type: "Personal Loan",
-        originalAmount: 15000,
-        currentBalance: 8200,
-        monthlyPayment: 425,
-        interestRate: 8.5,
-        termRemaining: "1.6 years",
-        status: "Late",
-        nextPaymentDue: "2024-05-25",
-        lastPayment: "2024-04-25",
-        paymentHistory: "30 Days Late",
-        riskRating: "Medium",
-      },
-    ],
+  // Loading state
+  if (userLoading || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
-    repaymentSchedules: {
-      "LOAN-2023-445": [
-        {
-          date: "2024-06-15",
-          principal: 1250,
-          interest: 1600,
-          total: 2850,
-          status: "Upcoming",
-        },
-        {
-          date: "2024-07-15",
-          principal: 1255,
-          interest: 1595,
-          total: 2850,
-          status: "Scheduled",
-        },
-        {
-          date: "2024-08-15",
-          principal: 1260,
-          interest: 1590,
-          total: 2850,
-          status: "Scheduled",
-        },
-      ],
-    },
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="text-center">
+          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-red-600 mb-4">
+            Error Loading Data
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-    communicationLog: [
-      {
-        id: "COMM-001",
-        applicantId: "APP-2024-001",
-        type: "Email",
-        direction: "Outbound",
-        subject: "Additional Documentation Required",
-        date: "2024-06-03",
-        status: "Sent",
-      },
-      {
-        id: "COMM-002",
-        applicantId: "APP-2024-002",
-        type: "Phone",
-        direction: "Inbound",
-        subject: "Loan Status Inquiry",
-        date: "2024-06-02",
-        duration: "8 minutes",
-      },
-    ],
-  };
+  // Check if user has loan officer role
+  if (!userInfo?.role?.includes("loan-officer")) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="text-center">
+          <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-red-600 mb-4">
+            Access Denied
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300">
+            You need loan officer privileges to access this page.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // Helper functions
   const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case "approved":
-        return "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400";
+        return "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-700";
+      case "pending":
       case "pending approval":
-        return "bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400";
+        return "bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-700";
       case "in review":
-        return "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400";
+        return "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-700";
       case "rejected":
-        return "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400";
+        return "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-700";
       case "flagged":
-        return "bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-400";
-      case "current":
-        return "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400";
-      case "late":
-        return "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400";
+        return "bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-700";
       default:
-        return "bg-gray-100 dark:bg-gray-800 text-black dark:text-white";
+        return "bg-gray-50 dark:bg-gray-900/20 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-700";
     }
   };
-
-  
 
   const getRiskColor = (risk) => {
-    switch (risk.toLowerCase()) {
+    switch (risk?.toLowerCase()) {
       case "low":
-        return "text-green-600 dark:text-green-400";
+        return "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20";
       case "medium":
-        return "text-yellow-600 dark:text-yellow-400";
+        return "text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20";
       case "high":
-        return "text-red-600 dark:text-red-400";
+        return "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20";
       default:
-        return "text-gray-600 dark:text-gray-400";
-    }
-  };
-
-  const getPriorityColor = (priority) => {
-    switch (priority.toLowerCase()) {
-      case "high":
-        return "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400";
-      case "medium":
-        return "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400";
-      case "low":
-        return "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400";
-      default:
-        return "bg-gray-100 dark:bg-gray-800 text-black dark:text-white";
+        return "text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20";
     }
   };
 
   const getLoanTypeIcon = (type) => {
-    switch (type.toLowerCase()) {
+    switch (type?.toLowerCase()) {
       case "mortgage":
-        return <Home className="h-4 w-4" />;
+      case "home loan":
+        return <Home className="h-5 w-5" />;
+      case "auto":
       case "auto loan":
-        return <Car className="h-4 w-4" />;
+      case "car loan":
+        return <Car className="h-5 w-5" />;
+      case "personal":
       case "personal loan":
-        return <User className="h-4 w-4" />;
+        return <User className="h-5 w-5" />;
+      case "student":
       case "student loan":
-        return <GraduationCap className="h-4 w-4" />;
+        return <GraduationCap className="h-5 w-5" />;
+      case "business":
       case "business loan":
-        return <Building className="h-4 w-4" />;
+        return <Building className="h-5 w-5" />;
       default:
-        return <DollarSign className="h-4 w-4" />;
+        return <DollarSign className="h-5 w-5" />;
     }
   };
 
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-    if (query.length > 2) {
-      // Mock search results
-      const results = loanOfficerData.loanApplications.filter(
-        (app) =>
-          app.applicantName.toLowerCase().includes(query.toLowerCase()) ||
-          app.id.toLowerCase().includes(query.toLowerCase()) ||
-          app.applicantId.toLowerCase().includes(query.toLowerCase())
+  const getLoanTypeColor = (type) => {
+    switch (type?.toLowerCase()) {
+      case "mortgage":
+      case "home loan":
+        return "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20";
+      case "auto":
+      case "auto loan":
+      case "car loan":
+        return "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20";
+      case "personal":
+      case "personal loan":
+        return "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20";
+      case "student":
+      case "student loan":
+        return "text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20";
+      case "business":
+      case "business loan":
+        return "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20";
+      default:
+        return "text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20";
+    }
+  };
+
+  // Action handlers
+  const handleApproveApplication = async (app) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      await axios.put(
+        `${process.env.REACT_APP_API_URL}/loan-applications/${app._id}/status`,
+        { status: "approved" },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
-      setSearchResults(results);
-      setShowSearchResults(true);
-    } else {
-      setShowSearchResults(false);
+      toast.success(
+        `Application for ${app.applicantName} approved successfully!`
+      );
+      await refetch();
+    } catch (error) {
+      console.error("Error approving application:", error);
+      toast.error("Failed to approve application");
     }
   };
 
-  const selectApplication = (application) => {
-    setSelectedApplication(application);
-    setShowSearchResults(false);
-    setSearchQuery("");
-    setShowApplicationDetails(true);
+  const handleRejectApplication = async (app) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      await axios.put(
+        `${process.env.REACT_APP_API_URL}/loan-applications/${app._id}/status`,
+        { status: "rejected" },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      toast.error(`Application for ${app.applicantName} rejected.`);
+      await refetch();
+    } catch (error) {
+      console.error("Error rejecting application:", error);
+      toast.error("Failed to reject application");
+    }
   };
 
-  const handleApproveApplication = (appId) => {
-    console.log("Approving application:", appId);
-    // Implementation for approval
-  };
-
-  const handleRejectApplication = (appId) => {
-    console.log("Rejecting application:", appId);
-    // Implementation for rejection
-  };
-
-  const handleRequestDocuments = (appId) => {
-    console.log("Requesting additional documents for:", appId);
-    // Implementation for document request
+  const handleViewApplication = (app) => {
+    setSelectedApplication(app);
   };
 
   const handleNewApplication = () => {
     setShowNewApplicationModal(true);
   };
 
-  // Add this function to handle form input changes
-  const handleNewApplicationChange = (field, value) => {
-    setNewApplicationData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  // Add this function to handle form submission
-  const handleNewApplicationSubmit = (e) => {
+  const handleSubmitNewApplication = async (e) => {
     e.preventDefault();
+    try {
+      const token = localStorage.getItem("accessToken");
 
-    // Basic validation
-    const requiredFields = [
-      "firstName",
-      "lastName",
-      "email",
-      "phone",
-      "loanType",
-      "loanAmount",
-    ];
-    const missingFields = requiredFields.filter(
-      (field) => !newApplicationData[field]
-    );
-
-    if (missingFields.length > 0) {
-      alert(
-        `Please fill in the following required fields: ${missingFields.join(
-          ", "
-        )}`
-      );
-      return;
-    }
-
-    // Generate new application ID
-    const newAppId = `APP-2024-${String(
-      Math.floor(Math.random() * 1000)
-    ).padStart(3, "0")}`;
-
-    // Create new application object
-    const newApplication = {
-      id: newAppId,
-      applicantName: `${newApplicationData.firstName} ${newApplicationData.lastName}`,
-      email: newApplicationData.email,
-      phone: newApplicationData.phone,
-      loanType: newApplicationData.loanType,
-      amount: parseInt(newApplicationData.loanAmount),
-      status: "in review",
-      riskLevel: "Medium", // This would be calculated based on the data
-      creditScore: "Pending",
-      creditTrend: null,
-      submissionDate: new Date().toISOString().split("T")[0],
-      daysInProcess: 0,
-      slaDeadline: "Due in 7 days",
-      documents: [],
-      flags: [],
-      notes: [
-        {
-          date: new Date().toLocaleString(),
-          author: loanOfficerData.officerInfo.name,
-          note: "New application created via loan officer dashboard",
+      // Create application data with current loan officer ID
+      const applicationData = {
+        applicantName: newApplicationForm.applicantName,
+        applicantId: `CUST-${Date.now().toString().slice(-6)}`, // Generate unique ID
+        loanType: newApplicationForm.loanType,
+        amount: parseFloat(newApplicationForm.amount),
+        purpose: newApplicationForm.purpose,
+        status: "pending",
+        priority: "Medium",
+        submittedDate: new Date().toISOString(),
+        lastUpdated: new Date().toISOString(),
+        daysInProcess: 0,
+        creditScore: parseInt(newApplicationForm.creditScore) || null,
+        creditTrend: "stable",
+        riskLevel: "Medium",
+        employment: {
+          status: "Employed",
+          income: parseFloat(newApplicationForm.annualIncome) || 0,
+          employer: "N/A",
+          yearsEmployed: 0,
         },
-      ],
-    };
+        financials: {
+          downPayment: 0,
+          debtToIncome: 0,
+          liquidAssets: 0,
+          monthlyExpenses: 0,
+        },
+        documents: [],
+        notes: [
+          {
+            date: new Date().toISOString(),
+            author: userInfo?.firstName || "Loan Officer",
+            note: "Application created by loan officer",
+          },
+        ],
+        flags: [],
+        nextAction: "Initial Review",
+        loanOfficerId: userInfo?._id,
+        email: newApplicationForm.email,
+      };
 
-    // Add to applications list (in a real app, this would be an API call)
-    console.log("New Application Created:", newApplication);
-    alert(
-      `Application ${newAppId} created successfully for ${newApplication.applicantName}`
-    );
+      await axios.post(
+        `${process.env.REACT_APP_API_URL}/loan-applications`,
+        applicationData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-    // Reset form and close modal
-    setNewApplicationData({
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      dateOfBirth: "",
-      ssn: "",
-      maritalStatus: "",
-      dependents: "",
-      streetAddress: "",
-      city: "",
-      state: "",
-      zipCode: "",
-      residenceType: "",
-      monthsAtAddress: "",
-      employmentStatus: "",
-      employer: "",
-      jobTitle: "",
-      monthsEmployed: "",
-      annualIncome: "",
-      additionalIncome: "",
-      loanType: "",
-      loanAmount: "",
-      loanPurpose: "",
-      downPayment: "",
-      monthlyRent: "",
-      monthlyDebt: "",
-      assets: "",
-      bankName: "",
-      accountType: "",
-      reference1Name: "",
-      reference1Phone: "",
-      reference1Relationship: "",
-      reference2Name: "",
-      reference2Phone: "",
-      reference2Relationship: "",
-    });
-    setShowNewApplicationModal(false);
-  };
-
-  
-
-  const NewApplicationModal = ({ isOpen, onClose }) => {
-    if (!isOpen) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-          <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold text-black dark:text-white">
-                New Loan Application
-              </h2>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                <XCircle className="h-6 w-6" />
-              </button>
-            </div>
-          </div>
-
-          <form onSubmit={handleNewApplicationSubmit} className="p-6 space-y-8">
-            {/* Personal Information Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center">
-                <User className="h-5 w-5 mr-2" />
-                Personal Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-red-600 mb-1">
-                    First Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={newApplicationData.firstName}
-                    onChange={(e) =>
-                      handleNewApplicationChange("firstName", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-red-600 mb-1">
-                    Last Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={newApplicationData.lastName}
-                    onChange={(e) =>
-                      handleNewApplicationChange("lastName", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-red-600 mb-1">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    value={newApplicationData.email}
-                    onChange={(e) =>
-                      handleNewApplicationChange("email", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-red-600 mb-1">
-                    Phone *
-                  </label>
-                  <input
-                    type="tel"
-                    value={newApplicationData.phone}
-                    onChange={(e) =>
-                      handleNewApplicationChange("phone", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Date of Birth
-                  </label>
-                  <input
-                    type="date"
-                    value={newApplicationData.dateOfBirth}
-                    onChange={(e) =>
-                      handleNewApplicationChange("dateOfBirth", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Social Security Number
-                  </label>
-                  <input
-                    type="text"
-                    value={newApplicationData.ssn}
-                    onChange={(e) =>
-                      handleNewApplicationChange("ssn", e.target.value)
-                    }
-                    placeholder="XXX-XX-XXXX"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Marital Status
-                  </label>
-                  <select
-                    value={newApplicationData.maritalStatus}
-                    onChange={(e) =>
-                      handleNewApplicationChange(
-                        "maritalStatus",
-                        e.target.value
-                      )
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  >
-                    <option value="">Select...</option>
-                    <option value="single">Single</option>
-                    <option value="married">Married</option>
-                    <option value="divorced">Divorced</option>
-                    <option value="widowed">Widowed</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Number of Dependents
-                  </label>
-                  <input
-                    type="number"
-                    value={newApplicationData.dependents}
-                    onChange={(e) =>
-                      handleNewApplicationChange("dependents", e.target.value)
-                    }
-                    min="0"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Address Information Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center">
-                <MapPin className="h-5 w-5 mr-2" />
-                Address Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Street Address
-                  </label>
-                  <input
-                    type="text"
-                    value={newApplicationData.streetAddress}
-                    onChange={(e) =>
-                      handleNewApplicationChange(
-                        "streetAddress",
-                        e.target.value
-                      )
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    City
-                  </label>
-                  <input
-                    type="text"
-                    value={newApplicationData.city}
-                    onChange={(e) =>
-                      handleNewApplicationChange("city", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    State
-                  </label>
-                  <select
-                    value={newApplicationData.state}
-                    onChange={(e) =>
-                      handleNewApplicationChange("state", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  >
-                    <option value="">Select State...</option>
-                    <option value="AL">Alabama</option>
-                    <option value="CA">California</option>
-                    <option value="FL">Florida</option>
-                    <option value="NY">New York</option>
-                    <option value="TX">Texas</option>
-                    <option value="WA">Washington</option>
-                    <option value="OR">Oregon</option>
-                    <option value="AZ">Arizona</option>
-                    <option value="NV">Nevada</option>
-                    <option value="CO">Colorado</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    ZIP Code
-                  </label>
-                  <input
-                    type="text"
-                    value={newApplicationData.zipCode}
-                    onChange={(e) =>
-                      handleNewApplicationChange("zipCode", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Residence Type
-                  </label>
-                  <select
-                    value={newApplicationData.residenceType}
-                    onChange={(e) =>
-                      handleNewApplicationChange(
-                        "residenceType",
-                        e.target.value
-                      )
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  >
-                    <option value="">Select...</option>
-                    <option value="own">Own</option>
-                    <option value="rent">Rent</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Employment Information Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center">
-                <Briefcase className="h-5 w-5 mr-2" />
-                Employment Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Employment Status
-                  </label>
-                  <select
-                    value={newApplicationData.employmentStatus}
-                    onChange={(e) =>
-                      handleNewApplicationChange(
-                        "employmentStatus",
-                        e.target.value
-                      )
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  >
-                    <option value="">Select...</option>
-                    <option value="employed">Employed</option>
-                    <option value="self-employed">Self-Employed</option>
-                    <option value="unemployed">Unemployed</option>
-                    <option value="retired">Retired</option>
-                    <option value="student">Student</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Employer
-                  </label>
-                  <input
-                    type="text"
-                    value={newApplicationData.employer}
-                    onChange={(e) =>
-                      handleNewApplicationChange("employer", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Job Title
-                  </label>
-                  <input
-                    type="text"
-                    value={newApplicationData.jobTitle}
-                    onChange={(e) =>
-                      handleNewApplicationChange("jobTitle", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Months Employed
-                  </label>
-                  <input
-                    type="number"
-                    value={newApplicationData.monthsEmployed}
-                    onChange={(e) =>
-                      handleNewApplicationChange(
-                        "monthsEmployed",
-                        e.target.value
-                      )
-                    }
-                    min="0"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Annual Income
-                  </label>
-                  <input
-                    type="number"
-                    value={newApplicationData.annualIncome}
-                    onChange={(e) =>
-                      handleNewApplicationChange("annualIncome", e.target.value)
-                    }
-                    min="0"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Additional Income
-                  </label>
-                  <input
-                    type="number"
-                    value={newApplicationData.additionalIncome}
-                    onChange={(e) =>
-                      handleNewApplicationChange(
-                        "additionalIncome",
-                        e.target.value
-                      )
-                    }
-                    min="0"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Loan Information Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center">
-                <DollarSign className="h-5 w-5 mr-2" />
-                Loan Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-red-600 mb-1">
-                    Loan Type *
-                  </label>
-                  <select
-                    value={newApplicationData.loanType}
-                    onChange={(e) =>
-                      handleNewApplicationChange("loanType", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    required
-                  >
-                    <option value="">Select Loan Type...</option>
-                    <option value="mortgage">Mortgage</option>
-                    <option value="auto">Auto Loan</option>
-                    <option value="personal">Personal Loan</option>
-                    <option value="business">Business Loan</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-red-600 mb-1">
-                    Loan Amount *
-                  </label>
-                  <input
-                    type="number"
-                    value={newApplicationData.loanAmount}
-                    onChange={(e) =>
-                      handleNewApplicationChange("loanAmount", e.target.value)
-                    }
-                    min="1000"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Loan Purpose
-                  </label>
-                  <select
-                    value={newApplicationData.loanPurpose}
-                    onChange={(e) =>
-                      handleNewApplicationChange("loanPurpose", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  >
-                    <option value="">Select Purpose...</option>
-                    <option value="home-purchase">Home Purchase</option>
-                    <option value="refinance">Refinance</option>
-                    <option value="vehicle-purchase">Vehicle Purchase</option>
-                    <option value="debt-consolidation">
-                      Debt Consolidation
-                    </option>
-                    <option value="home-improvement">Home Improvement</option>
-                    <option value="business-expansion">
-                      Business Expansion
-                    </option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Down Payment
-                  </label>
-                  <input
-                    type="number"
-                    value={newApplicationData.downPayment}
-                    onChange={(e) =>
-                      handleNewApplicationChange("downPayment", e.target.value)
-                    }
-                    min="0"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Financial Information Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center">
-                <CreditCard className="h-5 w-5 mr-2" />
-                Financial Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Monthly Rent/Mortgage
-                  </label>
-                  <input
-                    type="number"
-                    value={newApplicationData.monthlyRent}
-                    onChange={(e) =>
-                      handleNewApplicationChange("monthlyRent", e.target.value)
-                    }
-                    min="0"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Monthly Debt Payments
-                  </label>
-                  <input
-                    type="number"
-                    value={newApplicationData.monthlyDebt}
-                    onChange={(e) =>
-                      handleNewApplicationChange("monthlyDebt", e.target.value)
-                    }
-                    min="0"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Total Assets
-                  </label>
-                  <input
-                    type="number"
-                    value={newApplicationData.assets}
-                    onChange={(e) =>
-                      handleNewApplicationChange("assets", e.target.value)
-                    }
-                    min="0"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Primary Bank
-                  </label>
-                  <input
-                    type="text"
-                    value={newApplicationData.bankName}
-                    onChange={(e) =>
-                      handleNewApplicationChange("bankName", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* References Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center">
-                <Users className="h-5 w-5 mr-2" />
-                References
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-medium text-black dark:text-white mb-3">
-                    Reference 1
-                  </h4>
-                  <div className="space-y-3">
-                    <input
-                      type="text"
-                      placeholder="Full Name"
-                      value={newApplicationData.reference1Name}
-                      onChange={(e) =>
-                        handleNewApplicationChange(
-                          "reference1Name",
-                          e.target.value
-                        )
-                      }
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    />
-                    <input
-                      type="tel"
-                      placeholder="Phone Number"
-                      value={newApplicationData.reference1Phone}
-                      onChange={(e) =>
-                        handleNewApplicationChange(
-                          "reference1Phone",
-                          e.target.value
-                        )
-                      }
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Relationship"
-                      value={newApplicationData.reference1Relationship}
-                      onChange={(e) =>
-                        handleNewApplicationChange(
-                          "reference1Relationship",
-                          e.target.value
-                        )
-                      }
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium text-black dark:text-white mb-3">
-                    Reference 2
-                  </h4>
-                  <div className="space-y-3">
-                    <input
-                      type="text"
-                      placeholder="Full Name"
-                      value={newApplicationData.reference2Name}
-                      onChange={(e) =>
-                        handleNewApplicationChange(
-                          "reference2Name",
-                          e.target.value
-                        )
-                      }
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    />
-                    <input
-                      type="tel"
-                      placeholder="Phone Number"
-                      value={newApplicationData.reference2Phone}
-                      onChange={(e) =>
-                        handleNewApplicationChange(
-                          "reference2Phone",
-                          e.target.value
-                        )
-                      }
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Relationship"
-                      value={newApplicationData.reference2Relationship}
-                      onChange={(e) =>
-                        handleNewApplicationChange(
-                          "reference2Relationship",
-                          e.target.value
-                        )
-                      }
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Form Actions */}
-            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600"
-              >
-                Create Application
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  };
-
-  const handleBulkApprove = () => {
-    console.log("Bulk approve selected applications...");
-    // Implementation for bulk approval
-    // You could select multiple applications and approve them at once
-    alert("Bulk Approve feature - would approve selected applications");
-  };
-
-  const handleExportReport = () => {
-    console.log("Exporting report...");
-    // Implementation for report export
-    // You could generate and download a report
-    alert("Export Report feature - would generate and download report");
-  };
-
-  // Filter applications
-  const filteredApplications = loanOfficerData.loanApplications.filter(
-    (app) => {
-      // First filter by status and loan type
-      const statusMatch =
-        filterStatus === "all" ||
-        app.status.toLowerCase().includes(filterStatus.toLowerCase());
-      const typeMatch =
-        filterLoanType === "all" ||
-        app.loanType.toLowerCase().includes(filterLoanType.toLowerCase());
-
-      // Then filter by search query
-      const searchMatch =
-        searchQuery === "" ||
-        app.applicantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        app.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        app.applicantId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        app.loanType.toLowerCase().includes(searchQuery.toLowerCase());
-
-      return statusMatch && typeMatch && searchMatch;
+      toast.success("Application created successfully!");
+      setShowNewApplicationModal(false);
+      setNewApplicationForm({
+        applicantName: "",
+        email: "",
+        phone: "",
+        loanType: "",
+        amount: "",
+        purpose: "",
+        creditScore: "",
+        annualIncome: "",
+      });
+      refetch(); // Refresh the data
+    } catch (error) {
+      console.error("Error creating application:", error);
+      toast.error("Failed to create application");
     }
-  );
-
-  // Application Details Modal Component
-  const ApplicationDetailsModal = ({ isOpen, onClose, application }) => {
-    if (!isOpen || !application) return null;
-
-    // Add this New Application Modal component before the return statement
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h3 className="text-xl font-bold text-black dark:text-white">
-                {application.applicantName}
-              </h3>
-              <p className="text-sm text-black dark:text-white">
-                Application ID: {application.id}
-              </p>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              <XCircle className="h-6 w-6" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Application Summary */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Basic Info */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h4 className="font-semibold text-black dark:text-white mb-3">
-                  Loan Details
-                </h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-black dark:text-white">
-                      Loan Type:
-                    </span>
-                    <div className="font-medium text-black dark:text-white flex items-center space-x-2">
-                      {getLoanTypeIcon(application.loanType)}
-                      <span>{application.loanType}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-black dark:text-white">Amount:</span>
-                    <div className="font-medium text-black dark:text-white">
-                      ${application.amount.toLocaleString()}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-black dark:text-white">Purpose:</span>
-                    <div className="font-medium text-black dark:text-white">
-                      {application.purpose}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-black dark:text-white">
-                      Days in Process:
-                    </span>
-                    <div className="font-medium text-black dark:text-white">
-                      {application.daysInProcess} days
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Credit & Risk Assessment */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h4 className="font-semibold text-black dark:text-white mb-3">
-                  Credit & Risk Assessment
-                </h4>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      {application.creditScore}
-                    </div>
-                    <div className="text-sm text-black dark:text-white">
-                      Credit Score
-                    </div>
-                    <div className="flex items-center justify-center mt-1">
-                      {application.creditTrend === "up" ? (
-                        <ArrowUp className="h-4 w-4 text-green-500" />
-                      ) : application.creditTrend === "down" ? (
-                        <ArrowDown className="h-4 w-4 text-red-500" />
-                      ) : (
-                        <div className="h-4 w-4" />
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div
-                      className={`text-2xl font-bold ${getRiskColor(
-                        application.riskLevel
-                      )}`}
-                    >
-                      {application.riskLevel}
-                    </div>
-                    <div className="text-sm text-black dark:text-white">
-                      Risk Level
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                      {application.financials.debtToIncome}%
-                    </div>
-                    <div className="text-sm text-black dark:text-white">
-                      Debt-to-Income
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Employment & Financials */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h4 className="font-semibold text-black dark:text-white mb-3">
-                  Employment & Financial Information
-                </h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-black dark:text-white">
-                      Employment Status:
-                    </span>
-                    <div className="font-medium text-black dark:text-white">
-                      {application.employment.status}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-black dark:text-white">
-                      Annual Income:
-                    </span>
-                    <div className="font-medium text-black dark:text-white">
-                      ${application.employment.income.toLocaleString()}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-black dark:text-white">
-                      Employer:
-                    </span>
-                    <div className="font-medium text-black dark:text-white">
-                      {application.employment.employer}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-black dark:text-white">
-                      Years Employed:
-                    </span>
-                    <div className="font-medium text-black dark:text-white">
-                      {application.employment.yearsEmployed} years
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-black dark:text-white">
-                      Liquid Assets:
-                    </span>
-                    <div className="font-medium text-black dark:text-white">
-                      ${application.financials.liquidAssets.toLocaleString()}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-black dark:text-white">
-                      Monthly Expenses:
-                    </span>
-                    <div className="font-medium text-black dark:text-white">
-                      ${application.financials.monthlyExpenses.toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Property/Collateral Info */}
-              {application.property && (
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <h4 className="font-semibold text-black dark:text-white mb-3">
-                    Property Information
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-black dark:text-white">
-                        Address:
-                      </span>
-                      <div className="font-medium text-black dark:text-white">
-                        {application.property.address}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-black dark:text-white">
-                        Property Value:
-                      </span>
-                      <div className="font-medium text-black dark:text-white">
-                        ${application.property.value.toLocaleString()}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-black dark:text-white">
-                        Property Type:
-                      </span>
-                      <div className="font-medium text-black dark:text-white">
-                        {application.property.type}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-black dark:text-white">
-                        Year Built:
-                      </span>
-                      <div className="font-medium text-black dark:text-white">
-                        {application.property.yearBuilt}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Vehicle Info */}
-              {application.vehicle && (
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <h4 className="font-semibold text-black dark:text-white mb-3">
-                    Vehicle Information
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-black dark:text-white">
-                        Make & Model:
-                      </span>
-                      <div className="font-medium text-black dark:text-white">
-                        {application.vehicle.make} {application.vehicle.model}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-black dark:text-white">Year:</span>
-                      <div className="font-medium text-black dark:text-white">
-                        {application.vehicle.year}
-                      </div>
-                    </div>
-                    <div className="col-span-2">
-                      <span className="text-black dark:text-white">VIN:</span>
-                      <div className="font-medium text-black dark:text-white">
-                        {application.vehicle.vin}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Right Sidebar */}
-            <div className="space-y-6">
-              {/* Status & Actions */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h4 className="font-semibold text-black dark:text-white mb-3">
-                  Status & Actions
-                </h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-black dark:text-white">
-                      Status:
-                    </span>
-                    <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                        application.status
-                      )}`}
-                    >
-                      {application.status}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-black dark:text-white">
-                      Priority:
-                    </span>
-                    <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(
-                        application.priority
-                      )}`}
-                    >
-                      {application.priority}
-                    </span>
-                  </div>
-                  <div className="text-sm text-black dark:text-white">
-                    <span>SLA Deadline:</span>
-                    <div className="font-medium">{application.slaDeadline}</div>
-                  </div>
-                </div>
-
-                <div className="mt-4 space-y-2">
-                  <button
-                    onClick={() => handleApproveApplication(application.id)}
-                    className="w-full bg-green-600 dark:bg-green-700 text-white py-2 px-4 rounded-lg text-sm hover:bg-green-700 dark:hover:bg-green-600"
-                  >
-                    Approve Application
-                  </button>
-                  <button
-                    onClick={() => handleRejectApplication(application.id)}
-                    className="w-full bg-red-600 dark:bg-red-700 text-white py-2 px-4 rounded-lg text-sm hover:bg-red-700 dark:hover:bg-red-600"
-                  >
-                    Reject Application
-                  </button>
-                  <button
-                    onClick={() => handleRequestDocuments(application.id)}
-                    className="w-full bg-blue-600 dark:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm hover:bg-blue-700 dark:hover:bg-blue-600"
-                  >
-                    Request Documents
-                  </button>
-                </div>
-              </div>
-
-              {/* Documents */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h4 className="font-semibold text-black dark:text-white mb-3">
-                  Documents
-                </h4>
-                <div className="space-y-2">
-                  {application.documents.map((doc, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-2 bg-white dark:bg-gray-600 rounded"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <FileText className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                        <span className="text-sm text-black dark:text-white">
-                          {doc.name}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full ${
-                            doc.status === "Received"
-                              ? "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400"
-                              : doc.status === "Pending"
-                              ? "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400"
-                              : "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400"
-                          }`}
-                        >
-                          {doc.status}
-                        </span>
-                        {doc.status === "Received" && (
-                          <button
-                            onClick={() => {
-                              setSelectedDocument(doc);
-                              setShowDocumentViewer(true);
-                            }}
-                            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <button className="mt-3 w-full bg-gray-600 dark:bg-gray-700 text-white py-2 px-4 rounded-lg text-sm hover:bg-gray-700 dark:hover:bg-gray-600 flex items-center justify-center space-x-2">
-                  <Upload className="h-4 w-4" />
-                  <span>Upload Document</span>
-                </button>
-              </div>
-
-              {/* Flags & Alerts */}
-              {application.flags && application.flags.length > 0 && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                  <h4 className="font-semibold text-red-800 dark:text-red-400 mb-3 flex items-center space-x-2">
-                    <Flag className="h-4 w-4" />
-                    <span>Flags & Alerts</span>
-                  </h4>
-                  <div className="space-y-2">
-                    {application.flags.map((flag, index) => (
-                      <div
-                        key={index}
-                        className="p-2 bg-white dark:bg-red-900/30 rounded border-l-4 border-red-400 dark:border-red-500"
-                      >
-                        <div className="font-medium text-sm text-red-800 dark:text-red-400">
-                          {flag.type}
-                        </div>
-                        <div className="text-xs text-red-700 dark:text-red-300">
-                          {flag.message}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Notes */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h4 className="font-semibold text-black dark:text-white mb-3">
-                  Notes & Comments
-                </h4>
-                <div className="space-y-3 max-h-48 overflow-y-auto">
-                  {application.notes.map((note, index) => (
-                    <div
-                      key={index}
-                      className="p-3 bg-white dark:bg-gray-600 rounded border-l-4 border-blue-400 dark:border-blue-500"
-                    >
-                      <div className="text-xs text-black dark:text-white mb-1">
-                        {note.date} • {note.author}
-                      </div>
-                      <div className="text-sm text-black dark:text-white">
-                        {note.note}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-3">
-                  <textarea
-                    placeholder="Add a note..."
-                    className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white"
-                    rows="2"
-                  />
-                  <button className="mt-2 w-full bg-blue-600 dark:bg-blue-700 text-white py-1 px-3 rounded text-sm hover:bg-blue-700 dark:hover:bg-blue-600">
-                    Add Note
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   };
 
-  // Document Viewer Modal
-  const DocumentViewerModal = ({ isOpen, onClose, document }) => {
-    if (!isOpen || !document) return null;
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount || 0);
+  };
 
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh]">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-black dark:text-white">
-              {document.name}
-            </h3>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              <XCircle className="h-6 w-6" />
-            </button>
-          </div>
-          <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-8 text-center">
-            <FileText className="h-16 w-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-            <p className="text-black dark:text-white">
-              Document viewer would be implemented here
-            </p>
-            <p className="text-sm text-black dark:text-white mt-2">
-              Type: {document.type} • Received: {document.date}
-            </p>
-            <div className="mt-4 space-x-2">
-              <button className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600">
-                <Download className="h-4 w-4 inline mr-2" />
-                Download
-              </button>
-              <button className="bg-green-600 dark:bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-700 dark:hover:bg-green-600">
-                Approve Document
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    // Handle both date strings and Date objects
+    const date = new Date(dateString);
+
+    // Check if the date is valid
+    if (isNaN(date.getTime())) return "N/A";
+
+    const now = new Date();
+    const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
+
+    if (diffInHours < 24) {
+      if (diffInHours < 1) return "Just now";
+      return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
+    } else if (diffInHours < 48) {
+      return "Yesterday";
+    } else {
+      return date.toLocaleDateString();
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-7xl">
+        {/* Header Section */}
+        <AnimatedSection delay={100}>
+          <div className="text-center sm:text-left mb-8 sm:mb-10 lg:mb-12">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
+              Application Pipeline
+            </h1>
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-300 mt-2 sm:mt-3">
+              Manage and review loan applications efficiently
+            </p>
+          </div>
+        </AnimatedSection>
 
-        {/* Navigation Tabs */}
-        <div className="bg-white bg-opacity-0 dark:bg-gray-800 dark:bg-opacity-0 rounded-lg shadow-sm mb-6">
-            {/* Application Pipeline Tab */}
-            <div className="space-y-6">
-              {/* Filters */}
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Filter className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                  <select
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  >
-                    <option value="all">All Status</option>
-                    <option value="in review">In Review</option>
-                    <option value="pending approval">Pending Approval</option>
-                    <option value="flagged">Flagged</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                  </select>
+        {/* Quick Stats Cards */}
+        <AnimatedSection delay={200}>
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-8 sm:mb-10 lg:mb-12">
+            {/* Pending Applications */}
+            <div className="group bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/30 dark:to-yellow-800/20 border border-yellow-200 dark:border-yellow-700/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 text-center transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-yellow-200/50 dark:hover:shadow-yellow-900/30">
+              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-1 sm:mb-2 group-hover:scale-110 transition-transform duration-300">
+                {applicationStats.pending || 0}
+              </div>
+              <div className="text-xs sm:text-sm lg:text-base text-yellow-700 dark:text-yellow-300 font-medium">
+                Pending Review
+              </div>
+            </div>
+
+            {/* Approved Applications */}
+            <div className="group bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 border border-green-200 dark:border-green-700/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 text-center transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-green-200/50 dark:hover:shadow-green-900/30">
+              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600 dark:text-green-400 mb-1 sm:mb-2 group-hover:scale-110 transition-transform duration-300">
+                {applicationStats.approved || 0}
+              </div>
+              <div className="text-xs sm:text-sm lg:text-base text-green-700 dark:text-green-300 font-medium">
+                Approved
+              </div>
+            </div>
+
+            {/* In Review */}
+            <div className="group bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 border border-blue-200 dark:border-blue-700/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 text-center transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-blue-200/50 dark:hover:shadow-blue-900/30">
+              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1 sm:mb-2 group-hover:scale-110 transition-transform duration-300">
+                {applicationStats.inReview || 0}
+              </div>
+              <div className="text-xs sm:text-sm lg:text-base text-blue-700 dark:text-blue-300 font-medium">
+                In Review
+              </div>
+            </div>
+
+            {/* Total Applications */}
+            <div className="group bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20 border border-purple-200 dark:border-purple-700/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 text-center transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-purple-200/50 dark:hover:shadow-purple-900/30">
+              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1 sm:mb-2 group-hover:scale-110 transition-transform duration-300">
+                {applicationStats.total || 0}
+              </div>
+              <div className="text-xs sm:text-sm lg:text-base text-purple-700 dark:text-purple-300 font-medium">
+                Total Apps
+              </div>
+            </div>
+          </div>
+        </AnimatedSection>
+
+        {/* Filters and Search */}
+        <AnimatedSection delay={300}>
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl shadow-2xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 p-6 sm:p-8 lg:p-10 mb-8 transition-all duration-500">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+              {/* Search Bar */}
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search applications by name, ID, or loan type..."
+                    className="w-full focus-visible:outline-none pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  />
                 </div>
+              </div>
+
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 focus-visible:outline-none"
+                >
+                  <option value="all">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="In Review">In Review</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="flagged">Flagged</option>
+                </select>
+
                 <select
                   value={filterLoanType}
                   onChange={(e) => setFilterLoanType(e.target.value)}
-                  className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
+                  className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 focus-visible:outline-none"
                 >
-                  <option value="all">All Loan Types</option>
-                  <option value="mortgage">Mortgage</option>
+                  <option value="all">All Types</option>
+                  <option value="Mortgage">Mortgage</option>
                   <option value="auto">Auto Loan</option>
                   <option value="personal">Personal Loan</option>
                   <option value="business">Business Loan</option>
+                  <option value="student">Student Loan</option>
                 </select>
+
+                <button
+                  onClick={handleNewApplication}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium"
+                >
+                  <Plus className="h-5 w-5" />
+                  <span className="hidden sm:inline">New Application</span>
+                  <span className="sm:hidden">New</span>
+                </button>
               </div>
+            </div>
+          </div>
+        </AnimatedSection>
 
-              {/* Pipeline Overview Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-  {[
-    {
-      status: "New Applications",
-      count: 8,
-      color:
-        "bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400",
-    },
-    {
-      status: "In Review",
-      count: 15,
-      color:
-        "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400",
-    },
-    {
-      status: "Pending Approval",
-      count: 6,
-      color:
-        "bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-400",
-    },
-    {
-      status: "Approved",
-      count: 23,
-      color:
-        "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400",
-    },
-    {
-      status: "Flagged",
-      count: 3,
-      color:
-        "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400",
-    },
-  ].map((item, index) => (
-    <div
-      key={index}
-      className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 text-center"
-    >
-      <div
-        className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${item.color} mb-2`}
-      >
-        {item.status}
-      </div>
-      <div className="text-2xl font-bold text-black dark:text-white">
-        {item.count}
-      </div>
-    </div>
-  ))}
-</div>
+        {/* Applications List */}
+        <AnimatedSection delay={400}>
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl shadow-2xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden transition-all duration-500">
+            <div className="px-6 sm:px-8 lg:px-10 py-6 border-b border-gray-200/50 dark:border-gray-700/50">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
+                Loan Applications ({filteredApplications.length})
+              </h3>
+            </div>
 
+            {filteredApplications.length > 0 ? (
+              <div className="space-y-4 p-6 sm:p-8 lg:p-10">
+                {filteredApplications.map((application, index) => (
+                  <div
+                    key={application._id}
+                    className="group relative p-6 sm:p-8 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200/60 dark:border-gray-700/60 hover:border-blue-300/60 dark:hover:border-blue-600/60 transition-all duration-500 hover:shadow-xl hover:shadow-blue-100/50 dark:hover:shadow-blue-900/30 hover:-translate-y-1 overflow-hidden"
+                  >
+                    {/* Subtle gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-blue-50/30 dark:to-blue-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-              {/* Applications Table */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead className="bg-gray-50 dark:bg-gray-700">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                          Applicant
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                          Loan Details
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                          Credit Score
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                          Risk Level
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                          SLA
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                      {filteredApplications.map((application) => (
-                        <tr
-                          key={application.id}
-                          className="hover:bg-gray-50 dark:hover:bg-gray-700"
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div>
-                                <div className="text-sm font-medium text-black dark:text-white">
-                                  {application.applicantName}
-                                </div>
-                                <div className="text-sm text-black dark:text-white">
-                                  {application.id}
-                                </div>
-                              </div>
+                    {/* Content */}
+                    <div className="relative z-10">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                        {/* Left Section - Applicant Info */}
+                        <div className="flex items-start space-x-5">
+                          <div
+                            className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${getLoanTypeColor(
+                              application.loanType
+                            )} group-hover:scale-110 transition-transform duration-300`}
+                          >
+                            {getLoanTypeIcon(application.loanType)}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                              {application.applicantName || "Unknown Applicant"}
+                            </h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                              ID:{" "}
+                              {application.applicantId?.slice(-8) ||
+                                application._id?.slice(-8) ||
+                                "N/A"}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-3 mt-3">
+                              <span
+                                className={`inline-flex items-center px-3 py-1.5 rounded-xl text-sm font-semibold shadow-sm ${getLoanTypeColor(
+                                  application.loanType
+                                )} hover:shadow-md transition-shadow duration-200`}
+                              >
+                                {application.loanType || "Unknown"}
+                              </span>
+                              <span className="text-lg font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 px-3 py-1.5 rounded-xl">
+                                {formatCurrency(application.amount)}
+                              </span>
                             </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center space-x-2">
-                              {getLoanTypeIcon(application.loanType)}
-                              <div>
-                                <div className="text-sm font-medium text-black dark:text-white">
-                                  {application.loanType}
-                                </div>
-                                <div className="text-sm text-black dark:text-white">
-                                  ${application.amount.toLocaleString()}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center space-x-2">
-                              <span className="text-sm font-medium text-black dark:text-white">
-                                {application.creditScore}
+                          </div>
+                        </div>
+
+                        {/* Right Section - Status and Actions */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                          {/* Credit Score */}
+                          <div className="text-center bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-200 dark:border-gray-600">
+                            <div className="flex items-center justify-center space-x-2">
+                              <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                                {application.creditScore || "N/A"}
                               </span>
                               {application.creditTrend === "up" ? (
-                                <ArrowUp className="h-4 w-4 text-green-500" />
+                                <div className="p-1 bg-green-100 dark:bg-green-900/30 rounded-full">
+                                  <ArrowUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                </div>
                               ) : application.creditTrend === "down" ? (
-                                <ArrowDown className="h-4 w-4 text-red-500" />
+                                <div className="p-1 bg-red-100 dark:bg-red-900/30 rounded-full">
+                                  <ArrowDown className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                </div>
                               ) : null}
                             </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium">
+                              Credit Score
+                            </p>
+                          </div>
+
+                          {/* Risk Level */}
+                          <div className="flex flex-col items-center">
                             <span
-                              className={`text-sm font-medium ${getRiskColor(
+                              className={`inline-flex px-4 py-2 text-sm font-bold rounded-xl shadow-sm ${getRiskColor(
                                 application.riskLevel
-                              )}`}
+                              )} hover:shadow-md transition-shadow duration-200`}
                             >
-                              {application.riskLevel}
+                              {application.riskLevel?.toUpperCase() ||
+                                "UNKNOWN"}{" "}
+                              RISK
                             </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          </div>
+
+                          {/* Status */}
+                          <div className="flex flex-col items-center">
                             <span
-                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                              className={`inline-flex px-4 py-2 text-sm font-bold rounded-xl border-2 shadow-sm ${getStatusColor(
                                 application.status
-                              )}`}
+                              )} hover:shadow-md transition-all duration-200`}
                             >
-                              {application.status}
+                              {application.status?.toUpperCase() || "UNKNOWN"}
                             </span>
-                            {application.flags &&
-                              application.flags.length > 0 && (
-                                <Flag className="h-4 w-4 text-red-500 ml-2 inline" />
-                              )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-black dark:text-white">
-                              <div
-                                className={`font-medium ${
-                                  application.daysInProcess >= 7
-                                    ? "text-red-600 dark:text-red-400"
-                                    : application.daysInProcess >= 5
-                                    ? "text-yellow-600 dark:text-yellow-400"
-                                    : "text-green-600 dark:text-green-400"
-                                }`}
-                              >
-                                {application.daysInProcess} days
-                              </div>
-                              <div className="text-xs">
-                                {application.slaDeadline}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded-xl">
                             <button
-                              onClick={() => {
-                                setSelectedApplication(application);
-                                setShowApplicationDetails(true);
-                              }}
-                              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mr-3"
+                              onClick={() => handleViewApplication(application)}
+                              className="p-3 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl transition-all duration-200 hover:scale-110"
+                              title="View Details"
                             >
-                              <Eye className="h-4 w-4" />
+                              <Eye className="h-5 w-5" />
                             </button>
-                            <button className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 mr-3">
-                              <CheckCircle className="h-4 w-4" />
-                            </button>
-                            <button className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
-                              <XCircle className="h-4 w-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+
+                            {application.status !== "approved" && (
+                              <button
+                                onClick={() =>
+                                  handleApproveApplication(application)
+                                }
+                                className="p-3 text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-xl transition-all duration-200 hover:scale-110"
+                                title="Approve"
+                              >
+                                <CheckCircle className="h-5 w-5" />
+                              </button>
+                            )}
+
+                            {application.status !== "rejected" && (
+                              <button
+                                onClick={() =>
+                                  handleRejectApplication(application)
+                                }
+                                className="p-3 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-all duration-200 hover:scale-110"
+                                title="Reject"
+                              >
+                                <XCircle className="h-5 w-5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Additional Info */}
+                      <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                          <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+                            <span className="block text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
+                              Applied
+                            </span>
+                            <span className="block text-sm text-gray-900 dark:text-white font-bold">
+                              {formatDate(
+                                application.submittedDate ||
+                                  application.createdAt
+                              )}
+                            </span>
+                          </div>
+                          <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+                            <span className="block text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
+                              Income
+                            </span>
+                            <span className="block text-sm text-gray-900 dark:text-white font-bold">
+                              {formatCurrency(
+                                application.employment?.income ||
+                                  application.annualIncome
+                              )}
+                            </span>
+                          </div>
+                          <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+                            <span className="block text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
+                              DTI Ratio
+                            </span>
+                            <span className="block text-sm text-gray-900 dark:text-white font-bold">
+                              {application.financials?.debtToIncome ||
+                                application.debtToIncomeRatio ||
+                                "N/A"}
+                              %
+                            </span>
+                          </div>
+                          <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+                            <span className="block text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
+                              Purpose
+                            </span>
+                            <span className="block text-sm text-gray-900 dark:text-white font-bold truncate">
+                              {application.purpose || "N/A"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 px-6">
+                <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  No Applications Found
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {searchQuery ||
+                  filterStatus !== "all" ||
+                  filterLoanType !== "all"
+                    ? "No applications match your current filters. Try adjusting your search criteria."
+                    : "No loan applications have been submitted yet."}
+                </p>
+                {(searchQuery ||
+                  filterStatus !== "all" ||
+                  filterLoanType !== "all") && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setFilterStatus("all");
+                      setFilterLoanType("all");
+                    }}
+                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                  >
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </AnimatedSection>
+      </div>
+
+      {/* New Application Modal */}
+      {showNewApplicationModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <AnimatedSection>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    New Loan Application
+                  </h3>
+                  <button
+                    onClick={() => setShowNewApplicationModal(false)}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                  >
+                    <XCircle className="h-6 w-6 text-gray-400" />
+                  </button>
+                </div>
+              </div>
+
+              <form
+                onSubmit={handleSubmitNewApplication}
+                className="p-6 space-y-6"
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Applicant Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={newApplicationForm.applicantName}
+                      onChange={(e) =>
+                        setNewApplicationForm((prev) => ({
+                          ...prev,
+                          applicantName: e.target.value,
+                        }))
+                      }
+                      className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white focus-visible:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      value={newApplicationForm.email}
+                      onChange={(e) =>
+                        setNewApplicationForm((prev) => ({
+                          ...prev,
+                          email: e.target.value,
+                        }))
+                      }
+                      className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white focus-visible:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Loan Type *
+                    </label>
+                    <select
+                      value={newApplicationForm.loanType}
+                      onChange={(e) =>
+                        setNewApplicationForm((prev) => ({
+                          ...prev,
+                          loanType: e.target.value,
+                        }))
+                      }
+                      className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white focus-visible:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    >
+                      <option value="">Select Loan Type</option>
+                      <option value="Mortgage">Mortgage</option>
+                      <option value="auto">Auto Loan</option>
+                      <option value="personal">Personal Loan</option>
+                      <option value="business">Business Loan</option>
+                      <option value="student">Student Loan</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Loan Amount *
+                    </label>
+                    <input
+                      type="number"
+                      value={newApplicationForm.amount}
+                      onChange={(e) =>
+                        setNewApplicationForm((prev) => ({
+                          ...prev,
+                          amount: e.target.value,
+                        }))
+                      }
+                      className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white focus-visible:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      min="1000"
+                      step="100"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Annual Income *
+                    </label>
+                    <input
+                      type="number"
+                      value={newApplicationForm.annualIncome}
+                      onChange={(e) =>
+                        setNewApplicationForm((prev) => ({
+                          ...prev,
+                          annualIncome: e.target.value,
+                        }))
+                      }
+                      className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white focus-visible:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      min="0"
+                      step="1000"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Credit Score
+                    </label>
+                    <input
+                      type="number"
+                      value={newApplicationForm.creditScore}
+                      onChange={(e) =>
+                        setNewApplicationForm((prev) => ({
+                          ...prev,
+                          creditScore: e.target.value,
+                        }))
+                      }
+                      className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white focus-visible:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      min="300"
+                      max="850"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Loan Purpose
+                  </label>
+                  <textarea
+                    value={newApplicationForm.purpose}
+                    onChange={(e) =>
+                      setNewApplicationForm((prev) => ({
+                        ...prev,
+                        purpose: e.target.value,
+                      }))
+                    }
+                    rows={3}
+                    className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white focus-visible:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    placeholder="Describe the purpose of this loan..."
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <button
+                    type="button"
+                    onClick={() => setShowNewApplicationModal(false)}
+                    className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    Create Application
+                  </button>
+                </div>
+              </form>
+            </div>
+          </AnimatedSection>
+        </div>
+      )}
+
+      {/* Application Details Modal */}
+      {selectedApplication && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <AnimatedSection>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      Application Details
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      ID:{" "}
+                      {selectedApplication.applicantId?.slice(-8) ||
+                        selectedApplication._id?.slice(-8) ||
+                        "N/A"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedApplication(null)}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                  >
+                    <XCircle className="h-6 w-6 text-gray-400" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Left Column - Applicant Information */}
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        Applicant Information
+                      </h4>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            Full Name
+                          </label>
+                          <p className="text-lg text-gray-900 dark:text-white">
+                            {selectedApplication.applicantName || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            Email
+                          </label>
+                          <p className="text-lg text-gray-900 dark:text-white">
+                            {selectedApplication.email || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            Credit Score
+                          </label>
+                          <div className="flex items-center space-x-2">
+                            <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                              {selectedApplication.creditScore || "N/A"}
+                            </p>
+                            {selectedApplication.creditTrend === "up" ? (
+                              <ArrowUp className="h-5 w-5 text-green-500" />
+                            ) : selectedApplication.creditTrend === "down" ? (
+                              <ArrowDown className="h-5 w-5 text-red-500" />
+                            ) : null}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            Annual Income
+                          </label>
+                          <p className="text-lg text-gray-900 dark:text-white">
+                            {formatCurrency(
+                              selectedApplication.employment?.income ||
+                                selectedApplication.annualIncome
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column - Loan Information */}
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        Loan Information
+                      </h4>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            Loan Type
+                          </label>
+                          <div className="flex items-center space-x-2">
+                            {getLoanTypeIcon(selectedApplication.loanType)}
+                            <p className="text-lg text-gray-900 dark:text-white capitalize">
+                              {selectedApplication.loanType || "N/A"}
+                            </p>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            Loan Amount
+                          </label>
+                          <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                            {formatCurrency(selectedApplication.amount)}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            Purpose
+                          </label>
+                          <p className="text-lg text-gray-900 dark:text-white">
+                            {selectedApplication.purpose || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            Risk Level
+                          </label>
+                          <span
+                            className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getRiskColor(
+                              selectedApplication.riskLevel
+                            )}`}
+                          >
+                            {selectedApplication.riskLevel?.toUpperCase() ||
+                              "UNKNOWN"}{" "}
+                            RISK
+                          </span>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            Current Status
+                          </label>
+                          <span
+                            className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full border ${getStatusColor(
+                              selectedApplication.status
+                            )}`}
+                          >
+                            {selectedApplication.status?.toUpperCase() ||
+                              "UNKNOWN"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Application Timeline */}
+                <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Application Timeline
+                  </h4>
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          Application Submitted
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {formatDate(
+                            selectedApplication.submittedDate ||
+                              selectedApplication.createdAt
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    {selectedApplication.lastUpdated && (
+                      <div className="flex items-center space-x-4">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            Last Updated
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {formatDate(selectedApplication.lastUpdated)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-8 border-t border-gray-200 dark:border-gray-700">
+                  {selectedApplication.status !== "approved" && (
+                    <button
+                      onClick={() => {
+                        handleApproveApplication(selectedApplication);
+                        setSelectedApplication(null);
+                      }}
+                      className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+                    >
+                      <CheckCircle className="h-5 w-5" />
+                      Approve Application
+                    </button>
+                  )}
+
+                  {selectedApplication.status !== "rejected" && (
+                    <button
+                      onClick={() => {
+                        handleRejectApplication(selectedApplication);
+                        setSelectedApplication(null);
+                      }}
+                      className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+                    >
+                      <XCircle className="h-5 w-5" />
+                      Reject Application
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
+          </AnimatedSection>
         </div>
-
-      {/* Modals */}
-      <ApplicationDetailsModal
-        isOpen={showApplicationDetails}
-        onClose={() => setShowApplicationDetails(false)}
-        application={selectedApplication}
-      />
-
-      <DocumentViewerModal
-        isOpen={showDocumentViewer}
-        onClose={() => setShowDocumentViewer(false)}
-        document={selectedDocument}
-      />
-      <NewApplicationModal
-        isOpen={showNewApplicationModal}
-        onClose={() => setShowNewApplicationModal(false)}
-      />
+      )}
     </div>
   );
 };

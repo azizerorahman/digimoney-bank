@@ -1,2131 +1,735 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import useUserInfo from "../../../hooks/useUserInfo";
+import useLoanOfficerData from "../../../hooks/useLoanOfficerData";
+import LoadingSpinner from "../../../components/Loading";
+import AnimatedSection from "../../../components/AnimatedSection";
 import {
-  Search,
-  User,
   FileText,
   TrendingUp,
   AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Clock,
   DollarSign,
-  Calendar,
-  Upload,
-  Download,
-  Phone,
   Eye,
-  Edit,
-  ArrowUp,
-  ArrowDown,
-  CreditCard,
   Building,
   Home,
   Car,
   GraduationCap,
-  Flag,
-  MapPin,
-  Briefcase,
-  Users,
+  PieChart,
+  Target,
+  Search,
+  X,
 } from "lucide-react";
 
 const LoanPortfolio = () => {
+  const uId = localStorage.getItem("userId");
+  const { userInfo, isLoading: userLoading } = useUserInfo(uId);
+  const {
+    data: loanOfficerData,
+    loading,
+    error,
+  } = useLoanOfficerData(userInfo);
+
+  const [selectedFilter, setSelectedFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showSearchResults, setShowSearchResults] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
-  const [selectedApplication, setSelectedApplication] = useState(null);
-  const [showApplicationDetails, setShowApplicationDetails] = useState(false);
-  const [showDocumentViewer, setShowDocumentViewer] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState(null);
-  // Add these two new state variables after your existing useState declarations
-  const [showNewApplicationModal, setShowNewApplicationModal] = useState(false);
-  const [newApplicationData, setNewApplicationData] = useState({
-    // Personal Information
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    dateOfBirth: "",
-    ssn: "",
-    maritalStatus: "",
-    dependents: "",
+  const [selectedLoan, setSelectedLoan] = useState(null);
+  const [showLoanDetails, setShowLoanDetails] = useState(false);
 
-    // Address Information
-    streetAddress: "",
-    city: "",
-    state: "",
-    zipCode: "",
-    residenceType: "",
-    monthsAtAddress: "",
+  // Memoized active loans data - Fixed to use correct property name
+  const activeLoans = useMemo(() => {
+    if (!loanOfficerData?.activeLoanPortfolio) return [];
 
-    // Employment Information
-    employmentStatus: "",
-    employer: "",
-    jobTitle: "",
-    monthsEmployed: "",
-    annualIncome: "",
-    additionalIncome: "",
+    return loanOfficerData.activeLoanPortfolio.filter((loan) => {
+      const matchesFilter =
+        selectedFilter === "all" ||
+        loan.status?.toLowerCase() === selectedFilter.toLowerCase();
+      const matchesSearch =
+        !searchQuery ||
+        loan.borrowerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        loan.borrowerId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        loan.loanType?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // Loan Information
-    loanType: "",
-    loanAmount: "",
-    loanPurpose: "",
-    downPayment: "",
+      return matchesFilter && matchesSearch;
+    });
+  }, [loanOfficerData?.activeLoanPortfolio, selectedFilter, searchQuery]);
 
-    // Financial Information
-    monthlyRent: "",
-    monthlyDebt: "",
-    assets: "",
-    bankName: "",
-    accountType: "",
+  // Memoized portfolio statistics - Fixed field mappings
+  const portfolioStats = useMemo(() => {
+    if (!loanOfficerData?.activeLoanPortfolio) return {};
 
-    // References
-    reference1Name: "",
-    reference1Phone: "",
-    reference1Relationship: "",
-    reference2Name: "",
-    reference2Phone: "",
-    reference2Relationship: "",
-  });
+    const loans = loanOfficerData.activeLoanPortfolio;
+    const total = loans.length;
+    const totalValue = loans.reduce(
+      (sum, loan) => sum + (loan.originalAmount || 0),
+      0
+    );
+    const totalOutstanding = loans.reduce(
+      (sum, loan) => sum + (loan.currentBalance || 0),
+      0
+    );
+    const performing = loans.filter(
+      (l) => l.status?.toLowerCase() === "current"
+    ).length;
+    const delinquent = loans.filter(
+      (l) =>
+        l.status?.toLowerCase() === "late" ||
+        l.status?.toLowerCase() === "past due"
+    ).length;
+    const defaulted = loans.filter(
+      (l) => l.status?.toLowerCase() === "default"
+    ).length;
 
-  // Mock data for Loan Officer Dashboard
-  const loanOfficerData = {
-    officerInfo: {
-      name: "Sarah Martinez",
-      id: "LO-2024-SM",
-      title: "Senior Loan Officer",
-      branch: "Downtown Branch",
-      status: "Available",
-      todayStats: {
-        applicationsReviewed: 12,
-        approvalRate: "78%",
-        avgProcessingTime: "2.3 days",
-        portfolioValue: "$2.4M",
-      },
-      certifications: ["NMLS Licensed", "FHA Approved", "VA Certified"],
-      performance: {
-        thisMonth: {
-          applications: 45,
-          approved: 35,
-          rejected: 8,
-          pending: 2,
-          volume: "$1.8M",
-        },
-        thisQuarter: {
-          applications: 128,
-          approved: 98,
-          rejected: 24,
-          pending: 6,
-          volume: "$5.2M",
-        },
-      },
-    },
+    return {
+      total,
+      totalValue,
+      totalOutstanding,
+      performing,
+      delinquent,
+      defaulted,
+      performingRate: total ? ((performing / total) * 100).toFixed(1) : 0,
+      averageLoanSize: total ? (totalValue / total).toFixed(0) : 0,
+      monthlyPayments: loans.reduce(
+        (sum, loan) => sum + (loan.monthlyPayment || 0),
+        0
+      ),
+    };
+  }, [loanOfficerData?.activeLoanPortfolio]);
 
-    loanApplications: [
-      {
-        id: "APP-2024-001",
-        applicantName: "John Smith",
-        applicantId: "CUST-789123",
-        loanType: "Mortgage",
-        amount: 350000,
-        purpose: "Home Purchase",
-        status: "In Review",
-        priority: "High",
-        submittedDate: "2024-06-01",
-        lastUpdated: "2024-06-03",
-        daysInProcess: 3,
-        slaDeadline: "2024-06-08",
-        creditScore: 742,
-        creditTrend: "up",
-        riskLevel: "Low",
-        employment: {
-          status: "Employed",
-          income: 85000,
-          employer: "Tech Solutions Inc",
-          yearsEmployed: 3.5,
-        },
-        financials: {
-          downPayment: 70000,
-          debtToIncome: 28,
-          liquidAssets: 125000,
-          monthlyExpenses: 3200,
-        },
-        property: {
-          address: "123 Oak Street, Springfield",
-          value: 375000,
-          type: "Single Family",
-          yearBuilt: 2018,
-        },
-        documents: [
-          {
-            name: "W-2 Forms",
-            status: "Received",
-            date: "2024-06-01",
-            type: "income",
-          },
-          {
-            name: "Pay Stubs",
-            status: "Received",
-            date: "2024-06-01",
-            type: "income",
-          },
-          {
-            name: "Bank Statements",
-            status: "Received",
-            date: "2024-06-02",
-            type: "assets",
-          },
-          {
-            name: "Property Appraisal",
-            status: "Pending",
-            date: null,
-            type: "property",
-          },
-          {
-            name: "Credit Report",
-            status: "Received",
-            date: "2024-06-01",
-            type: "credit",
-          },
-        ],
-        notes: [
-          {
-            date: "2024-06-03",
-            author: "Sarah Martinez",
-            note: "Credit score excellent. Reviewing employment verification.",
-          },
-          {
-            date: "2024-06-02",
-            author: "System",
-            note: "All income documents received and verified.",
-          },
-        ],
-        flags: [],
-        nextAction: "Awaiting property appraisal",
-      },
-      {
-        id: "APP-2024-002",
-        applicantName: "Maria Garcia",
-        applicantId: "CUST-456789",
-        loanType: "Auto Loan",
-        amount: 45000,
-        purpose: "Vehicle Purchase",
-        status: "Pending Approval",
-        priority: "Medium",
-        submittedDate: "2024-05-28",
-        lastUpdated: "2024-06-03",
-        daysInProcess: 7,
-        slaDeadline: "2024-06-05",
-        creditScore: 689,
-        creditTrend: "stable",
-        riskLevel: "Medium",
-        employment: {
-          status: "Employed",
-          income: 62000,
-          employer: "Healthcare Partners",
-          yearsEmployed: 5.2,
-        },
-        financials: {
-          downPayment: 8000,
-          debtToIncome: 35,
-          liquidAssets: 15000,
-          monthlyExpenses: 2100,
-        },
-        vehicle: {
-          make: "Toyota",
-          model: "Camry Hybrid",
-          year: 2024,
-          vin: "1234567890ABCDEFG",
-        },
-        documents: [
-          {
-            name: "Employment Letter",
-            status: "Received",
-            date: "2024-05-28",
-            type: "income",
-          },
-          {
-            name: "Bank Statements",
-            status: "Received",
-            date: "2024-05-29",
-            type: "assets",
-          },
-          {
-            name: "Vehicle Invoice",
-            status: "Received",
-            date: "2024-05-30",
-            type: "collateral",
-          },
-          {
-            name: "Insurance Quote",
-            status: "Received",
-            date: "2024-06-01",
-            type: "insurance",
-          },
-        ],
-        notes: [
-          {
-            date: "2024-06-03",
-            author: "Sarah Martinez",
-            note: "Ready for final approval. All conditions met.",
-          },
-          {
-            date: "2024-06-01",
-            author: "Sarah Martinez",
-            note: "Insurance requirements verified.",
-          },
-        ],
-        flags: [],
-        nextAction: "Final approval pending",
-      },
-      {
-        id: "APP-2024-003",
-        applicantName: "David Chen",
-        applicantId: "CUST-321654",
-        loanType: "Personal Loan",
-        amount: 25000,
-        purpose: "Debt Consolidation",
-        status: "Flagged",
-        priority: "High",
-        submittedDate: "2024-05-25",
-        lastUpdated: "2024-06-02",
-        daysInProcess: 10,
-        slaDeadline: "2024-06-04",
-        creditScore: 598,
-        creditTrend: "down",
-        riskLevel: "High",
-        employment: {
-          status: "Self-Employed",
-          income: 48000,
-          employer: "Freelance Consulting",
-          yearsEmployed: 2.0,
-        },
-        financials: {
-          downPayment: 0,
-          debtToIncome: 52,
-          liquidAssets: 3500,
-          monthlyExpenses: 2800,
-        },
-        documents: [
-          {
-            name: "Tax Returns",
-            status: "Under Review",
-            date: "2024-05-25",
-            type: "income",
-          },
-          {
-            name: "Bank Statements",
-            status: "Received",
-            date: "2024-05-26",
-            type: "assets",
-          },
-          {
-            name: "Debt Summary",
-            status: "Received",
-            date: "2024-05-27",
-            type: "liabilities",
-          },
-        ],
-        notes: [
-          {
-            date: "2024-06-02",
-            author: "Sarah Martinez",
-            note: "High DTI ratio. Requesting additional income verification.",
-          },
-          {
-            date: "2024-05-30",
-            author: "Risk Team",
-            note: "Flagged for manual review due to credit score decline.",
-          },
-        ],
-        flags: [
-          {
-            type: "Credit",
-            message: "Credit score declined 45 points in last 6 months",
-            severity: "high",
-          },
-          {
-            type: "Income",
-            message: "Self-employment income requires additional verification",
-            severity: "medium",
-          },
-        ],
-        nextAction: "Additional documentation required",
-      },
-    ],
+  if (userLoading || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
-    creditScoreData: {
-      "APP-2024-001": {
-        current: 742,
-        history: [
-          { date: "2024-01", score: 725 },
-          { date: "2024-02", score: 728 },
-          { date: "2024-03", score: 735 },
-          { date: "2024-04", score: 738 },
-          { date: "2024-05", score: 742 },
-        ],
-        factors: [
-          { factor: "Payment History", impact: "Positive", score: 95 },
-          { factor: "Credit Utilization", impact: "Positive", score: 12 },
-          { factor: "Length of History", impact: "Positive", score: 8.5 },
-          { factor: "New Credit", impact: "Neutral", score: 2 },
-          { factor: "Credit Mix", impact: "Positive", score: 8 },
-        ],
-      },
-    },
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
+        <AnimatedSection>
+          <div className="text-center p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl max-w-md mx-auto">
+            <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-6" />
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+              Error Loading Portfolio
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium"
+            >
+              Try Again
+            </button>
+          </div>
+        </AnimatedSection>
+      </div>
+    );
+  }
 
-    riskAssessment: {
-      highRiskApplications: [
-        {
-          id: "APP-2024-003",
-          applicant: "David Chen",
-          riskScore: 78,
-          factors: ["High DTI", "Credit Decline", "Self-Employment"],
-          recommendation: "Additional Review Required",
-        },
-        {
-          id: "APP-2024-015",
-          applicant: "Jennifer Wilson",
-          riskScore: 72,
-          factors: ["Multiple Recent Inquiries", "Job Change"],
-          recommendation: "Enhanced Verification",
-        },
-      ],
-      riskDistribution: {
-        low: 65,
-        medium: 25,
-        high: 10,
-      },
-      fraudAlerts: [
-        {
-          id: "FRAUD-001",
-          applicant: "Robert Johnson",
-          alert: "Identity verification mismatch",
-          severity: "Critical",
-          date: "2024-06-03",
-        },
-      ],
-    },
+  // Check if user has loan officer role
+  if (!userInfo?.role?.includes("loan-officer")) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
+        <AnimatedSection>
+          <div className="text-center p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl max-w-md mx-auto">
+            <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-6" />
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+              Access Denied
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300">
+              You need loan officer privileges to access this portfolio.
+            </p>
+          </div>
+        </AnimatedSection>
+      </div>
+    );
+  }
 
-    activeLoanPortfolio: [
-      {
-        loanId: "LOAN-2023-445",
-        borrower: "Michael Brown",
-        type: "Mortgage",
-        originalAmount: 425000,
-        currentBalance: 398500,
-        monthlyPayment: 2850,
-        interestRate: 4.25,
-        termRemaining: "27 years",
-        status: "Current",
-        nextPaymentDue: "2024-06-15",
-        lastPayment: "2024-05-15",
-        paymentHistory: "On Time",
-        riskRating: "Low",
-      },
-      {
-        loanId: "LOAN-2024-112",
-        borrower: "Lisa Anderson",
-        type: "Auto Loan",
-        originalAmount: 38000,
-        currentBalance: 32500,
-        monthlyPayment: 645,
-        interestRate: 3.75,
-        termRemaining: "4.2 years",
-        status: "Current",
-        nextPaymentDue: "2024-06-10",
-        lastPayment: "2024-05-10",
-        paymentHistory: "On Time",
-        riskRating: "Low",
-      },
-      {
-        loanId: "LOAN-2023-889",
-        borrower: "James Wilson",
-        type: "Personal Loan",
-        originalAmount: 15000,
-        currentBalance: 8200,
-        monthlyPayment: 425,
-        interestRate: 8.5,
-        termRemaining: "1.6 years",
-        status: "Late",
-        nextPaymentDue: "2024-05-25",
-        lastPayment: "2024-04-25",
-        paymentHistory: "30 Days Late",
-        riskRating: "Medium",
-      },
-    ],
-
-    repaymentSchedules: {
-      "LOAN-2023-445": [
-        {
-          date: "2024-06-15",
-          principal: 1250,
-          interest: 1600,
-          total: 2850,
-          status: "Upcoming",
-        },
-        {
-          date: "2024-07-15",
-          principal: 1255,
-          interest: 1595,
-          total: 2850,
-          status: "Scheduled",
-        },
-        {
-          date: "2024-08-15",
-          principal: 1260,
-          interest: 1590,
-          total: 2850,
-          status: "Scheduled",
-        },
-      ],
-    },
-
-    communicationLog: [
-      {
-        id: "COMM-001",
-        applicantId: "APP-2024-001",
-        type: "Email",
-        direction: "Outbound",
-        subject: "Additional Documentation Required",
-        date: "2024-06-03",
-        status: "Sent",
-      },
-      {
-        id: "COMM-002",
-        applicantId: "APP-2024-002",
-        type: "Phone",
-        direction: "Inbound",
-        subject: "Loan Status Inquiry",
-        date: "2024-06-02",
-        duration: "8 minutes",
-      },
-    ],
+  const getLoanTypeIcon = (type) => {
+    switch (type?.toLowerCase()) {
+      case "mortgage":
+      case "home loan":
+        return <Home className="h-5 w-5" />;
+      case "auto loan":
+      case "auto":
+      case "car loan":
+        return <Car className="h-5 w-5" />;
+      case "business loan":
+      case "business":
+        return <Building className="h-5 w-5" />;
+      case "personal loan":
+      case "personal":
+        return <DollarSign className="h-5 w-5" />;
+      case "student loan":
+      case "education":
+        return <GraduationCap className="h-5 w-5" />;
+      default:
+        return <FileText className="h-5 w-5" />;
+    }
   };
 
-  // Helper functions
   const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
-      case "approved":
-        return "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400";
-      case "pending approval":
-        return "bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400";
-      case "in review":
-        return "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400";
-      case "rejected":
-        return "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400";
-      case "flagged":
-        return "bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-400";
+    switch (status?.toLowerCase()) {
       case "current":
-        return "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400";
+        return "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-700";
       case "late":
-        return "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400";
+      case "delinquent":
+        return "bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-700";
+      case "past due":
+      case "past_due":
+        return "bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-700";
+      case "default":
+        return "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-700";
       default:
-        return "bg-gray-100 dark:bg-gray-800 text-black dark:text-white";
+        return "bg-gray-50 dark:bg-gray-900/20 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-700";
     }
   };
 
   const getRiskColor = (risk) => {
-    switch (risk.toLowerCase()) {
+    switch (risk?.toLowerCase()) {
       case "low":
-        return "text-green-600 dark:text-green-400";
+        return "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-700";
       case "medium":
-        return "text-yellow-600 dark:text-yellow-400";
+        return "bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-700";
       case "high":
-        return "text-red-600 dark:text-red-400";
+        return "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-700";
       default:
-        return "text-gray-600 dark:text-gray-400";
+        return "bg-gray-50 dark:bg-gray-900/20 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-700";
     }
   };
 
-  const getPriorityColor = (priority) => {
-    switch (priority.toLowerCase()) {
-      case "high":
-        return "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400";
-      case "medium":
-        return "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400";
-      case "low":
-        return "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400";
-      default:
-        return "bg-gray-100 dark:bg-gray-800 text-black dark:text-white";
-    }
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount || 0);
   };
 
-  const getLoanTypeIcon = (type) => {
-    switch (type.toLowerCase()) {
-      case "mortgage":
-        return <Home className="h-4 w-4" />;
-      case "auto loan":
-        return <Car className="h-4 w-4" />;
-      case "personal loan":
-        return <User className="h-4 w-4" />;
-      case "student loan":
-        return <GraduationCap className="h-4 w-4" />;
-      case "business loan":
-        return <Building className="h-4 w-4" />;
-      default:
-        return <DollarSign className="h-4 w-4" />;
-    }
-  };
-
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-    if (query.length > 2) {
-      // Mock search results
-      const results = loanOfficerData.loanApplications.filter(
-        (app) =>
-          app.applicantName.toLowerCase().includes(query.toLowerCase()) ||
-          app.id.toLowerCase().includes(query.toLowerCase()) ||
-          app.applicantId.toLowerCase().includes(query.toLowerCase())
-      );
-      setSearchResults(results);
-      setShowSearchResults(true);
-    } else {
-      setShowSearchResults(false);
-    }
-  };
-
-  const selectApplication = (application) => {
-    setSelectedApplication(application);
-    setShowSearchResults(false);
-    setSearchQuery("");
-    setShowApplicationDetails(true);
-  };
-
-  const handleApproveApplication = (appId) => {
-    console.log("Approving application:", appId);
-    // Implementation for approval
-  };
-
-  const handleRejectApplication = (appId) => {
-    console.log("Rejecting application:", appId);
-    // Implementation for rejection
-  };
-
-  const handleRequestDocuments = (appId) => {
-    console.log("Requesting additional documents for:", appId);
-    // Implementation for document request
-  };
-
-  const handleNewApplication = () => {
-    setShowNewApplicationModal(true);
-  };
-
-  // Add this function to handle form input changes
-  const handleNewApplicationChange = (field, value) => {
-    setNewApplicationData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  // Add this function to handle form submission
-  const handleNewApplicationSubmit = (e) => {
-    e.preventDefault();
-
-    // Basic validation
-    const requiredFields = [
-      "firstName",
-      "lastName",
-      "email",
-      "phone",
-      "loanType",
-      "loanAmount",
-    ];
-    const missingFields = requiredFields.filter(
-      (field) => !newApplicationData[field]
-    );
-
-    if (missingFields.length > 0) {
-      alert(
-        `Please fill in the following required fields: ${missingFields.join(
-          ", "
-        )}`
-      );
-      return;
-    }
-
-    // Generate new application ID
-    const newAppId = `APP-2024-${String(
-      Math.floor(Math.random() * 1000)
-    ).padStart(3, "0")}`;
-
-    // Create new application object
-    const newApplication = {
-      id: newAppId,
-      applicantName: `${newApplicationData.firstName} ${newApplicationData.lastName}`,
-      email: newApplicationData.email,
-      phone: newApplicationData.phone,
-      loanType: newApplicationData.loanType,
-      amount: parseInt(newApplicationData.loanAmount),
-      status: "in review",
-      riskLevel: "Medium", // This would be calculated based on the data
-      creditScore: "Pending",
-      creditTrend: null,
-      submissionDate: new Date().toISOString().split("T")[0],
-      daysInProcess: 0,
-      slaDeadline: "Due in 7 days",
-      documents: [],
-      flags: [],
-      notes: [
-        {
-          date: new Date().toLocaleString(),
-          author: loanOfficerData.officerInfo.name,
-          note: "New application created via loan officer dashboard",
-        },
-      ],
-    };
-
-    // Add to applications list (in a real app, this would be an API call)
-    console.log("New Application Created:", newApplication);
-    alert(
-      `Application ${newAppId} created successfully for ${newApplication.applicantName}`
-    );
-
-    // Reset form and close modal
-    setNewApplicationData({
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      dateOfBirth: "",
-      ssn: "",
-      maritalStatus: "",
-      dependents: "",
-      streetAddress: "",
-      city: "",
-      state: "",
-      zipCode: "",
-      residenceType: "",
-      monthsAtAddress: "",
-      employmentStatus: "",
-      employer: "",
-      jobTitle: "",
-      monthsEmployed: "",
-      annualIncome: "",
-      additionalIncome: "",
-      loanType: "",
-      loanAmount: "",
-      loanPurpose: "",
-      downPayment: "",
-      monthlyRent: "",
-      monthlyDebt: "",
-      assets: "",
-      bankName: "",
-      accountType: "",
-      reference1Name: "",
-      reference1Phone: "",
-      reference1Relationship: "",
-      reference2Name: "",
-      reference2Phone: "",
-      reference2Relationship: "",
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
-    setShowNewApplicationModal(false);
   };
 
-  const NewApplicationModal = ({ isOpen, onClose }) => {
-    if (!isOpen) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-          <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold text-black dark:text-white">
-                New Loan Application
-              </h2>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                <XCircle className="h-6 w-6" />
-              </button>
-            </div>
-          </div>
-
-          <form onSubmit={handleNewApplicationSubmit} className="p-6 space-y-8">
-            {/* Personal Information Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center">
-                <User className="h-5 w-5 mr-2" />
-                Personal Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-red-600 mb-1">
-                    First Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={newApplicationData.firstName}
-                    onChange={(e) =>
-                      handleNewApplicationChange("firstName", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-red-600 mb-1">
-                    Last Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={newApplicationData.lastName}
-                    onChange={(e) =>
-                      handleNewApplicationChange("lastName", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-red-600 mb-1">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    value={newApplicationData.email}
-                    onChange={(e) =>
-                      handleNewApplicationChange("email", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-red-600 mb-1">
-                    Phone *
-                  </label>
-                  <input
-                    type="tel"
-                    value={newApplicationData.phone}
-                    onChange={(e) =>
-                      handleNewApplicationChange("phone", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Date of Birth
-                  </label>
-                  <input
-                    type="date"
-                    value={newApplicationData.dateOfBirth}
-                    onChange={(e) =>
-                      handleNewApplicationChange("dateOfBirth", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Social Security Number
-                  </label>
-                  <input
-                    type="text"
-                    value={newApplicationData.ssn}
-                    onChange={(e) =>
-                      handleNewApplicationChange("ssn", e.target.value)
-                    }
-                    placeholder="XXX-XX-XXXX"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Marital Status
-                  </label>
-                  <select
-                    value={newApplicationData.maritalStatus}
-                    onChange={(e) =>
-                      handleNewApplicationChange(
-                        "maritalStatus",
-                        e.target.value
-                      )
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  >
-                    <option value="">Select...</option>
-                    <option value="single">Single</option>
-                    <option value="married">Married</option>
-                    <option value="divorced">Divorced</option>
-                    <option value="widowed">Widowed</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Number of Dependents
-                  </label>
-                  <input
-                    type="number"
-                    value={newApplicationData.dependents}
-                    onChange={(e) =>
-                      handleNewApplicationChange("dependents", e.target.value)
-                    }
-                    min="0"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Address Information Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center">
-                <MapPin className="h-5 w-5 mr-2" />
-                Address Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Street Address
-                  </label>
-                  <input
-                    type="text"
-                    value={newApplicationData.streetAddress}
-                    onChange={(e) =>
-                      handleNewApplicationChange(
-                        "streetAddress",
-                        e.target.value
-                      )
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    City
-                  </label>
-                  <input
-                    type="text"
-                    value={newApplicationData.city}
-                    onChange={(e) =>
-                      handleNewApplicationChange("city", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    State
-                  </label>
-                  <select
-                    value={newApplicationData.state}
-                    onChange={(e) =>
-                      handleNewApplicationChange("state", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  >
-                    <option value="">Select State...</option>
-                    <option value="AL">Alabama</option>
-                    <option value="CA">California</option>
-                    <option value="FL">Florida</option>
-                    <option value="NY">New York</option>
-                    <option value="TX">Texas</option>
-                    <option value="WA">Washington</option>
-                    <option value="OR">Oregon</option>
-                    <option value="AZ">Arizona</option>
-                    <option value="NV">Nevada</option>
-                    <option value="CO">Colorado</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    ZIP Code
-                  </label>
-                  <input
-                    type="text"
-                    value={newApplicationData.zipCode}
-                    onChange={(e) =>
-                      handleNewApplicationChange("zipCode", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Residence Type
-                  </label>
-                  <select
-                    value={newApplicationData.residenceType}
-                    onChange={(e) =>
-                      handleNewApplicationChange(
-                        "residenceType",
-                        e.target.value
-                      )
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  >
-                    <option value="">Select...</option>
-                    <option value="own">Own</option>
-                    <option value="rent">Rent</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Employment Information Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center">
-                <Briefcase className="h-5 w-5 mr-2" />
-                Employment Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Employment Status
-                  </label>
-                  <select
-                    value={newApplicationData.employmentStatus}
-                    onChange={(e) =>
-                      handleNewApplicationChange(
-                        "employmentStatus",
-                        e.target.value
-                      )
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  >
-                    <option value="">Select...</option>
-                    <option value="employed">Employed</option>
-                    <option value="self-employed">Self-Employed</option>
-                    <option value="unemployed">Unemployed</option>
-                    <option value="retired">Retired</option>
-                    <option value="student">Student</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Employer
-                  </label>
-                  <input
-                    type="text"
-                    value={newApplicationData.employer}
-                    onChange={(e) =>
-                      handleNewApplicationChange("employer", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Job Title
-                  </label>
-                  <input
-                    type="text"
-                    value={newApplicationData.jobTitle}
-                    onChange={(e) =>
-                      handleNewApplicationChange("jobTitle", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Months Employed
-                  </label>
-                  <input
-                    type="number"
-                    value={newApplicationData.monthsEmployed}
-                    onChange={(e) =>
-                      handleNewApplicationChange(
-                        "monthsEmployed",
-                        e.target.value
-                      )
-                    }
-                    min="0"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Annual Income
-                  </label>
-                  <input
-                    type="number"
-                    value={newApplicationData.annualIncome}
-                    onChange={(e) =>
-                      handleNewApplicationChange("annualIncome", e.target.value)
-                    }
-                    min="0"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Additional Income
-                  </label>
-                  <input
-                    type="number"
-                    value={newApplicationData.additionalIncome}
-                    onChange={(e) =>
-                      handleNewApplicationChange(
-                        "additionalIncome",
-                        e.target.value
-                      )
-                    }
-                    min="0"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Loan Information Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center">
-                <DollarSign className="h-5 w-5 mr-2" />
-                Loan Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-red-600 mb-1">
-                    Loan Type *
-                  </label>
-                  <select
-                    value={newApplicationData.loanType}
-                    onChange={(e) =>
-                      handleNewApplicationChange("loanType", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    required
-                  >
-                    <option value="">Select Loan Type...</option>
-                    <option value="mortgage">Mortgage</option>
-                    <option value="auto">Auto Loan</option>
-                    <option value="personal">Personal Loan</option>
-                    <option value="business">Business Loan</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-red-600 mb-1">
-                    Loan Amount *
-                  </label>
-                  <input
-                    type="number"
-                    value={newApplicationData.loanAmount}
-                    onChange={(e) =>
-                      handleNewApplicationChange("loanAmount", e.target.value)
-                    }
-                    min="1000"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Loan Purpose
-                  </label>
-                  <select
-                    value={newApplicationData.loanPurpose}
-                    onChange={(e) =>
-                      handleNewApplicationChange("loanPurpose", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  >
-                    <option value="">Select Purpose...</option>
-                    <option value="home-purchase">Home Purchase</option>
-                    <option value="refinance">Refinance</option>
-                    <option value="vehicle-purchase">Vehicle Purchase</option>
-                    <option value="debt-consolidation">
-                      Debt Consolidation
-                    </option>
-                    <option value="home-improvement">Home Improvement</option>
-                    <option value="business-expansion">
-                      Business Expansion
-                    </option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Down Payment
-                  </label>
-                  <input
-                    type="number"
-                    value={newApplicationData.downPayment}
-                    onChange={(e) =>
-                      handleNewApplicationChange("downPayment", e.target.value)
-                    }
-                    min="0"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Financial Information Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center">
-                <CreditCard className="h-5 w-5 mr-2" />
-                Financial Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Monthly Rent/Mortgage
-                  </label>
-                  <input
-                    type="number"
-                    value={newApplicationData.monthlyRent}
-                    onChange={(e) =>
-                      handleNewApplicationChange("monthlyRent", e.target.value)
-                    }
-                    min="0"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Monthly Debt Payments
-                  </label>
-                  <input
-                    type="number"
-                    value={newApplicationData.monthlyDebt}
-                    onChange={(e) =>
-                      handleNewApplicationChange("monthlyDebt", e.target.value)
-                    }
-                    min="0"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Total Assets
-                  </label>
-                  <input
-                    type="number"
-                    value={newApplicationData.assets}
-                    onChange={(e) =>
-                      handleNewApplicationChange("assets", e.target.value)
-                    }
-                    min="0"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Primary Bank
-                  </label>
-                  <input
-                    type="text"
-                    value={newApplicationData.bankName}
-                    onChange={(e) =>
-                      handleNewApplicationChange("bankName", e.target.value)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* References Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-black dark:text-white mb-4 flex items-center">
-                <Users className="h-5 w-5 mr-2" />
-                References
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-medium text-black dark:text-white mb-3">
-                    Reference 1
-                  </h4>
-                  <div className="space-y-3">
-                    <input
-                      type="text"
-                      placeholder="Full Name"
-                      value={newApplicationData.reference1Name}
-                      onChange={(e) =>
-                        handleNewApplicationChange(
-                          "reference1Name",
-                          e.target.value
-                        )
-                      }
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    />
-                    <input
-                      type="tel"
-                      placeholder="Phone Number"
-                      value={newApplicationData.reference1Phone}
-                      onChange={(e) =>
-                        handleNewApplicationChange(
-                          "reference1Phone",
-                          e.target.value
-                        )
-                      }
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Relationship"
-                      value={newApplicationData.reference1Relationship}
-                      onChange={(e) =>
-                        handleNewApplicationChange(
-                          "reference1Relationship",
-                          e.target.value
-                        )
-                      }
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium text-black dark:text-white mb-3">
-                    Reference 2
-                  </h4>
-                  <div className="space-y-3">
-                    <input
-                      type="text"
-                      placeholder="Full Name"
-                      value={newApplicationData.reference2Name}
-                      onChange={(e) =>
-                        handleNewApplicationChange(
-                          "reference2Name",
-                          e.target.value
-                        )
-                      }
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    />
-                    <input
-                      type="tel"
-                      placeholder="Phone Number"
-                      value={newApplicationData.reference2Phone}
-                      onChange={(e) =>
-                        handleNewApplicationChange(
-                          "reference2Phone",
-                          e.target.value
-                        )
-                      }
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Relationship"
-                      value={newApplicationData.reference2Relationship}
-                      onChange={(e) =>
-                        handleNewApplicationChange(
-                          "reference2Relationship",
-                          e.target.value
-                        )
-                      }
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Form Actions */}
-            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600"
-              >
-                Create Application
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
+  const handleViewLoanDetails = (loan) => {
+    setSelectedLoan(loan);
+    setShowLoanDetails(true);
   };
 
-  const handleBulkApprove = () => {
-    console.log("Bulk approve selected applications...");
-    // Implementation for bulk approval
-    // You could select multiple applications and approve them at once
-    alert("Bulk Approve feature - would approve selected applications");
-  };
-
-  const handleExportReport = () => {
-    console.log("Exporting report...");
-    // Implementation for report export
-    // You could generate and download a report
-    alert("Export Report feature - would generate and download report");
-  };
-
-  // Application Details Modal Component
-  const ApplicationDetailsModal = ({ isOpen, onClose, application }) => {
-    if (!isOpen || !application) return null;
-
-    // Add this New Application Modal component before the return statement
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h3 className="text-xl font-bold text-black dark:text-white">
-                {application.applicantName}
-              </h3>
-              <p className="text-sm text-black dark:text-white">
-                Application ID: {application.id}
-              </p>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              <XCircle className="h-6 w-6" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Application Summary */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Basic Info */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h4 className="font-semibold text-black dark:text-white mb-3">
-                  Loan Details
-                </h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-black dark:text-white">
-                      Loan Type:
-                    </span>
-                    <div className="font-medium text-black dark:text-white flex items-center space-x-2">
-                      {getLoanTypeIcon(application.loanType)}
-                      <span>{application.loanType}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-black dark:text-white">Amount:</span>
-                    <div className="font-medium text-black dark:text-white">
-                      ${application.amount.toLocaleString()}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-black dark:text-white">Purpose:</span>
-                    <div className="font-medium text-black dark:text-white">
-                      {application.purpose}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-black dark:text-white">
-                      Days in Process:
-                    </span>
-                    <div className="font-medium text-black dark:text-white">
-                      {application.daysInProcess} days
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Credit & Risk Assessment */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h4 className="font-semibold text-black dark:text-white mb-3">
-                  Credit & Risk Assessment
-                </h4>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      {application.creditScore}
-                    </div>
-                    <div className="text-sm text-black dark:text-white">
-                      Credit Score
-                    </div>
-                    <div className="flex items-center justify-center mt-1">
-                      {application.creditTrend === "up" ? (
-                        <ArrowUp className="h-4 w-4 text-green-500" />
-                      ) : application.creditTrend === "down" ? (
-                        <ArrowDown className="h-4 w-4 text-red-500" />
-                      ) : (
-                        <div className="h-4 w-4" />
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div
-                      className={`text-2xl font-bold ${getRiskColor(
-                        application.riskLevel
-                      )}`}
-                    >
-                      {application.riskLevel}
-                    </div>
-                    <div className="text-sm text-black dark:text-white">
-                      Risk Level
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                      {application.financials.debtToIncome}%
-                    </div>
-                    <div className="text-sm text-black dark:text-white">
-                      Debt-to-Income
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Employment & Financials */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h4 className="font-semibold text-black dark:text-white mb-3">
-                  Employment & Financial Information
-                </h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-black dark:text-white">
-                      Employment Status:
-                    </span>
-                    <div className="font-medium text-black dark:text-white">
-                      {application.employment.status}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-black dark:text-white">
-                      Annual Income:
-                    </span>
-                    <div className="font-medium text-black dark:text-white">
-                      ${application.employment.income.toLocaleString()}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-black dark:text-white">
-                      Employer:
-                    </span>
-                    <div className="font-medium text-black dark:text-white">
-                      {application.employment.employer}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-black dark:text-white">
-                      Years Employed:
-                    </span>
-                    <div className="font-medium text-black dark:text-white">
-                      {application.employment.yearsEmployed} years
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-black dark:text-white">
-                      Liquid Assets:
-                    </span>
-                    <div className="font-medium text-black dark:text-white">
-                      ${application.financials.liquidAssets.toLocaleString()}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-black dark:text-white">
-                      Monthly Expenses:
-                    </span>
-                    <div className="font-medium text-black dark:text-white">
-                      ${application.financials.monthlyExpenses.toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Property/Collateral Info */}
-              {application.property && (
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <h4 className="font-semibold text-black dark:text-white mb-3">
-                    Property Information
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-black dark:text-white">
-                        Address:
-                      </span>
-                      <div className="font-medium text-black dark:text-white">
-                        {application.property.address}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-black dark:text-white">
-                        Property Value:
-                      </span>
-                      <div className="font-medium text-black dark:text-white">
-                        ${application.property.value.toLocaleString()}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-black dark:text-white">
-                        Property Type:
-                      </span>
-                      <div className="font-medium text-black dark:text-white">
-                        {application.property.type}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-black dark:text-white">
-                        Year Built:
-                      </span>
-                      <div className="font-medium text-black dark:text-white">
-                        {application.property.yearBuilt}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Vehicle Info */}
-              {application.vehicle && (
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <h4 className="font-semibold text-black dark:text-white mb-3">
-                    Vehicle Information
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-black dark:text-white">
-                        Make & Model:
-                      </span>
-                      <div className="font-medium text-black dark:text-white">
-                        {application.vehicle.make} {application.vehicle.model}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-black dark:text-white">Year:</span>
-                      <div className="font-medium text-black dark:text-white">
-                        {application.vehicle.year}
-                      </div>
-                    </div>
-                    <div className="col-span-2">
-                      <span className="text-black dark:text-white">VIN:</span>
-                      <div className="font-medium text-black dark:text-white">
-                        {application.vehicle.vin}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Right Sidebar */}
-            <div className="space-y-6">
-              {/* Status & Actions */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h4 className="font-semibold text-black dark:text-white mb-3">
-                  Status & Actions
-                </h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-black dark:text-white">
-                      Status:
-                    </span>
-                    <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                        application.status
-                      )}`}
-                    >
-                      {application.status}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-black dark:text-white">
-                      Priority:
-                    </span>
-                    <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(
-                        application.priority
-                      )}`}
-                    >
-                      {application.priority}
-                    </span>
-                  </div>
-                  <div className="text-sm text-black dark:text-white">
-                    <span>SLA Deadline:</span>
-                    <div className="font-medium">{application.slaDeadline}</div>
-                  </div>
-                </div>
-
-                <div className="mt-4 space-y-2">
-                  <button
-                    onClick={() => handleApproveApplication(application.id)}
-                    className="w-full bg-green-600 dark:bg-green-700 text-white py-2 px-4 rounded-lg text-sm hover:bg-green-700 dark:hover:bg-green-600"
-                  >
-                    Approve Application
-                  </button>
-                  <button
-                    onClick={() => handleRejectApplication(application.id)}
-                    className="w-full bg-red-600 dark:bg-red-700 text-white py-2 px-4 rounded-lg text-sm hover:bg-red-700 dark:hover:bg-red-600"
-                  >
-                    Reject Application
-                  </button>
-                  <button
-                    onClick={() => handleRequestDocuments(application.id)}
-                    className="w-full bg-blue-600 dark:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm hover:bg-blue-700 dark:hover:bg-blue-600"
-                  >
-                    Request Documents
-                  </button>
-                </div>
-              </div>
-
-              {/* Documents */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h4 className="font-semibold text-black dark:text-white mb-3">
-                  Documents
-                </h4>
-                <div className="space-y-2">
-                  {application.documents.map((doc, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-2 bg-white dark:bg-gray-600 rounded"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <FileText className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                        <span className="text-sm text-black dark:text-white">
-                          {doc.name}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full ${
-                            doc.status === "Received"
-                              ? "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400"
-                              : doc.status === "Pending"
-                              ? "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400"
-                              : "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400"
-                          }`}
-                        >
-                          {doc.status}
-                        </span>
-                        {doc.status === "Received" && (
-                          <button
-                            onClick={() => {
-                              setSelectedDocument(doc);
-                              setShowDocumentViewer(true);
-                            }}
-                            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <button className="mt-3 w-full bg-gray-600 dark:bg-gray-700 text-white py-2 px-4 rounded-lg text-sm hover:bg-gray-700 dark:hover:bg-gray-600 flex items-center justify-center space-x-2">
-                  <Upload className="h-4 w-4" />
-                  <span>Upload Document</span>
-                </button>
-              </div>
-
-              {/* Flags & Alerts */}
-              {application.flags && application.flags.length > 0 && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                  <h4 className="font-semibold text-red-800 dark:text-red-400 mb-3 flex items-center space-x-2">
-                    <Flag className="h-4 w-4" />
-                    <span>Flags & Alerts</span>
-                  </h4>
-                  <div className="space-y-2">
-                    {application.flags.map((flag, index) => (
-                      <div
-                        key={index}
-                        className="p-2 bg-white dark:bg-red-900/30 rounded border-l-4 border-red-400 dark:border-red-500"
-                      >
-                        <div className="font-medium text-sm text-red-800 dark:text-red-400">
-                          {flag.type}
-                        </div>
-                        <div className="text-xs text-red-700 dark:text-red-300">
-                          {flag.message}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Notes */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h4 className="font-semibold text-black dark:text-white mb-3">
-                  Notes & Comments
-                </h4>
-                <div className="space-y-3 max-h-48 overflow-y-auto">
-                  {application.notes.map((note, index) => (
-                    <div
-                      key={index}
-                      className="p-3 bg-white dark:bg-gray-600 rounded border-l-4 border-blue-400 dark:border-blue-500"
-                    >
-                      <div className="text-xs text-black dark:text-white mb-1">
-                        {note.date} • {note.author}
-                      </div>
-                      <div className="text-sm text-black dark:text-white">
-                        {note.note}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-3">
-                  <textarea
-                    placeholder="Add a note..."
-                    className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-black dark:text-white"
-                    rows="2"
-                  />
-                  <button className="mt-2 w-full bg-blue-600 dark:bg-blue-700 text-white py-1 px-3 rounded text-sm hover:bg-blue-700 dark:hover:bg-blue-600">
-                    Add Note
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Document Viewer Modal
-  const DocumentViewerModal = ({ isOpen, onClose, document }) => {
-    if (!isOpen || !document) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh]">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-black dark:text-white">
-              {document.name}
-            </h3>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              <XCircle className="h-6 w-6" />
-            </button>
-          </div>
-          <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-8 text-center">
-            <FileText className="h-16 w-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-            <p className="text-black dark:text-white">
-              Document viewer would be implemented here
-            </p>
-            <p className="text-sm text-black dark:text-white mt-2">
-              Type: {document.type} • Received: {document.date}
-            </p>
-            <div className="mt-4 space-x-2">
-              <button className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600">
-                <Download className="h-4 w-4 inline mr-2" />
-                Download
-              </button>
-              <button className="bg-green-600 dark:bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-700 dark:hover:bg-green-600">
-                Approve Document
-              </button>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    );
+  const closeLoanDetails = () => {
+    setSelectedLoan(null);
+    setShowLoanDetails(false);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-7xl">
+        {/* Header Section */}
+        <AnimatedSection delay={100}>
+          <div className="text-center sm:text-left mb-8 sm:mb-10 lg:mb-12">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
+              Loan Portfolio
+            </h1>
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-300 mt-2 sm:mt-3">
+              Monitor and manage your active loan portfolio performance
+            </p>
+          </div>
+        </AnimatedSection>
 
-
-        {/* Navigation Tabs */}
-        <div className="bg-white bg-opacity-0 dark:bg-gray-800 dark:bg-opacity-0 rounded-lg shadow-sm mb-6">
-            {/* Loan Portfolio Tab */}
-            <div className="space-y-6">
-              {/* Portfolio Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-black dark:text-white">
-                        Total Portfolio
-                      </p>
-                      <p className="text-2xl font-bold text-black dark:text-white">
-                        $5.2M
-                      </p>
-                    </div>
-                    <DollarSign className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                  </div>
+        {/* Portfolio Statistics Cards */}
+        <AnimatedSection delay={200}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-10 lg:mb-12">
+            {/* Total Loans Card */}
+            <div className="group bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl shadow-2xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 p-6 sm:p-8 transition-all duration-500 hover:scale-105 hover:shadow-3xl hover:shadow-blue-500/20">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm sm:text-base font-medium text-gray-600 dark:text-gray-400 mb-2">
+                    Total Loans
+                  </p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                    {portfolioStats.total || 0}
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Active portfolio
+                  </p>
                 </div>
-
-                <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-black dark:text-white">
-                        Active Loans
-                      </p>
-                      <p className="text-2xl font-bold text-black dark:text-white">
-                        47
-                      </p>
-                    </div>
-                    <FileText className="h-8 w-8 text-green-600 dark:text-green-400" />
-                  </div>
-                </div>
-
-                <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-black dark:text-white">
-                        Delinquent
-                      </p>
-                      <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                        3
-                      </p>
-                    </div>
-                    <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
-                  </div>
-                </div>
-
-                <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-black dark:text-white">
-                        Avg Interest Rate
-                      </p>
-                      <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                        4.8%
-                      </p>
-                    </div>
-                    <TrendingUp className="h-8 w-8 text-purple-600 dark:text-purple-400" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Portfolio Breakdown */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
-                    Portfolio by Loan Type
-                  </h3>
-                  <div className="space-y-4">
-                    {[
-                      {
-                        type: "Mortgages",
-                        amount: "$3.2M",
-                        percentage: 62,
-                        count: 18,
-                      },
-                      {
-                        type: "Auto Loans",
-                        amount: "$1.4M",
-                        percentage: 27,
-                        count: 23,
-                      },
-                      {
-                        type: "Personal Loans",
-                        amount: "$450K",
-                        percentage: 8,
-                        count: 5,
-                      },
-                      {
-                        type: "Business Loans",
-                        amount: "$150K",
-                        percentage: 3,
-                        count: 1,
-                      },
-                    ].map((item, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between"
-                      >
-                        <div className="flex items-center space-x-3">
-                          {getLoanTypeIcon(item.type)}
-                          <div>
-                            <div className="text-sm font-medium text-black dark:text-white">
-                              {item.type}
-                            </div>
-                            <div className="text-xs text-black dark:text-white">
-                              {item.count} loans
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-medium text-black dark:text-white">
-                            {item.amount}
-                          </div>
-                          <div className="text-xs text-black dark:text-white">
-                            {item.percentage}%
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
-                    Performance Metrics
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-black dark:text-white">
-                        On-Time Payment Rate
-                      </span>
-                      <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                        94.2%
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-black dark:text-white">
-                        Default Rate
-                      </span>
-                      <span className="text-sm font-medium text-red-600 dark:text-red-400">
-                        1.8%
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-black dark:text-white">
-                        Early Payment Rate
-                      </span>
-                      <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                        12.5%
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-black dark:text-white">
-                        Portfolio Yield
-                      </span>
-                      <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
-                        4.8%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Active Loans Table */}
-              <div className="p-4 md:p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
-                  Active Loans
-                </h3>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead className="bg-gray-50 dark:bg-gray-700">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                          Borrower
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                          Loan Details
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                          Balance
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                          Payment
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                          Next Due
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                      {loanOfficerData.activeLoanPortfolio.map(
-                        (loan, index) => (
-                          <tr
-                            key={index}
-                            className="hover:bg-gray-50 dark:hover:bg-gray-700"
-                          >
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div>
-                                <div className="text-sm font-medium text-black dark:text-white">
-                                  {loan.borrower}
-                                </div>
-                                <div className="text-sm text-black dark:text-white">
-                                  {loan.loanId}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center space-x-2">
-                                {getLoanTypeIcon(loan.type)}
-                                <div>
-                                  <div className="text-sm font-medium text-black dark:text-white">
-                                    {loan.type}
-                                  </div>
-                                  <div className="text-sm text-black dark:text-white">
-                                    {loan.interestRate}% • {loan.termRemaining}
-                                  </div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-black dark:text-white">
-                                ${loan.currentBalance.toLocaleString()}
-                              </div>
-                              <div className="text-sm text-black dark:text-white">
-                                of ${loan.originalAmount.toLocaleString()}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-black dark:text-white">
-                                ${loan.monthlyPayment.toLocaleString()}
-                              </div>
-                              <div className="text-sm text-black dark:text-white">
-                                monthly
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span
-                                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                                  loan.status
-                                )}`}
-                              >
-                                {loan.status}
-                              </span>
-                              <div className="text-xs text-black dark:text-white mt-1">
-                                {loan.paymentHistory}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-black dark:text-white">
-                                {loan.nextPaymentDue}
-                              </div>
-                              <div
-                                className={`text-xs ${
-                                  loan.status === "Late"
-                                    ? "text-red-600 dark:text-red-400"
-                                    : "text-black dark:text-white"
-                                }`}
-                              >
-                                {loan.status === "Late"
-                                  ? "OVERDUE"
-                                  : "On Schedule"}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mr-3">
-                                <Calendar className="h-4 w-4" />
-                              </button>
-                              <button className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 mr-3">
-                                <Phone className="h-4 w-4" />
-                              </button>
-                              <button className="text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-                                <Edit className="h-4 w-4" />
-                              </button>
-                            </td>
-                          </tr>
-                        )
-                      )}
-                    </tbody>
-                  </table>
+                <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 dark:text-blue-400" />
                 </div>
               </div>
             </div>
 
-        </div>
+            {/* Portfolio Value Card */}
+            <div className="group bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl shadow-2xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 p-6 sm:p-8 transition-all duration-500 hover:scale-105 hover:shadow-3xl hover:shadow-green-500/20">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm sm:text-base font-medium text-gray-600 dark:text-gray-400 mb-2">
+                    Portfolio Value
+                  </p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600 dark:text-green-400">
+                    {formatCurrency(portfolioStats.totalValue)}
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Total principal
+                  </p>
+                </div>
+                <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+            </div>
 
-      {/* Modals */}
-      <ApplicationDetailsModal
-        isOpen={showApplicationDetails}
-        onClose={() => setShowApplicationDetails(false)}
-        application={selectedApplication}
-      />
+            {/* Outstanding Balance Card */}
+            <div className="group bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl shadow-2xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 p-6 sm:p-8 transition-all duration-500 hover:scale-105 hover:shadow-3xl hover:shadow-orange-500/20">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm sm:text-base font-medium text-gray-600 dark:text-gray-400 mb-2">
+                    Outstanding Balance
+                  </p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-orange-600 dark:text-orange-400">
+                    {formatCurrency(portfolioStats.totalOutstanding)}
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Current balance
+                  </p>
+                </div>
+                <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Target className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600 dark:text-orange-400" />
+                </div>
+              </div>
+            </div>
 
-      <DocumentViewerModal
-        isOpen={showDocumentViewer}
-        onClose={() => setShowDocumentViewer(false)}
-        document={selectedDocument}
-      />
-      <NewApplicationModal
-        isOpen={showNewApplicationModal}
-        onClose={() => setShowNewApplicationModal(false)}
-      />
+            {/* Performance Rate Card */}
+            <div className="group bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl shadow-2xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 p-6 sm:p-8 transition-all duration-500 hover:scale-105 hover:shadow-3xl hover:shadow-purple-500/20">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm sm:text-base font-medium text-gray-600 dark:text-gray-400 mb-2">
+                    Performance Rate
+                  </p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-purple-600 dark:text-purple-400">
+                    {portfolioStats.performingRate}%
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Current loans
+                  </p>
+                </div>
+                <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-800/30 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </AnimatedSection>
+
+        {/* Performance Overview */}
+        <AnimatedSection delay={300}>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-10 lg:mb-12">
+            <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl shadow-2xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 p-6 sm:p-8 transition-all duration-500 hover:shadow-3xl">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-6">
+                Loan Status Distribution
+              </h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Current
+                  </span>
+                  <span className="text-sm font-bold text-green-600 dark:text-green-400 px-3 py-1 bg-white dark:bg-gray-800 rounded-lg">
+                    {portfolioStats.performing || 0}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Delinquent
+                  </span>
+                  <span className="text-sm font-bold text-yellow-600 dark:text-yellow-400 px-3 py-1 bg-white dark:bg-gray-800 rounded-lg">
+                    {portfolioStats.delinquent || 0}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-xl">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Default
+                  </span>
+                  <span className="text-sm font-bold text-red-600 dark:text-red-400 px-3 py-1 bg-white dark:bg-gray-800 rounded-lg">
+                    {portfolioStats.defaulted || 0}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl shadow-2xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 p-6 sm:p-8 transition-all duration-500 hover:shadow-3xl">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-6">
+                Portfolio Metrics
+              </h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Average Loan Size
+                  </span>
+                  <span className="text-sm font-bold text-gray-900 dark:text-white px-3 py-1 bg-white dark:bg-gray-800 rounded-lg">
+                    {formatCurrency(portfolioStats.averageLoanSize)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Total Active
+                  </span>
+                  <span className="text-sm font-bold text-gray-900 dark:text-white px-3 py-1 bg-white dark:bg-gray-800 rounded-lg">
+                    {portfolioStats.total || 0}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Monthly Payments
+                  </span>
+                  <span className="text-sm font-bold text-gray-900 dark:text-white px-3 py-1 bg-white dark:bg-gray-800 rounded-lg">
+                    {formatCurrency(portfolioStats.monthlyPayments)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl shadow-2xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 p-6 sm:p-8 transition-all duration-500 hover:shadow-3xl">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-6">
+                Quick Actions
+              </h3>
+              <div className="space-y-3">
+                <button className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all duration-200 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600">
+                  📊 Generate Portfolio Report
+                </button>
+                <button className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-xl transition-all duration-200 border border-gray-200 dark:border-gray-600 hover:border-yellow-300 dark:hover:border-yellow-600">
+                  ⚠️ Review Delinquent Accounts
+                </button>
+                <button className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-xl transition-all duration-200 border border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-600">
+                  📈 Performance Analytics
+                </button>
+              </div>
+            </div>
+          </div>
+        </AnimatedSection>
+
+        {/* Filters and Search */}
+        <AnimatedSection delay={400}>
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl shadow-2xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 p-6 sm:p-8 mb-8 sm:mb-10 lg:mb-12 transition-all duration-500">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Search Loans
+                </label>
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-5 w-5" />
+                  <input
+                    type="text"
+                    placeholder="Search by borrower, ID, or loan type..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 sm:py-4 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm sm:text-base focus-visible:outline-none transition-all duration-200"
+                  />
+                </div>
+              </div>
+
+              <div className="sm:w-48">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Filter by Status
+                </label>
+                <select
+                  value={selectedFilter}
+                  onChange={(e) => setSelectedFilter(e.target.value)}
+                  className="w-full px-4 py-3 sm:py-4 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm sm:text-base focus-visible:outline-none transition-all duration-200"
+                >
+                  <option value="all">All Status</option>
+                  <option value="current">Current</option>
+                  <option value="late">Late</option>
+                  <option value="past due">Past Due</option>
+                  <option value="default">Default</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </AnimatedSection>
+
+        {/* Active Loans List */}
+        <AnimatedSection delay={500}>
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl shadow-2xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden transition-all duration-500">
+            <div className="px-6 sm:px-8 py-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+                  Active Loans ({activeLoans.length})
+                </h3>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  {activeLoans.length} of {portfolioStats.total || 0} loans
+                </div>
+              </div>
+            </div>
+
+            {activeLoans.length === 0 ? (
+              <div className="p-12 sm:p-16 text-center">
+                <PieChart className="h-16 w-16 sm:h-20 sm:w-20 text-gray-400 dark:text-gray-500 mx-auto mb-6" />
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                  No Active Loans Found
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base max-w-md mx-auto">
+                  {searchQuery || selectedFilter !== "all"
+                    ? "No loans match your current search criteria. Try adjusting your filters."
+                    : "Your loan portfolio is currently empty. New loans will appear here once approved."}
+                </p>
+                {(searchQuery || selectedFilter !== "all") && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedFilter("all");
+                    }}
+                    className="mt-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium"
+                  >
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                {activeLoans.map((loan, index) => (
+                  <div
+                    key={loan._id || index}
+                    className="group p-6 sm:p-8 hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-all duration-300"
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                      {/* Left Section - Borrower Info */}
+                      <div className="flex items-start space-x-4 sm:space-x-6">
+                        <div className="flex-shrink-0">
+                          <div className="h-12 w-12 sm:h-16 sm:w-16 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                            {getLoanTypeIcon(loan.loanType)}
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                            {loan.borrowerName || "Unknown Borrower"}
+                          </h4>
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2">
+                            <span className="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-lg">
+                              {loan.borrowerId || "N/A"}
+                            </span>
+                            <span className="text-gray-400 dark:text-gray-500">
+                              •
+                            </span>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 capitalize">
+                              {loan.loanType || "Unknown Type"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Section - Loan Details */}
+                      <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+                        <div className="text-center bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-xl border border-blue-200 dark:border-blue-700">
+                          <p className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                            {formatCurrency(loan.originalAmount)}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Original
+                          </p>
+                        </div>
+
+                        <div className="text-center bg-orange-50 dark:bg-orange-900/20 p-3 sm:p-4 rounded-xl border border-orange-200 dark:border-orange-700">
+                          <p className="text-sm font-bold text-orange-600 dark:text-orange-400">
+                            {formatCurrency(loan.currentBalance)}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Balance
+                          </p>
+                        </div>
+
+                        <div className="text-center bg-green-50 dark:bg-green-900/20 p-3 sm:p-4 rounded-xl border border-green-200 dark:border-green-700">
+                          <p className="text-sm font-bold text-green-600 dark:text-green-400">
+                            {loan.interestRate || "N/A"}%
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Rate
+                          </p>
+                        </div>
+
+                        <div className="flex flex-col items-center gap-2">
+                          <div
+                            className={`inline-flex items-center px-3 sm:px-4 py-2 rounded-xl text-sm font-bold border ${getStatusColor(
+                              loan.status
+                            )} shadow-sm`}
+                          >
+                            {loan.status?.replace("_", " ").toUpperCase() ||
+                              "UNKNOWN"}
+                          </div>
+
+                          {loan.riskRating && (
+                            <div
+                              className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold border ${getRiskColor(
+                                loan.riskRating
+                              )}`}
+                            >
+                              {loan.riskRating.toUpperCase()} RISK
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          onClick={() => handleViewLoanDetails(loan)}
+                          className="p-3 sm:p-4 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all duration-200 hover:scale-110 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500"
+                        >
+                          <Eye className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Additional Info */}
+                    <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+                        <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+                          <span className="block text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
+                            Origination
+                          </span>
+                          <span className="block text-sm text-gray-900 dark:text-white font-bold">
+                            {formatDate(loan.originationDate)}
+                          </span>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+                          <span className="block text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
+                            Next Payment
+                          </span>
+                          <span className="block text-sm text-gray-900 dark:text-white font-bold">
+                            {formatDate(loan.nextPaymentDue)}
+                          </span>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+                          <span className="block text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
+                            Monthly Payment
+                          </span>
+                          <span className="block text-sm text-gray-900 dark:text-white font-bold">
+                            {formatCurrency(loan.monthlyPayment)}
+                          </span>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+                          <span className="block text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
+                            Term Remaining
+                          </span>
+                          <span className="block text-sm text-gray-900 dark:text-white font-bold">
+                            {loan.termRemaining || "N/A"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </AnimatedSection>
+
+        {/* Loan Details Modal */}
+        {showLoanDetails && selectedLoan && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Loan Details - {selectedLoan.borrowerName}
+                  </h3>
+                  <button
+                    onClick={closeLoanDetails}
+                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+                      Borrower Information
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <p>
+                        <span className="font-medium">Name:</span>{" "}
+                        {selectedLoan.borrowerName}
+                      </p>
+                      <p>
+                        <span className="font-medium">ID:</span>{" "}
+                        {selectedLoan.borrowerId}
+                      </p>
+                      <p>
+                        <span className="font-medium">Loan Type:</span>{" "}
+                        {selectedLoan.loanType}
+                      </p>
+                      <p>
+                        <span className="font-medium">Status:</span>{" "}
+                        {selectedLoan.status}
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+                      Financial Details
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <p>
+                        <span className="font-medium">Original Amount:</span>{" "}
+                        {formatCurrency(selectedLoan.originalAmount)}
+                      </p>
+                      <p>
+                        <span className="font-medium">Current Balance:</span>{" "}
+                        {formatCurrency(selectedLoan.currentBalance)}
+                      </p>
+                      <p>
+                        <span className="font-medium">Monthly Payment:</span>{" "}
+                        {formatCurrency(selectedLoan.monthlyPayment)}
+                      </p>
+                      <p>
+                        <span className="font-medium">Interest Rate:</span>{" "}
+                        {selectedLoan.interestRate}%
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+                    Timeline
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium block">
+                        Origination Date:
+                      </span>
+                      {formatDate(selectedLoan.originationDate)}
+                    </div>
+                    <div>
+                      <span className="font-medium block">
+                        Next Payment Due:
+                      </span>
+                      {formatDate(selectedLoan.nextPaymentDue)}
+                    </div>
+                    <div>
+                      <span className="font-medium block">Term Remaining:</span>
+                      {selectedLoan.termRemaining || "N/A"}
+                    </div>
+                  </div>
+                </div>
+                {selectedLoan.riskRating && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+                      Risk Assessment
+                    </h4>
+                    <div
+                      className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold border ${getRiskColor(
+                        selectedLoan.riskRating
+                      )}`}
+                    >
+                      {selectedLoan.riskRating.toUpperCase()} RISK
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

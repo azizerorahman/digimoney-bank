@@ -66,6 +66,15 @@ async function run() {
     const loansCollection = db.collection("loans");
     const insuranceCollection = db.collection("insurances");
 
+    // New collections for loan officer dashboard
+    const loanOfficersCollection = db.collection("loan-officers");
+    const loanApplicationsCollection = db.collection("loan-applications");
+    const customersCollection = db.collection("customers");
+    const activeLoansCollection = db.collection("active-loans");
+    const repaymentSchedulesCollection = db.collection("repayment-schedules");
+    const riskAssessmentsCollection = db.collection("risk-assessments");
+    const communicationLogsCollection = db.collection("communication-logs");
+
     //userCollection for generate web token
     app.put("/token/:email", async (req, res) => {
       const email = req.params.email;
@@ -161,7 +170,6 @@ async function run() {
       }
     });
 
-    // Search recipients endpoint for money transfer
     app.get("/recipients", verifyJWT, async (req, res) => {
       try {
         const { query, currentUserId } = req.query;
@@ -634,7 +642,6 @@ async function run() {
       }
     });
 
-    // Create a new budget entry
     app.post("/budgets", verifyJWT, async (req, res) => {
       try {
         const {
@@ -720,7 +727,6 @@ async function run() {
       }
     });
 
-    // Update an existing budget
     app.put("/budgets/:budgetId", verifyJWT, async (req, res) => {
       try {
         const { budgetId } = req.params;
@@ -793,7 +799,6 @@ async function run() {
       }
     });
 
-    // Delete a budget
     app.delete("/budgets/:budgetId", verifyJWT, async (req, res) => {
       try {
         const { budgetId } = req.params;
@@ -840,7 +845,6 @@ async function run() {
       }
     });
 
-    // Toggle a budget's active status
     app.patch("/budgets/:budgetId/toggle", verifyJWT, async (req, res) => {
       try {
         const { budgetId } = req.params;
@@ -899,7 +903,6 @@ async function run() {
       }
     });
 
-    // Update monthly budget limit
     app.post("/budgets/monthly-limit", verifyJWT, async (req, res) => {
       try {
         const { uId, monthlyBudgetLimit } = req.body;
@@ -1184,7 +1187,6 @@ async function run() {
       res.send(users);
     });
 
-    // delete from users a user
     app.delete("/users/:id", async (req, res) => {
       const id = req.params.id;
 
@@ -1193,7 +1195,6 @@ async function run() {
       res.send(result);
     });
 
-    //=======================================================check approved user============================================//
     app.get("/verified/:email", async (req, res) => {
       try {
         const email = req.params.email;
@@ -1250,7 +1251,515 @@ async function run() {
       }
     });
 
-    // adding account number
+    // ========================= LOAN OFFICER DASHBOARD ROUTES =========================
+
+    // Get loan officer profile
+    app.get("/loan-officer-profile/:userId", verifyJWT, async (req, res) => {
+      try {
+        const userId = req.params.userId;
+
+        // First verify the user has loan-officer role
+        const user = await usersCollection.findOne({ _id: ObjectId(userId) });
+        if (!user || !user.role?.includes("loan-officer")) {
+          return res
+            .status(403)
+            .send({ message: "Access denied. Loan officer role required." });
+        }
+
+        // Fetch loan officer profile data
+        const loanOfficerProfile = await loanOfficersCollection.findOne({
+          userId: userId,
+        });
+
+        if (!loanOfficerProfile) {
+          // Create default profile if doesn't exist
+          const defaultProfile = {
+            userId: userId,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            title: "Loan Officer",
+            department: "Loan Department",
+            branch: user.region || "Global Branch",
+            region: user.region || "global",
+            status: "Available",
+            employeeId: `LO-${new Date().getFullYear()}-${user.name
+              .substring(0, 2)
+              .toUpperCase()}`,
+            hireDate: user.createdAt || new Date(),
+            todayStats: {
+              applicationsReviewed: 0,
+              approvalRate: "0%",
+              avgProcessingTime: "0 days",
+              portfolioValue: "$0",
+            },
+            certifications: [],
+            performance: {
+              thisMonth: {
+                applications: 0,
+                approved: 0,
+                rejected: 0,
+                pending: 0,
+                volume: "$0",
+              },
+              thisQuarter: {
+                applications: 0,
+                approved: 0,
+                rejected: 0,
+                pending: 0,
+                volume: "$0",
+              },
+              yearToDate: {
+                applications: 0,
+                approved: 0,
+                rejected: 0,
+                pending: 0,
+                volume: "$0",
+              },
+            },
+            targets: {
+              monthlyApplications: 50,
+              monthlyVolume: "$2M",
+              approvalRateTarget: "75%",
+            },
+            specializations: ["Personal Loans", "Auto Loans", "Mortgage Loans"],
+            address: user.address || "",
+            verified: user.verified || false,
+            active: true,
+            lastLogin: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+
+          await loanOfficersCollection.insertOne(defaultProfile);
+          return res.send(defaultProfile);
+        }
+
+        res.send(loanOfficerProfile);
+      } catch (error) {
+        console.error("Error fetching loan officer profile:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    // Get loan applications for a specific officer
+    app.get("/loan-applications", verifyJWT, async (req, res) => {
+      try {
+        const officerId = req.query.officerId;
+        const status = req.query.status;
+        const loanType = req.query.loanType;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+
+        let query = {};
+        if (officerId) {
+          query.loanOfficerId = officerId;
+        }
+        if (status && status !== "all") {
+          query.status = status;
+        }
+        if (loanType && loanType !== "all") {
+          query.loanType = loanType;
+        }
+
+        const skip = (page - 1) * limit;
+        const applications = await loanApplicationsCollection
+          .find(query)
+          .sort({ submittedDate: -1 })
+          .skip(skip)
+          .limit(limit)
+          .toArray();
+
+        const total = await loanApplicationsCollection.countDocuments(query);
+
+        res.send({
+          applications,
+          pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit),
+          },
+        });
+      } catch (error) {
+        console.error("Error fetching loan applications:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    // Get single loan application
+    app.get("/loan-application/:id", verifyJWT, async (req, res) => {
+      try {
+        const applicationId = req.params.id;
+        const application = await loanApplicationsCollection.findOne({
+          _id: ObjectId(applicationId),
+        });
+
+        if (!application) {
+          return res.status(404).send({ message: "Application not found" });
+        }
+
+        res.send(application);
+      } catch (error) {
+        console.error("Error fetching loan application:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    // Get active loans for a specific officer
+    app.get("/active-loans", verifyJWT, async (req, res) => {
+      try {
+        const officerId = req.query.officerId;
+        const status = req.query.status;
+        const loanType = req.query.loanType;
+
+        let query = {};
+        if (officerId) {
+          query.loanOfficerId = officerId;
+        }
+        if (status && status !== "all") {
+          query.status = status;
+        }
+        if (loanType && loanType !== "all") {
+          query.loanType = loanType;
+        }
+
+        const activeLoans = await activeLoansCollection.find(query).toArray();
+        res.send(activeLoans);
+      } catch (error) {
+        console.error("Error fetching active loans:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    // Get customers
+    app.get("/customers", verifyJWT, async (req, res) => {
+      try {
+        const search = req.query.search;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+
+        let query = {};
+        if (search) {
+          query = {
+            $or: [
+              { name: { $regex: search, $options: "i" } },
+              { email: { $regex: search, $options: "i" } },
+              { phone: { $regex: search, $options: "i" } },
+            ],
+          };
+        }
+
+        const skip = (page - 1) * limit;
+        const customers = await customersCollection
+          .find(query)
+          .skip(skip)
+          .limit(limit)
+          .toArray();
+
+        const total = await customersCollection.countDocuments(query);
+
+        res.send({
+          customers,
+          pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit),
+          },
+        });
+      } catch (error) {
+        console.error("Error fetching customers:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    // Get customer by ID
+    app.get("/customer/:id", verifyJWT, async (req, res) => {
+      try {
+        const customerId = req.params.id;
+        const customer = await customersCollection.findOne({
+          _id: ObjectId(customerId),
+        });
+
+        if (!customer) {
+          return res.status(404).send({ message: "Customer not found" });
+        }
+
+        res.send(customer);
+      } catch (error) {
+        console.error("Error fetching customer:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    // Get repayment schedules
+    app.get("/repayment-schedules", verifyJWT, async (req, res) => {
+      try {
+        const loanId = req.query.loanId;
+
+        let query = {};
+        if (loanId) {
+          query.loanId = loanId;
+        }
+
+        const schedules = await repaymentSchedulesCollection
+          .find(query)
+          .toArray();
+        res.send(schedules);
+      } catch (error) {
+        console.error("Error fetching repayment schedules:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    // Get risk assessments
+    app.get("/risk-assessments", verifyJWT, async (req, res) => {
+      try {
+        const assessments = await riskAssessmentsCollection.find({}).toArray();
+        res.send(assessments);
+      } catch (error) {
+        console.error("Error fetching risk assessments:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    // Get credit analysis data - combined loan applications with risk data
+    app.get("/credit-analysis", verifyJWT, async (req, res) => {
+      try {
+        const officerId = req.query.officerId;
+        const status = req.query.status;
+        const creditRating = req.query.creditRating;
+
+        // Build query for loan applications
+        let query = {};
+        if (officerId) {
+          query.loanOfficerId = officerId;
+        }
+        if (status && status !== "all") {
+          query.status = status;
+        }
+
+        // Fetch loan applications with credit scores
+        const applications = await loanApplicationsCollection
+          .find({ ...query, creditScore: { $exists: true, $ne: null } })
+          .sort({ lastUpdated: -1 })
+          .toArray();
+
+        // Fetch risk assessments
+        const riskAssessments = await riskAssessmentsCollection
+          .find({})
+          .toArray();
+        const riskData = riskAssessments[0] || {};
+
+        // Process applications into credit analysis format
+        const creditAnalyses = applications.map((app) => {
+          const getCreditRating = (score) => {
+            if (score >= 750) return "excellent";
+            if (score >= 700) return "good";
+            if (score >= 650) return "fair";
+            return "poor";
+          };
+
+          const calculateRiskScore = (application) => {
+            let riskScore = 0;
+
+            // Credit score impact (40% weight)
+            if (application.creditScore < 650) riskScore += 40;
+            else if (application.creditScore < 700) riskScore += 25;
+            else if (application.creditScore < 750) riskScore += 10;
+
+            // DTI ratio impact (30% weight)
+            const dti = application.financials?.debtToIncome || 0;
+            if (dti > 45) riskScore += 30;
+            else if (dti > 35) riskScore += 20;
+            else if (dti > 25) riskScore += 10;
+
+            // Employment stability (20% weight)
+            const empYears = application.employment?.yearsEmployed || 0;
+            if (empYears < 1) riskScore += 20;
+            else if (empYears < 2) riskScore += 15;
+            else if (empYears < 3) riskScore += 5;
+
+            // Flags and trends (10% weight)
+            if (application.creditTrend === "down") riskScore += 10;
+            if (application.flags && application.flags.length > 0)
+              riskScore += application.flags.length * 5;
+
+            return Math.min(riskScore, 100);
+          };
+
+          return {
+            _id: app._id,
+            applicantName: app.applicantName,
+            applicationId: app.applicantId || app._id,
+            loanType: app.loanType?.toLowerCase() || "personal",
+            requestedAmount: app.amount || 0,
+            creditScore: app.creditScore,
+            creditRating: getCreditRating(app.creditScore),
+            creditTrend: app.creditTrend || "stable",
+            riskLevel: app.riskLevel || "Medium",
+            riskScore: calculateRiskScore(app),
+            debtToIncomeRatio: app.financials?.debtToIncome || 0,
+            annualIncome: app.employment?.income || 0,
+            employmentLength: app.employment?.yearsEmployed || 0,
+            analysisDate: app.lastUpdated || app.submittedDate,
+            status: app.status,
+            keyFactors:
+              app.flags?.map((flag) => ({
+                name: flag.type || "Risk Factor",
+                value: flag.message || "See details",
+                impact: flag.severity === "high" ? "negative" : "neutral",
+              })) || [],
+          };
+        });
+
+        // Filter by credit rating if specified
+        const filteredAnalyses =
+          creditRating && creditRating !== "all"
+            ? creditAnalyses.filter(
+                (analysis) => analysis.creditRating === creditRating
+              )
+            : creditAnalyses;
+
+        // Calculate statistics
+        const stats = {
+          total: applications.length,
+          excellent: creditAnalyses.filter(
+            (a) => a.creditRating === "excellent"
+          ).length,
+          good: creditAnalyses.filter((a) => a.creditRating === "good").length,
+          fair: creditAnalyses.filter((a) => a.creditRating === "fair").length,
+          poor: creditAnalyses.filter((a) => a.creditRating === "poor").length,
+          avgCreditScore:
+            applications.length > 0
+              ? Math.round(
+                  applications.reduce((sum, app) => sum + app.creditScore, 0) /
+                    applications.length
+                )
+              : 0,
+          riskDistribution: riskData.riskDistribution || {
+            low: 0,
+            medium: 0,
+            high: 0,
+          },
+          fraudAlerts: riskData.fraudAlerts?.length || 0,
+        };
+
+        stats.approvalRate =
+          stats.total > 0
+            ? Math.round(((stats.excellent + stats.good) / stats.total) * 100)
+            : 0;
+
+        res.send({
+          analyses: filteredAnalyses,
+          statistics: stats,
+          riskAssessment: riskData,
+        });
+      } catch (error) {
+        console.error("Error fetching credit analysis data:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    // Get communication logs
+    app.get("/communication-logs", verifyJWT, async (req, res) => {
+      try {
+        const applicantId = req.query.applicantId;
+        const customerId = req.query.customerId;
+        const type = req.query.type;
+
+        let query = {};
+        if (applicantId) {
+          query.applicantId = applicantId;
+        }
+        if (customerId) {
+          query.customerId = customerId;
+        }
+        if (type) {
+          query.type = type;
+        }
+
+        const logs = await communicationLogsCollection
+          .find(query)
+          .sort({ date: -1 })
+          .toArray();
+
+        res.send(logs);
+      } catch (error) {
+        console.error("Error fetching communication logs:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    // Update loan application status
+    app.patch("/loan-application/:id/status", verifyJWT, async (req, res) => {
+      try {
+        const applicationId = req.params.id;
+        const { status, note, officerId } = req.body;
+
+        const updateDoc = {
+          $set: {
+            status: status,
+            lastUpdated: new Date().toISOString().split("T")[0],
+          },
+          $push: {
+            notes: {
+              date: new Date().toISOString().split("T")[0],
+              author: req.decoded.email, // From JWT token
+              note: note,
+            },
+          },
+        };
+
+        const result = await loanApplicationsCollection.updateOne(
+          { _id: ObjectId(applicationId) },
+          updateDoc
+        );
+
+        res.send(result);
+      } catch (error) {
+        console.error("Error updating loan application:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    // Add communication log
+    app.post("/communication-logs", verifyJWT, async (req, res) => {
+      try {
+        const logData = req.body;
+        logData.date = new Date().toISOString().split("T")[0];
+
+        const result = await communicationLogsCollection.insertOne(logData);
+        res.send(result);
+      } catch (error) {
+        console.error("Error adding communication log:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    // Update loan officer stats
+    app.patch("/loan-officer-stats/:userId", verifyJWT, async (req, res) => {
+      try {
+        const userId = req.params.userId;
+        const { action, amount } = req.body;
+
+        // This would involve complex calculations based on loan applications
+        // For now, we'll just acknowledge the update
+        const result = await loanOfficersCollection.updateOne(
+          { userId: userId },
+          { $set: { lastUpdated: new Date() } }
+        );
+
+        res.send(result);
+      } catch (error) {
+        console.error("Error updating loan officer stats:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    // ========================= END LOAN OFFICER ROUTES =========================
+
     app.patch("/accountNumber/:id", async (req, res) => {
       const id = req.params.id;
       const data = req.body;
@@ -1265,7 +1774,6 @@ async function run() {
       res.send(result);
     });
 
-    // post approved users
     app.post("/approvedUsers", async (req, res) => {
       const newUser = req.body;
 
@@ -1273,7 +1781,7 @@ async function run() {
 
       res.send(result);
     });
-    //============================================ update ammount===========================================//
+
     app.patch("/approvedUsers/:id", async (req, res) => {
       const id = req.params.id;
       const updatedAmount = req.body;
@@ -1300,50 +1808,6 @@ async function run() {
       const result = await approvedUsersCollection.updateOne(query, update);
       res.send(result);
     });
-    // ==========================================deposite amount=========================================//
-    app.patch("/deposite/:accountnumber", async (req, res) => {
-      const accountNumber = req.params.accountnumber;
-      const updatedAmount = req.body;
-      const bankInfo = await bankDataCollection.findOne({
-        _id: ObjectId("630f439efda2555ca01f5ea0"),
-      });
-      const updatedBankAmount = bankInfo.amount + updatedAmount.depositeAmount;
-
-      const updateBank = {
-        $set: { amount: updatedBankAmount },
-      };
-      const ifUpdated = await bankDataCollection.updateOne(
-        { _id: ObjectId("630f439efda2555ca01f5ea0") },
-        updateBank
-      );
-
-      const query = { accountNumber: accountNumber };
-      const update = {
-        $set: {
-          amount: updatedAmount.amount,
-        },
-      };
-
-      const result = await approvedUsersCollection.updateOne(query, update);
-      res.send(result);
-    });
-
-    app.put("/approvedUsers/admin/:email", async (req, res) => {
-      const email = req.params.email;
-      const filter = { email: email };
-      const updateDoc = {
-        $set: { role: "admin" },
-      };
-      const result = await approvedUsersCollection.updateOne(filter, updateDoc);
-      res.send(result);
-    });
-
-    // app.get("/approvedUser/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const query = { _id: id };
-    //   const user = await approvedUsersCollection.findOne(query);
-    //   res.send(user);
-    // });
 
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
@@ -1362,7 +1826,6 @@ async function run() {
       res.send({ result });
     });
 
-    // ===========================================================profile picture update============================================//
     app.patch("/profile/:email", async (req, res) => {
       const email = req.params.email;
       const profilePicture = req.body;
@@ -1376,7 +1839,6 @@ async function run() {
       res.send(result);
     });
 
-    // delete from users a user
     app.delete("/users/:id", async (req, res) => {
       const id = req.params.id;
 
@@ -1392,7 +1854,6 @@ async function run() {
       res.send(users);
     });
 
-    // adding account number
     app.patch("/accountNumber/:id", async (req, res) => {
       const id = req.params.id;
       const data = req.body;
@@ -1407,7 +1868,6 @@ async function run() {
       res.send(result);
     });
 
-    // post approved users
     app.post("/approvedUsers", async (req, res) => {
       const newUser = req.body;
       const result = await approvedUsersCollection.insertOne(newUser);
@@ -1424,13 +1884,6 @@ async function run() {
       const result = await approvedUsersCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
-
-    // app.get("/approvedUser/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const query = { _id: id };
-    //   const user = await approvedUsersCollection.findOne(query);
-    //   res.send(user);
-    // });
 
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
@@ -1449,7 +1902,6 @@ async function run() {
       res.send({ result });
     });
 
-    // delete from users a user
     app.delete("/users/:id", async (req, res) => {
       const id = req.params.id;
 
@@ -1458,7 +1910,6 @@ async function run() {
       res.send(result);
     });
 
-    // post approved users
     app.post("/approvedUsers", async (req, res) => {
       const newUser = req.body;
 
@@ -1467,8 +1918,6 @@ async function run() {
       res.send(result);
     });
 
-    // Get a single user information
-
     app.get("/approvedUsers", async (req, res) => {
       const query = {};
       const cursor = approvedUsersCollection.find(query);
@@ -1476,12 +1925,12 @@ async function run() {
       res.send(users);
     });
 
-    // post approved users
     app.post("/approvedUser", async (req, res) => {
       const newUser = req.body;
       const result = await approvedUsersCollection.insertOne(newUser);
       res.send(result);
     });
+
     app.delete("/approvedUser/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: id };
@@ -1499,26 +1948,154 @@ async function run() {
       res.send(result);
     });
 
-    // app.get("/approvedUser/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const query = { _id: id };
-    //   const user = await approvedUsersCollection.findOne(query);
-    //   res.send(user);
-    // });
+    // Create new loan application
+    app.post("/loan-applications", verifyJWT, async (req, res) => {
+      try {
+        const applicationData = req.body;
 
-    // ===============================================customer review ============================================//
-    // Insert review data  to database
-    app.post("/review", async (req, res) => {
-      const review = req.body;
-      const result = await usersReviewCollection.insertOne(review);
-      res.send(result);
+        // Add timestamps
+        applicationData.createdAt = new Date();
+        applicationData.updatedAt = new Date();
+
+        const result = await loanApplicationsCollection.insertOne(
+          applicationData
+        );
+
+        if (result.insertedId) {
+          res.status(201).send({
+            success: true,
+            message: "Application created successfully",
+            applicationId: result.insertedId,
+          });
+        } else {
+          res.status(400).send({
+            success: false,
+            message: "Failed to create application",
+          });
+        }
+      } catch (error) {
+        console.error("Error creating loan application:", error);
+        res.status(500).send({
+          success: false,
+          message: "Internal server error",
+        });
+      }
     });
-    //get all review data from database
-    app.get("/review", async (req, res) => {
-      const result = await usersReviewCollection.find({}).toArray();
-      res.send(result);
+
+    // Update loan application status
+    app.put("/loan-applications/:id/status", verifyJWT, async (req, res) => {
+      try {
+        const applicationId = req.params.id;
+        const { status } = req.body;
+
+        if (!status) {
+          return res.status(400).send({
+            success: false,
+            message: "Status is required",
+          });
+        }
+
+        const updateDoc = {
+          $set: {
+            status: status,
+            lastUpdated: new Date(),
+            updatedAt: new Date(),
+          },
+        };
+
+        const result = await loanApplicationsCollection.updateOne(
+          { _id: new ObjectId(applicationId) },
+          updateDoc
+        );
+
+        if (result.modifiedCount > 0) {
+          res.send({
+            success: true,
+            message: "Application status updated successfully",
+          });
+        } else {
+          res.status(404).send({
+            success: false,
+            message: "Application not found or no changes made",
+          });
+        }
+      } catch (error) {
+        console.error("Error updating loan application status:", error);
+        res.status(500).send({
+          success: false,
+          message: "Internal server error",
+        });
+      }
     });
-    // ==================================================Check admin ============================================//
+
+    // Update entire loan application
+    app.put("/loan-applications/:id", verifyJWT, async (req, res) => {
+      try {
+        const applicationId = req.params.id;
+        const updateData = req.body;
+
+        // Add updated timestamp
+        updateData.updatedAt = new Date();
+        updateData.lastUpdated = new Date();
+
+        const updateDoc = {
+          $set: updateData,
+        };
+
+        const result = await loanApplicationsCollection.updateOne(
+          { _id: new ObjectId(applicationId) },
+          updateDoc
+        );
+
+        if (result.modifiedCount > 0) {
+          res.send({
+            success: true,
+            message: "Application updated successfully",
+          });
+        } else {
+          res.status(404).send({
+            success: false,
+            message: "Application not found or no changes made",
+          });
+        }
+      } catch (error) {
+        console.error("Error updating loan application:", error);
+        res.status(500).send({
+          success: false,
+          message: "Internal server error",
+        });
+      }
+    });
+
+    // Delete loan application
+    app.delete("/loan-applications/:id", verifyJWT, async (req, res) => {
+      try {
+        const applicationId = req.params.id;
+
+        const result = await loanApplicationsCollection.deleteOne({
+          _id: new ObjectId(applicationId),
+        });
+
+        if (result.deletedCount > 0) {
+          res.send({
+            success: true,
+            message: "Application deleted successfully",
+          });
+        } else {
+          res.status(404).send({
+            success: false,
+            message: "Application not found",
+          });
+        }
+      } catch (error) {
+        console.error("Error deleting loan application:", error);
+        res.status(500).send({
+          success: false,
+          message: "Internal server error",
+        });
+      }
+    });
+
     app.get("/admin", async (req, res) => {
       try {
         const uId = req.query.uId;
@@ -1543,202 +2120,15 @@ async function run() {
           .send({ admin: false, message: "Internal server error" });
       }
     });
-
-    // ==============================================Transfer Balance==========================================//
-    // app.patch("/transfer", async (req, res) => {
-    //   const { accountNumber, amount } = req.body;
-    //   const email = req.query.email;
-    //   const receiverinfoquery = { accountNumber: accountNumber };
-    //   const senderinfoquery = { email: email };
-    //   // find receiver account by account number
-    //   const findTargetedaccount = await approvedUsersCollection.findOne(
-    //     receiverinfoquery
-    //   );
-    //   if (!findTargetedaccount) {
-    //     return res.send({ message: "Account number did not match " });
-    //   }
-
-    //   const updateAmount =
-    //     parseFloat(findTargetedaccount.amount) + parseFloat(amount);
-    //   const update = {
-    //     $set: {
-    //       amount: updateAmount,
-    //     },
-    //   };
-    //   const transferBalance = await approvedUsersCollection.updateOne(
-    //     receiverinfoquery,
-    //     update
-    //   );
-    //   if (transferBalance.modifiedCount) {
-    //     const findSenderInfo = await approvedUsersCollection.findOne(
-    //       senderinfoquery
-    //     );
-
-    //     const updateSenderAmount =
-    //       parseFloat(findSenderInfo.amount) - parseFloat(amount);
-
-    //     const updatesender = {
-    //       $set: {
-    //         amount: updateSenderAmount,
-    //       },
-    //     };
-    //     const finalResult = await approvedUsersCollection.updateOne(
-    //       senderinfoquery,
-    //       updatesender
-    //     );
-
-    //     // add transection to sender  database
-    //     const addTransection = {
-    //       $push: {
-    //         ["transection"]: {
-    //           send_money: amount,
-    //           receiverAccountnumber: accountNumber,
-    //           senderEmail: findSenderInfo.email,
-    //           reciverEmail: findTargetedaccount.email,
-    //           staus: "complete",
-    //           statustwo: "outgoing",
-    //           data: new Date(),
-    //           reveiverName: findTargetedaccount.displayName,
-    //         },
-    //       },
-    //     };
-    //     senderMail(addTransection);
-    //     const insertTransection = await approvedUsersCollection.updateOne(
-    //       senderinfoquery,
-    //       addTransection
-    //     );
-
-    //     //add transection object to receiver database
-    //     const addTransectionToReceiver = {
-    //       $push: {
-    //         ["transection"]: {
-    //           receive_money: amount,
-    //           senderAccountNumber: findSenderInfo.accountNumber,
-    //           senderEmail: findSenderInfo.email,
-    //           reciverEmail: findTargetedaccount.email,
-    //           staus: "complete",
-    //           statustwo: "incomming",
-    //           data: new Date(),
-    //           senderName: findSenderInfo.displayName,
-    //         },
-    //       },
-    //     };
-    //     receiverMail(addTransectionToReceiver);
-    //     const insertTransectionDataToReceiver =
-    //       await approvedUsersCollection.updateOne(
-    //         receiverinfoquery,
-    //         addTransectionToReceiver
-    //       );
-
-    //     res.send({
-    //       finalResult,
-    //       insertTransectionDataToReceiver,
-    //       insertTransection,
-    //     });
-    //   }
-    // });
-
-    // pagenation for transection history
-    // app.get("/transactionCount/:account", async (req, res) => {
-    //   const accountNumber = req.params.account;
-    //   const findDocument = await approvedUsersCollection.findOne({
-    //     accountNumber: accountNumber,
-    //   });
-    //   const transactionHistory = findDocument?.transaction;
-    //   const count = transactionHistory?.length;
-    //   if (count) {
-    //     res.send({ count });
-    //   }
-    // });
-    // get all transection
-    // app.get("/transaction/:account", verifyJWT, async (req, res) => {
-    //   const page = req.query.page;
-    //   const accountNumber = req.params.account;
-    //   const findDocument = await approvedUsersCollection.findOne({
-    //     accountNumber: accountNumber,
-    //   });
-    //   const transectionHistory = findDocument?.transection;
-
-    //   let sortedTransection = [];
-    //   if (transectionHistory) {
-    //     let sorted = [...transectionHistory].sort(
-    //       (a, b) =>
-    //         new moment(a.date).format("YYYYMMDD") -
-    //         new moment(b.date).format("YYYYMMDD")
-    //     );
-    //     sortedTransection = sorted.reverse();
-    //   }
-
-    //   if (page == 0) {
-    //     res.send(sortedTransection);
-
-    //     return;
-    //   }
-    //   function paginateArray(arr, itemPerPage, pageIndex) {
-    //     const lastIndex = itemPerPage * pageIndex;
-    //     const firstIndex = lastIndex - itemPerPage;
-    //     return arr.slice(firstIndex, lastIndex);
-    //   }
-
-    //   const index = parseInt(page);
-    //   const result = paginateArray(sortedTransection, 10, index);
-    //   res.send(result);
-    // });
-
-    // =============================================================load all blogs========================================//
-    app.get("/blog", async (req, res) => {
-      const result = await blogCollection.find({}).toArray();
-      res.send(result);
-    });
-    // ==============================================================find transection by account Number=======================//
-    // app.get("/findtransection:accountNumber", async (req, res) => {
-    //   const accountNumber = req.params.accountNumber;
-    //   const query = { accountNumber: accountNumber };
-    //   const result = await approvedUsersCollection.findOne(query);
-    //   const transection = result.transection.reverse();
-
-    //   res.send(transection);
-    // });
-    // =============================================================guest data collection //bottaom banner form ==================================//
-
-    app.post("/visitordata", async (req, res) => {
-      const visitordata = req.body;
-      const { email } = visitordata;
-      const isMatch = await randomVisitorCollection.findOne({ email: email });
-      if (isMatch) {
-        res.send({ message: "email already exist " });
-        return;
-      } else {
-        const result = await randomVisitorCollection.insertOne(visitordata);
-        res.send(result);
-      }
-    });
-    app.post("/subscribe", async (req, res) => {
-      const subscribeData = req.body;
-      const { email } = subscribeData;
-      const isMatch = await subscribeCollection.findOne({ email: email });
-      if (isMatch) {
-        res.send({ message: "Already subscribed " });
-        return;
-      } else {
-        const result = await subscribeCollection.insertOne(subscribeData);
-        res.send(result);
-      }
-    });
-    // ================================================our bank info============================
-    app.get("/bankinfo", async (req, res) => {
-      const result = await bankDataCollection.findOne({
-        _id: ObjectId("630f439efda2555ca01f5ea0"),
-      });
-      res.send(result);
-    });
   } finally {
   }
 }
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-  res.send("digimoney server start successfully");
+  res.send("DigiMoney server started successfully!");
 });
 
-app.listen(port, () => console.log("Run successfully"));
+app.listen(port, () =>
+  console.log("DigiMoney server is running on port", port)
+);

@@ -343,18 +343,6 @@ const Dashboard = () => {
     ],
     "loan-officer": [
       {
-        title: "Home",
-        path: "/",
-        src: <AiFillHome className="w-5 h-5" />,
-        description: "Return to homepage",
-      },
-      {
-        title: "Dashboard",
-        path: "/dashboard/loan-officer",
-        src: <MdDashboard className="w-5 h-5" />,
-        description: "Loan officer overview",
-      },
-      {
         title: "Loan Portfolio",
         path: "/dashboard/loan-officer/loan-portfolio",
         src: <FaMoneyCheck className="w-5 h-5" />,
@@ -383,12 +371,6 @@ const Dashboard = () => {
         path: "/dashboard/loan-officer/communications",
         src: <RiBarChartHorizontalLine className="w-5 h-5" />,
         description: "Client communications",
-      },
-      {
-        title: "Profile",
-        path: "/dashboard/profile",
-        src: <ImProfile className="w-5 h-5" />,
-        description: "Manage your account settings",
       },
     ],
     csr: [
