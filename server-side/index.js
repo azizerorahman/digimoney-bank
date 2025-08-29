@@ -1782,217 +1782,6 @@ async function run() {
       }
     });
 
-    // Create new super admin data
-    app.post("/super-admin-data", verifyJWT, async (req, res) => {
-      try {
-        const newData = req.body;
-        newData.createdAt = new Date().toISOString();
-        newData.updatedAt = new Date().toISOString();
-
-        const result = await superAdminDataCollection.insertOne(newData);
-        res.send(result);
-      } catch (error) {
-        console.error("Error creating super admin data:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // Update super admin data by ID
-    app.put("/super-admin-data/:id", verifyJWT, async (req, res) => {
-      try {
-        const id = req.params.id;
-        const updateData = req.body;
-        const { ObjectId } = require("mongodb");
-
-        updateData.updatedAt = new Date().toISOString();
-
-        const result = await superAdminDataCollection.updateOne(
-          { _id: new ObjectId(id) },
-          { $set: updateData }
-        );
-
-        if (result.matchedCount === 0) {
-          return res.status(404).send({ message: "Data not found" });
-        }
-
-        res.send(result);
-      } catch (error) {
-        console.error("Error updating super admin data:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // Update super admin data by dataType
-    app.put("/super-admin-data/type/:dataType", verifyJWT, async (req, res) => {
-      try {
-        const dataType = req.params.dataType;
-        const updateData = req.body;
-
-        updateData.updatedAt = new Date().toISOString();
-
-        const result = await superAdminDataCollection.updateOne(
-          { dataType: dataType },
-          { $set: updateData }
-        );
-
-        if (result.matchedCount === 0) {
-          return res.status(404).send({ message: "Data type not found" });
-        }
-
-        res.send(result);
-      } catch (error) {
-        console.error("Error updating super admin data by type:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // Patch/partially update super admin data by dataType (for real-time updates)
-    app.patch(
-      "/super-admin-data/type/:dataType",
-      verifyJWT,
-      async (req, res) => {
-        try {
-          const dataType = req.params.dataType;
-          const patchData = req.body;
-
-          patchData.updatedAt = new Date().toISOString();
-
-          const result = await superAdminDataCollection.updateOne(
-            { dataType: dataType },
-            { $set: patchData }
-          );
-
-          if (result.matchedCount === 0) {
-            return res.status(404).send({ message: "Data type not found" });
-          }
-
-          res.send(result);
-        } catch (error) {
-          console.error("Error patching super admin data:", error);
-          res.status(500).send({ message: "Internal server error" });
-        }
-      }
-    );
-
-    // Delete super admin data by ID
-    app.delete("/super-admin-data/:id", verifyJWT, async (req, res) => {
-      try {
-        const id = req.params.id;
-        const { ObjectId } = require("mongodb");
-
-        const result = await superAdminDataCollection.deleteOne({
-          _id: new ObjectId(id),
-        });
-
-        if (result.deletedCount === 0) {
-          return res.status(404).send({ message: "Data not found" });
-        }
-
-        res.send({ message: "Data deleted successfully" });
-      } catch (error) {
-        console.error("Error deleting super admin data:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // Add new audit log entry
-    app.post("/super-admin-data/audit-log", verifyJWT, async (req, res) => {
-      try {
-        const newLogEntry = req.body;
-        newLogEntry.id = `AUDIT-${Date.now()}`;
-        newLogEntry.timestamp = new Date().toISOString();
-
-        const result = await superAdminDataCollection.updateOne(
-          { dataType: "auditLogs" },
-          {
-            $push: { logs: newLogEntry },
-            $set: { updatedAt: new Date().toISOString() },
-          }
-        );
-
-        if (result.matchedCount === 0) {
-          return res
-            .status(404)
-            .send({ message: "Audit logs collection not found" });
-        }
-
-        res.send({
-          message: "Audit log entry added successfully",
-          logEntry: newLogEntry,
-        });
-      } catch (error) {
-        console.error("Error adding audit log entry:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // Add new security event
-    app.post(
-      "/super-admin-data/security-event",
-      verifyJWT,
-      async (req, res) => {
-        try {
-          const newSecurityEvent = req.body;
-          newSecurityEvent.id = `SEC-${Date.now()}`;
-          newSecurityEvent.timestamp = new Date().toISOString();
-
-          const result = await superAdminDataCollection.updateOne(
-            { dataType: "complianceAndSecurity" },
-            {
-              $push: { recentSecurityEvents: newSecurityEvent },
-              $set: { updatedAt: new Date().toISOString() },
-            }
-          );
-
-          if (result.matchedCount === 0) {
-            return res.status(404).send({
-              message: "Compliance and security collection not found",
-            });
-          }
-
-          res.send({
-            message: "Security event added successfully",
-            securityEvent: newSecurityEvent,
-          });
-        } catch (error) {
-          console.error("Error adding security event:", error);
-          res.status(500).send({ message: "Internal server error" });
-        }
-      }
-    );
-
-    // Update system metrics (for real-time dashboard updates)
-    app.patch(
-      "/super-admin-data/system-metrics",
-      verifyJWT,
-      async (req, res) => {
-        try {
-          const metrics = req.body;
-
-          const result = await superAdminDataCollection.updateOne(
-            { dataType: "systemOverview" },
-            {
-              $set: {
-                ...metrics,
-                updatedAt: new Date().toISOString(),
-              },
-            }
-          );
-
-          if (result.matchedCount === 0) {
-            return res
-              .status(404)
-              .send({ message: "System overview collection not found" });
-          }
-
-          res.send({ message: "System metrics updated successfully" });
-        } catch (error) {
-          console.error("Error updating system metrics:", error);
-          res.status(500).send({ message: "Internal server error" });
-        }
-      }
-    );
-
     // ========== END SUPER ADMIN DATA MANAGEMENT ENDPOINTS ==========
 
     // Update loan officer stats
@@ -2375,6 +2164,34 @@ async function run() {
         return res
           .status(500)
           .send({ admin: false, message: "Internal server error" });
+      }
+    });
+
+    // Super Admin Data endpoint
+    app.get("/super-admin-data", verifyJWT, async (req, res) => {
+      try {
+        const { dataType } = req.query;
+
+        let query = {};
+        if (dataType) {
+          query.dataType = dataType;
+        }
+
+        const data = await superAdminDataCollection.find(query).toArray();
+
+        if (dataType && data.length > 0) {
+          // Return single document for specific dataType
+          res.status(200).json(data[0]);
+        } else {
+          // Return all documents
+          res.status(200).json(data);
+        }
+      } catch (error) {
+        console.error("Error fetching super admin data:", error);
+        res.status(500).json({
+          success: false,
+          message: "Internal server error",
+        });
       }
     });
   } finally {

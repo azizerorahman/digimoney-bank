@@ -275,18 +275,6 @@ const Dashboard = () => {
     ],
     "account-manager": [
       {
-        title: "Home",
-        path: "/",
-        src: <AiFillHome className="w-5 h-5" />,
-        description: "Return to homepage",
-      },
-      {
-        title: "Dashboard",
-        path: "/dashboard/account-manager",
-        src: <MdDashboard className="w-5 h-5" />,
-        description: "Account manager overview",
-      },
-      {
         title: "Customer Portfolio",
         path: "/dashboard/account-manager/customer-portfolio",
         src: <FaUsers className="w-5 h-5" />,
@@ -305,7 +293,7 @@ const Dashboard = () => {
         description: "Customer communications",
       },
       {
-        title: "Investment Performance",
+        title: "Investments",
         path: "/dashboard/account-manager/investment-performance",
         src: <FaMoneyCheck className="w-5 h-5" />,
         description: "Track investment performance",
@@ -321,12 +309,6 @@ const Dashboard = () => {
         path: "/dashboard/account-manager/transaction-alerts",
         src: <RiBarChartHorizontalLine className="w-5 h-5" />,
         description: "Monitor transaction alerts",
-      },
-      {
-        title: "Profile",
-        path: "/dashboard/profile",
-        src: <ImProfile className="w-5 h-5" />,
-        description: "Manage your account settings",
       },
     ],
     "loan-officer": [
