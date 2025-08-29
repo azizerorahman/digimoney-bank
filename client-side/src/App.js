@@ -35,8 +35,8 @@ import SecurityAndCompliance from "./pages/Dashboard/SuperAdmin/SecurityAndCompl
 
 // Account Manager components
 import AccountManager from "./pages/Dashboard/AccountManager";
-import CalendarMeetings from "./pages/Dashboard/AccountManager/CalendarMeetings";
-import AMCommunications from "./pages/Dashboard/AccountManager/AMCommunications";
+import AccountManagerDashboard from "./pages/Dashboard/AccountManager/AccountManagerDashboard";
+import Meetings from "./pages/Dashboard/AccountManager/Meetings";
 import AMCustomerPortfolio from "./pages/Dashboard/AccountManager/AMCustomerPortfolio";
 import InvestmentPerformance from "./pages/Dashboard/AccountManager/InvestmentPerformance";
 import RevenueAnalytics from "./pages/Dashboard/AccountManager/RevenueAnalytics";
@@ -210,12 +210,8 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route
-              index
-              element={<Navigate to="customer-portfolio" replace />}
-            />
-            <Route path="calendar-meetings" element={<CalendarMeetings />} />
-            <Route path="communications" element={<AMCommunications />} />
+            <Route index element={<AccountManagerDashboard />} />
+            <Route path="meetings" element={<Meetings />} />
             <Route
               path="customer-portfolio"
               element={<AMCustomerPortfolio />}

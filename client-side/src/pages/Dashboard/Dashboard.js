@@ -275,22 +275,22 @@ const Dashboard = () => {
     ],
     "account-manager": [
       {
+        title: "Dashboard",
+        path: "/dashboard/account-manager",
+        src: <MdDashboard className="w-5 h-5" />,
+        description: "Account manager dashboard overview",
+      },
+      {
         title: "Customer Portfolio",
         path: "/dashboard/account-manager/customer-portfolio",
         src: <FaUsers className="w-5 h-5" />,
         description: "Manage customer portfolios",
       },
       {
-        title: "Calendar & Meetings",
-        path: "/dashboard/account-manager/calendar-meetings",
+        title: "Meetings",
+        path: "/dashboard/account-manager/meetings",
         src: <MdRateReview className="w-5 h-5" />,
         description: "Schedule and view meetings",
-      },
-      {
-        title: "Communications",
-        path: "/dashboard/account-manager/communications",
-        src: <FiLogOut className="w-5 h-5" />,
-        description: "Customer communications",
       },
       {
         title: "Investments",
