@@ -60,12 +60,38 @@ const LOCommunications = () => {
           }
         );
 
+        // Handle different response structures
         if (response.data) {
-          setCommunicationLogs(response.data);
+          // If response.data is an array, use it directly
+          if (Array.isArray(response.data)) {
+            setCommunicationLogs(response.data);
+          }
+          // If response.data has a nested array property
+          else if (response.data.logs && Array.isArray(response.data.logs)) {
+            setCommunicationLogs(response.data.logs);
+          }
+          // If response.data has a data property with array
+          else if (response.data.data && Array.isArray(response.data.data)) {
+            setCommunicationLogs(response.data.data);
+          }
+          // If response.data is an object but not an array, set empty array
+          else if (
+            typeof response.data === "object" &&
+            !Array.isArray(response.data)
+          ) {
+            setCommunicationLogs([]);
+          }
+          // Default to empty array
+          else {
+            setCommunicationLogs([]);
+          }
+        } else {
+          setCommunicationLogs([]);
         }
       } catch (err) {
         console.error("Error fetching communication logs:", err);
         setError("Failed to load communication logs");
+        setCommunicationLogs([]); // Set to empty array on error
         toast.error("Failed to load communication logs");
       } finally {
         setLoading(false);
@@ -122,8 +148,25 @@ const LOCommunications = () => {
           }
         );
 
+        // Handle different response structures for refresh as well
         if (logsResponse.data) {
-          setCommunicationLogs(logsResponse.data);
+          if (Array.isArray(logsResponse.data)) {
+            setCommunicationLogs(logsResponse.data);
+          } else if (
+            logsResponse.data.logs &&
+            Array.isArray(logsResponse.data.logs)
+          ) {
+            setCommunicationLogs(logsResponse.data.logs);
+          } else if (
+            logsResponse.data.data &&
+            Array.isArray(logsResponse.data.data)
+          ) {
+            setCommunicationLogs(logsResponse.data.data);
+          } else {
+            setCommunicationLogs([]);
+          }
+        } else {
+          setCommunicationLogs([]);
         }
       }
     } catch (err) {
@@ -142,7 +185,8 @@ const LOCommunications = () => {
 
   // Memoized filtered communications data
   const filteredCommunications = useMemo(() => {
-    if (!communicationLogs) return [];
+    // Ensure communicationLogs is always an array
+    if (!communicationLogs || !Array.isArray(communicationLogs)) return [];
 
     return communicationLogs
       .filter((comm) => {
@@ -164,7 +208,12 @@ const LOCommunications = () => {
 
   // Memoized statistics
   const commStats = useMemo(() => {
-    if (!communicationLogs || communicationLogs.length === 0) {
+    // Ensure communicationLogs is always an array before processing
+    if (
+      !communicationLogs ||
+      !Array.isArray(communicationLogs) ||
+      communicationLogs.length === 0
+    ) {
       return {
         total: 0,
         emails: 0,

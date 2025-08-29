@@ -237,12 +237,6 @@ const Dashboard = () => {
     ],
     "super-admin": [
       {
-        title: "Home",
-        path: "/",
-        src: <AiFillHome className="w-5 h-5" />,
-        description: "Return to homepage",
-      },
-      {
         title: "Dashboard",
         path: "/dashboard/super-admin",
         src: <MdDashboard className="w-5 h-5" />,
@@ -275,14 +269,8 @@ const Dashboard = () => {
       {
         title: "Security",
         path: "/dashboard/super-admin/security-and-compliance",
-        src: <FiLogOut className="w-5 h-5" />,
+        src: <FaShieldAlt className="w-5 h-5" />,
         description: "Manage security settings",
-      },
-      {
-        title: "Profile",
-        path: "/dashboard/profile",
-        src: <ImProfile className="w-5 h-5" />,
-        description: "Manage your account settings",
       },
     ],
     "account-manager": [
