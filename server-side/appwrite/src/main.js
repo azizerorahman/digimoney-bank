@@ -326,14 +326,49 @@ export default async ({ req, res, log, error }) => {
         const decoded = verifyToken(headers.authorization);
         const uId = req.query?.uId || decoded.uId;
 
-        console.log("Transaction history request for user:", uId);
+        log("Transaction history request for user:", uId);
+
+        // First, let's check what date fields exist in transactions
+        const sampleTransaction = await transactionsCollection.findOne({
+          userId: uId,
+        });
+        log("Sample transaction:", JSON.stringify(sampleTransaction, null, 2));
+
+        let dateField = "$date"; // Default to 'date' field
+
+        // Check which date field exists
+        if (sampleTransaction) {
+          if (sampleTransaction.createdAt) {
+            dateField = "$createdAt";
+          } else if (sampleTransaction.date) {
+            dateField = "$date";
+          } else if (sampleTransaction.timestamp) {
+            dateField = "$timestamp";
+          }
+        }
+
+        log("Using date field:", dateField);
 
         const pipeline = [
           { $match: { userId: uId } },
           {
+            $addFields: {
+              transactionDate: {
+                $cond: {
+                  if: { $type: [dateField, "string"] },
+                  then: { $dateFromString: { dateString: dateField } },
+                  else: dateField,
+                },
+              },
+            },
+          },
+          {
             $group: {
               _id: {
-                $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+                $dateToString: {
+                  format: "%Y-%m-%d",
+                  date: "$transactionDate",
+                },
               },
               credit: {
                 $sum: {
@@ -354,17 +389,88 @@ export default async ({ req, res, log, error }) => {
           { $sort: { _id: -1 } },
         ];
 
-        console.log("Transaction history aggregation pipeline:", JSON.stringify(pipeline, null, 2));
+        log(
+          "Transaction history aggregation pipeline:",
+          JSON.stringify(pipeline, null, 2)
+        );
 
         const transactions = await transactionsCollection
           .aggregate(pipeline)
           .toArray();
 
-        console.log("Transaction history response:", transactions);
+        log("Transaction history response:", transactions);
+
+        // Filter out null dates and format the response
+        const filteredTransactions = transactions
+          .filter((t) => t._id !== null)
+          .map((transaction) => ({
+            date: transaction._id,
+            credit: Math.abs(transaction.credit),
+            debit: Math.abs(transaction.debit),
+          }));
+
+        // If no transactions with valid dates, try a simpler approach
+        if (filteredTransactions.length === 0 && transactions.length > 0) {
+          log("No valid dates found, using fallback approach");
+
+          // Get all transactions and group them manually
+          const allTransactions = await transactionsCollection
+            .find({ userId: uId })
+            .toArray();
+          log("All transactions count:", allTransactions.length);
+
+          const groupedByDate = {};
+
+          allTransactions.forEach((transaction) => {
+            let dateStr;
+
+            // Try different date field approaches
+            if (transaction.date) {
+              dateStr = new Date(transaction.date).toISOString().split("T")[0];
+            } else if (transaction.createdAt) {
+              dateStr = new Date(transaction.createdAt)
+                .toISOString()
+                .split("T")[0];
+            } else {
+              dateStr = new Date().toISOString().split("T")[0]; // fallback to today
+            }
+
+            if (!groupedByDate[dateStr]) {
+              groupedByDate[dateStr] = { credit: 0, debit: 0 };
+            }
+
+            if (transaction.transactionType === "credit") {
+              groupedByDate[dateStr].credit += Math.abs(transaction.amount);
+            } else if (transaction.transactionType === "debit") {
+              groupedByDate[dateStr].debit += Math.abs(transaction.amount);
+            }
+          });
+
+          // Convert to array and sort
+          const fallbackTransactions = Object.entries(groupedByDate)
+            .map(([date, amounts]) => ({
+              date,
+              credit: amounts.credit,
+              debit: amounts.debit,
+            }))
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+          log("Fallback transactions:", fallbackTransactions);
+
+          await client.close();
+          return corsResponse({
+            success: true,
+            transactions: fallbackTransactions,
+          });
+        }
 
         await client.close();
-        return corsResponse({ success: true, transactions });
+        return corsResponse({
+          success: true,
+          transactions: filteredTransactions,
+        });
       } catch (authErr) {
+        log("Transaction history error:", authErr.message);
         await client.close();
         return corsResponse({ message: "Unauthorized Access" }, 401);
       }
