@@ -60,6 +60,7 @@ export default async ({ req, res, log, error }) => {
         timestamp: new Date().toISOString(),
         endpoints: {
           health: "/health",
+          createTestUser: "/create-test-user",
           login: "/login",
           register: "/register",
           userDetails: "/user-details",
@@ -80,8 +81,6 @@ export default async ({ req, res, log, error }) => {
     // Initialize database connection for API endpoints
     const uri = `mongodb+srv://${process.env.MONGODB_USER}:${process.env.MONGODB_PASSWORD}@dmb-cluster.6bs5ltd.mongodb.net/?retryWrites=true&w=majority&appName=DMB-Cluster`;
     client = new MongoClient(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       serverApi: ServerApiVersion.v1,
     });
 
@@ -111,71 +110,165 @@ export default async ({ req, res, log, error }) => {
     };
 
     const decryptPassword = (encryptedPassword) => {
-      const bytes = CryptoJS.AES.decrypt(encryptedPassword, process.env.DECRYPTION_KEY);
+      const bytes = CryptoJS.AES.decrypt(
+        encryptedPassword,
+        process.env.DECRYPTION_KEY
+      );
       return bytes.toString(CryptoJS.enc.Utf8);
     };
+
+    // GET /create-test-user - Create test user for development
+    if (path === "/create-test-user" && method === "GET") {
+      try {
+        // Check if test user already exists
+        const existingUser = await usersCollection.findOne({
+          email: "demo@digimoney.com",
+        });
+
+        if (existingUser) {
+          await client.close();
+          return corsResponse({
+            success: false,
+            message: "Test user already exists",
+            email: "demo@digimoney.com",
+          });
+        }
+
+        // Create test user (you'll need to encrypt the password properly)
+        const testUser = {
+          name: "Demo User",
+          email: "demo@digimoney.com",
+          encryptedPassword: "U2FsdGVkX19GzI9v8ZF0QQO7fNZj3X5K3gEzIy7K2I4=", // This should be "password123" encrypted with your key
+          verified: true,
+          admin: false,
+          createdAt: new Date(),
+          phone: "+1234567890",
+          address: "123 Demo Street, Demo City, DC 12345",
+        };
+
+        const result = await usersCollection.insertOne(testUser);
+
+        // Also create a test account for this user
+        const testAccount = {
+          userId: result.insertedId.toString(),
+          accountNumber: "ACC" + Date.now(),
+          accountName: "Demo Checking Account",
+          type: "checking",
+          balance: 5000.0,
+          currency: "USD",
+          isActive: true,
+          createdAt: new Date(),
+        };
+
+        await accountsCollection.insertOne(testAccount);
+
+        await client.close();
+        return corsResponse({
+          success: true,
+          message: "Test user created successfully",
+          user: {
+            email: testUser.email,
+            name: testUser.name,
+            password: "password123", // Only show in development
+          },
+          account: testAccount,
+        });
+      } catch (err) {
+        log(`Error creating test user: ${err.message}`);
+        await client.close();
+        return corsResponse(
+          {
+            success: false,
+            message: "Failed to create test user",
+            error: err.message,
+          },
+          500
+        );
+      }
+    }
 
     // ==================== AUTHENTICATION ENDPOINTS ====================
 
     // POST /login - User login
     if (path === "/login" && method === "POST") {
       const { email, encryptedPassword } = body;
-      
+
       try {
-      log(`Attempting to find user with email: ${email}`);
-      
-      // First try exact match
-      let user = await usersCollection.findOne({ email: email });
-      log(`Exact match result: ${user ? 'Found' : 'Not found'}`);
-      
-      // If no exact match, try case-insensitive search
-      if (!user) {
-        user = await usersCollection.findOne({ 
-        email: { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } 
-        });
-        log(`Case-insensitive match result: ${user ? 'Found' : 'Not found'}`);
-      }
-      
-      // Debug: Check if any users exist
-      const userCount = await usersCollection.countDocuments();
-      log(`Total users in database: ${userCount}`);
-      
-      // Debug: Check for similar emails
-      const similarUsers = await usersCollection.find({ 
-        email: { $regex: new RegExp(email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') } 
-      }).toArray();
-      log(`Users with similar emails: ${similarUsers.length}`);
-      
-      if (!user) {
-        log(`No user found for email: ${email}`);
-        await client.close();
-        return corsResponse({ message: "User not found" }, 404);
-      }
+        log(`Attempting to find user with email: ${email}`);
 
-      const decryptedPassword = decryptPassword(encryptedPassword);
-      const storedDecryptedPassword = decryptPassword(user.encryptedPassword);
+        // First try exact match
+        let user = await usersCollection.findOne({ email: email });
+        log(`Exact match result: ${user ? "Found" : "Not found"}`);
 
-      if (decryptedPassword === storedDecryptedPassword) {
-        const token = jwt.sign(
-        { email: user.email, uId: user._id },
-        process.env.SECRET_KEY,
-        { expiresIn: "7d" }
-        );
+        // If no exact match, try case-insensitive search
+        if (!user) {
+          user = await usersCollection.findOne({
+            email: {
+              $regex: new RegExp(
+                `^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+                "i"
+              ),
+            },
+          });
+          log(`Case-insensitive match result: ${user ? "Found" : "Not found"}`);
+        }
 
-        await client.close();
-        return corsResponse({
-        success: true,
-        accessToken: token,
-        uId: user._id,
-        });
-      } else {
-        await client.close();
-        return corsResponse({ message: "Invalid credentials" }, 401);
-      }
+        // Debug: Check if any users exist
+        const userCount = await usersCollection.countDocuments();
+        log(`Total users in database: ${userCount}`);
+
+        // Debug: Check for similar emails
+        const similarUsers = await usersCollection
+          .find({
+            email: {
+              $regex: new RegExp(
+                email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+                "i"
+              ),
+            },
+          })
+          .toArray();
+        log(`Users with similar emails: ${similarUsers.length}`);
+
+        if (!user) {
+          log(`No user found for email: ${email}`);
+          log(`Database has ${userCount} total users`);
+          await client.close();
+          return corsResponse(
+            {
+              message:
+                userCount === 0
+                  ? "No users found in database. Please register first."
+                  : "User not found. Please check your email address.",
+            },
+            404
+          );
+        }
+
+        const decryptedPassword = decryptPassword(encryptedPassword);
+        const storedDecryptedPassword = decryptPassword(user.encryptedPassword);
+
+        if (decryptedPassword === storedDecryptedPassword) {
+          const token = jwt.sign(
+            { email: user.email, uId: user._id },
+            process.env.SECRET_KEY,
+            { expiresIn: "7d" }
+          );
+
+          await client.close();
+          return corsResponse({
+            success: true,
+            accessToken: token,
+            uId: user._id,
+          });
+        } else {
+          await client.close();
+          return corsResponse({ message: "Invalid credentials" }, 401);
+        }
       } catch (err) {
-      log(`Login error: ${err.message}`);
-      await client.close();
-      return corsResponse({ message: "Login failed" }, 500);
+        log(`Login error: ${err.message}`);
+        await client.close();
+        return corsResponse({ message: "Login failed" }, 500);
       }
     }
 
@@ -205,7 +298,7 @@ export default async ({ req, res, log, error }) => {
     if (path.match(/^\/token\/[^\/]+$/) && method === "PUT") {
       const email = decodeURIComponent(path.split("/")[2]);
       const user = await usersCollection.findOne({ email });
-      
+
       if (user) {
         const token = jwt.sign(
           { email: user.email, uId: user._id },
@@ -229,7 +322,7 @@ export default async ({ req, res, log, error }) => {
         const decoded = verifyToken(headers.authorization);
         const uId = req.query?.uId || decoded.uId;
         const user = await usersCollection.findOne({ _id: new ObjectId(uId) });
-        
+
         await client.close();
         return corsResponse(user);
       } catch (authErr) {
@@ -243,7 +336,7 @@ export default async ({ req, res, log, error }) => {
       const email = decodeURIComponent(path.split("/")[2]);
       const user = await usersCollection.findOne({ email });
       const isVerified = user?.verified === true;
-      
+
       await client.close();
       return corsResponse({ success: true, verified: isVerified });
     }
@@ -254,7 +347,7 @@ export default async ({ req, res, log, error }) => {
         const decoded = verifyToken(headers.authorization);
         const uId = req.query?.uId || decoded.uId;
         const isAdmin = await checkAdmin(uId);
-        
+
         await client.close();
         return corsResponse({ admin: isAdmin });
       } catch (authErr) {
@@ -295,7 +388,9 @@ export default async ({ req, res, log, error }) => {
         }
 
         const id = path.split("/")[2];
-        const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
+        const result = await usersCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
         await client.close();
         return corsResponse(result);
       } catch (authErr) {
@@ -311,8 +406,10 @@ export default async ({ req, res, log, error }) => {
       try {
         const decoded = verifyToken(headers.authorization);
         const uId = req.query?.uId || decoded.uId;
-        const accounts = await accountsCollection.find({ userId: uId }).toArray();
-        
+        const accounts = await accountsCollection
+          .find({ userId: uId })
+          .toArray();
+
         await client.close();
         return corsResponse({ success: true, accounts });
       } catch (authErr) {
@@ -328,8 +425,10 @@ export default async ({ req, res, log, error }) => {
       try {
         const decoded = verifyToken(headers.authorization);
         const uId = req.query?.uId || decoded.uId;
-        const transactions = await transactionsCollection.find({ userId: uId }).toArray();
-        
+        const transactions = await transactionsCollection
+          .find({ userId: uId })
+          .toArray();
+
         await client.close();
         return corsResponse({ success: true, transactions });
       } catch (authErr) {
@@ -343,29 +442,37 @@ export default async ({ req, res, log, error }) => {
       try {
         const decoded = verifyToken(headers.authorization);
         const uId = req.query?.uId || decoded.uId;
-        
+
         const pipeline = [
           { $match: { userId: uId } },
           {
             $group: {
-              _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+              _id: {
+                $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+              },
               credit: {
                 $sum: {
-                  $cond: [{ $eq: ["$transactionType", "credit"] }, "$amount", 0]
-                }
+                  $cond: [
+                    { $eq: ["$transactionType", "credit"] },
+                    "$amount",
+                    0,
+                  ],
+                },
               },
               debit: {
                 $sum: {
-                  $cond: [{ $eq: ["$transactionType", "debit"] }, "$amount", 0]
-                }
-              }
-            }
+                  $cond: [{ $eq: ["$transactionType", "debit"] }, "$amount", 0],
+                },
+              },
+            },
           },
-          { $sort: { _id: -1 } }
+          { $sort: { _id: -1 } },
         ];
 
-        const transactions = await transactionsCollection.aggregate(pipeline).toArray();
-        
+        const transactions = await transactionsCollection
+          .aggregate(pipeline)
+          .toArray();
+
         await client.close();
         return corsResponse({ success: true, transactions });
       } catch (authErr) {
@@ -379,7 +486,7 @@ export default async ({ req, res, log, error }) => {
       try {
         const decoded = verifyToken(headers.authorization);
         const uId = req.query?.uId || decoded.uId;
-        
+
         const now = new Date();
         const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -393,40 +500,45 @@ export default async ({ req, res, log, error }) => {
               totalAmount: { $sum: "$amount" },
               last7Days: {
                 $sum: {
-                  $cond: [{ $gte: ["$createdAt", last7Days] }, "$amount", 0]
-                }
+                  $cond: [{ $gte: ["$createdAt", last7Days] }, "$amount", 0],
+                },
               },
               last30Days: {
                 $sum: {
-                  $cond: [{ $gte: ["$createdAt", last30Days] }, "$amount", 0]
-                }
+                  $cond: [{ $gte: ["$createdAt", last30Days] }, "$amount", 0],
+                },
               },
               last90Days: {
                 $sum: {
-                  $cond: [{ $gte: ["$createdAt", last90Days] }, "$amount", 0]
-                }
-              }
-            }
-          }
+                  $cond: [{ $gte: ["$createdAt", last90Days] }, "$amount", 0],
+                },
+              },
+            },
+          },
         ];
 
-        const categories = await transactionsCollection.aggregate(pipeline).toArray();
-        const totalSpending = categories.reduce((sum, cat) => sum + cat.totalAmount, 0);
-        
+        const categories = await transactionsCollection
+          .aggregate(pipeline)
+          .toArray();
+        const totalSpending = categories.reduce(
+          (sum, cat) => sum + cat.totalAmount,
+          0
+        );
+
         await client.close();
         return corsResponse({
           success: true,
           data: {
             totalSpending,
-            categories: categories.map(cat => ({
+            categories: categories.map((cat) => ({
               category: cat._id,
               totalAmount: cat.totalAmount,
-              percentage: (cat.totalAmount / totalSpending * 100).toFixed(1),
+              percentage: ((cat.totalAmount / totalSpending) * 100).toFixed(1),
               last7Days: { amount: cat.last7Days },
               last30Days: { amount: cat.last30Days },
-              last90Days: { amount: cat.last90Days }
-            }))
-          }
+              last90Days: { amount: cat.last90Days },
+            })),
+          },
         });
       } catch (authErr) {
         await client.close();
@@ -442,12 +554,15 @@ export default async ({ req, res, log, error }) => {
         const decoded = verifyToken(headers.authorization);
         const uId = req.query?.uId || decoded.uId;
         const budget = await budgetsCollection.findOne({ userId: uId });
-        
+
         if (!budget) {
           await client.close();
-          return corsResponse({ success: false, message: "No budget found" }, 404);
+          return corsResponse(
+            { success: false, message: "No budget found" },
+            404
+          );
         }
-        
+
         await client.close();
         return corsResponse({ success: true, data: budget });
       } catch (authErr) {
@@ -460,11 +575,22 @@ export default async ({ req, res, log, error }) => {
     if (path === "/budgets" && method === "POST") {
       try {
         const decoded = verifyToken(headers.authorization);
-        const { uId, category, budgeted, color, description, customCategory, isActive } = body;
+        const {
+          uId,
+          category,
+          budgeted,
+          color,
+          description,
+          customCategory,
+          isActive,
+        } = body;
 
         if (!uId || !category || !budgeted) {
           await client.close();
-          return corsResponse({ success: false, message: "Missing required fields" }, 400);
+          return corsResponse(
+            { success: false, message: "Missing required fields" },
+            400
+          );
         }
 
         let userBudget = await budgetsCollection.findOne({ userId: uId });
@@ -491,7 +617,10 @@ export default async ({ req, res, log, error }) => {
         } else {
           if (userBudget.budgets.some((b) => b.category === category)) {
             await client.close();
-            return corsResponse({ success: false, message: "Budget category already exists" }, 400);
+            return corsResponse(
+              { success: false, message: "Budget category already exists" },
+              400
+            );
           }
           await budgetsCollection.updateOne(
             { userId: uId },
@@ -516,11 +645,15 @@ export default async ({ req, res, log, error }) => {
       try {
         const decoded = verifyToken(headers.authorization);
         const budgetId = path.split("/")[2];
-        const { uId, category, budgeted, color, description, customCategory } = body;
+        const { uId, category, budgeted, color, description, customCategory } =
+          body;
 
         if (!uId || !category || !budgeted) {
           await client.close();
-          return corsResponse({ success: false, message: "Missing required fields" }, 400);
+          return corsResponse(
+            { success: false, message: "Missing required fields" },
+            400
+          );
         }
 
         const budgetObjId = new ObjectId(budgetId);
@@ -562,7 +695,10 @@ export default async ({ req, res, log, error }) => {
         );
 
         await client.close();
-        return corsResponse({ success: true, message: "Budget deleted successfully" });
+        return corsResponse({
+          success: true,
+          message: "Budget deleted successfully",
+        });
       } catch (authErr) {
         await client.close();
         return corsResponse({ message: "Unauthorized Access" }, 401);
@@ -585,7 +721,9 @@ export default async ({ req, res, log, error }) => {
         await client.close();
         return corsResponse({
           success: true,
-          message: `Budget ${isActive ? "activated" : "deactivated"} successfully`,
+          message: `Budget ${
+            isActive ? "activated" : "deactivated"
+          } successfully`,
         });
       } catch (authErr) {
         await client.close();
@@ -602,7 +740,10 @@ export default async ({ req, res, log, error }) => {
         const limit = parseFloat(monthlyBudgetLimit);
         if (isNaN(limit) || limit < 0) {
           await client.close();
-          return corsResponse({ success: false, message: "Invalid budget limit" }, 400);
+          return corsResponse(
+            { success: false, message: "Invalid budget limit" },
+            400
+          );
         }
 
         await budgetsCollection.updateOne(
@@ -642,14 +783,18 @@ export default async ({ req, res, log, error }) => {
           ];
         }
 
-        const users = await usersCollection.find(searchQuery, {
-          projection: { name: 1, email: 1, _id: 1 },
-        }).toArray();
+        const users = await usersCollection
+          .find(searchQuery, {
+            projection: { name: 1, email: 1, _id: 1 },
+          })
+          .toArray();
 
         const recipients = [];
         for (const user of users) {
-          const userAccounts = await accountsCollection.find({ userId: user._id.toString() }).toArray();
-          userAccounts.forEach(account => {
+          const userAccounts = await accountsCollection
+            .find({ userId: user._id.toString() })
+            .toArray();
+          userAccounts.forEach((account) => {
             recipients.push({
               userId: user._id,
               name: user.name,
@@ -688,7 +833,10 @@ export default async ({ req, res, log, error }) => {
 
         if (!fromAccountId || !toAccount || !recipientName || !amount || !uId) {
           await client.close();
-          return corsResponse({ success: false, message: "Missing required fields" }, 400);
+          return corsResponse(
+            { success: false, message: "Missing required fields" },
+            400
+          );
         }
 
         const senderAccount = await accountsCollection.findOne({
@@ -698,7 +846,10 @@ export default async ({ req, res, log, error }) => {
 
         if (!senderAccount) {
           await client.close();
-          return corsResponse({ success: false, message: "Account not found" }, 404);
+          return corsResponse(
+            { success: false, message: "Account not found" },
+            404
+          );
         }
 
         const fee = amount > 1000 ? 2.5 : 0;
@@ -706,7 +857,10 @@ export default async ({ req, res, log, error }) => {
 
         if (senderAccount.balance < totalDebit) {
           await client.close();
-          return corsResponse({ success: false, message: "Insufficient balance" }, 400);
+          return corsResponse(
+            { success: false, message: "Insufficient balance" },
+            400
+          );
         }
 
         const transactionId = `TXN${Date.now()}`;
@@ -763,8 +917,11 @@ export default async ({ req, res, log, error }) => {
       try {
         const decoded = verifyToken(headers.authorization);
         const userId = req.query?.uId || decoded.uId;
-        const notifications = await db.collection("notifications").find({ userId }).toArray();
-        
+        const notifications = await db
+          .collection("notifications")
+          .find({ userId })
+          .toArray();
+
         await client.close();
         return corsResponse({ success: true, notifications });
       } catch (authErr) {
@@ -778,8 +935,11 @@ export default async ({ req, res, log, error }) => {
       try {
         const decoded = verifyToken(headers.authorization);
         const userId = req.query?.uId || decoded.uId;
-        const recommendations = await db.collection("recommendations").find({ userId }).toArray();
-        
+        const recommendations = await db
+          .collection("recommendations")
+          .find({ userId })
+          .toArray();
+
         await client.close();
         return corsResponse({ success: true, recommendations });
       } catch (authErr) {
@@ -794,12 +954,15 @@ export default async ({ req, res, log, error }) => {
         const decoded = verifyToken(headers.authorization);
         const uId = req.query?.uId || decoded.uId;
         const portfolio = await investmentsCollection.findOne({ userId: uId });
-        
+
         if (!portfolio) {
           await client.close();
-          return corsResponse({ success: false, message: "No portfolio found" }, 404);
+          return corsResponse(
+            { success: false, message: "No portfolio found" },
+            404
+          );
         }
-        
+
         await client.close();
         return corsResponse({ success: true, portfolio });
       } catch (authErr) {
@@ -813,8 +976,11 @@ export default async ({ req, res, log, error }) => {
       try {
         const decoded = verifyToken(headers.authorization);
         const uId = req.query?.uId || decoded.uId;
-        const loans = await db.collection("loans").find({ userId: uId }).toArray();
-        
+        const loans = await db
+          .collection("loans")
+          .find({ userId: uId })
+          .toArray();
+
         await client.close();
         return corsResponse({ success: true, loans });
       } catch (authErr) {
@@ -828,8 +994,11 @@ export default async ({ req, res, log, error }) => {
       try {
         const decoded = verifyToken(headers.authorization);
         const uId = req.query?.uId || decoded.uId;
-        const insurance = await db.collection("insurances").find({ userId: uId }).toArray();
-        
+        const insurance = await db
+          .collection("insurances")
+          .find({ userId: uId })
+          .toArray();
+
         await client.close();
         return corsResponse({ success: true, insurance });
       } catch (authErr) {
@@ -847,6 +1016,7 @@ export default async ({ req, res, log, error }) => {
         availableEndpoints: [
           "/",
           "/health",
+          "/create-test-user",
           "/login",
           "/register",
           "/token/:email",
@@ -905,7 +1075,7 @@ export default async ({ req, res, log, error }) => {
         "Access-Control-Allow-Headers":
           "Content-Type, Authorization, X-Requested-With",
         "Access-Control-Max-Age": "86400",
-      } 
+      }
     );
   }
 };
