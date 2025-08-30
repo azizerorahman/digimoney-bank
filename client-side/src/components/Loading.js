@@ -1,65 +1,70 @@
 const sizeClasses = {
+  xs: "w-4 h-4",
   sm: "w-6 h-6",
-  md: "w-10 h-10",
-  lg: "w-16 h-16",
+  md: "w-8 h-8",
+  lg: "w-12 h-12",
+  xl: "w-16 h-16",
+};
+
+const strokeClasses = {
+  xs: "border-2",
+  sm: "border-2",
+  md: "border-2",
+  lg: "border-3",
+  xl: "border-4",
 };
 
 const LoadingSpinner = ({
   size = "md",
-  fullscreen = false,
   overlay = false,
-  label = "",
+  fullscreen = false,
   className = "",
-  backdropBlur = false,
+  color = "primary",
+  text = "",
 }) => {
+  const colorClasses = {
+    primary: "border-primary dark:border-accent",
+    secondary: "border-secondary dark:border-secondary",
+    accent: "border-accent dark:border-primary",
+    emerald: "border-emerald-500 dark:border-emerald-400",
+    blue: "border-blue-500 dark:border-blue-400",
+    white: "border-white",
+  };
+
   const spinner = (
-    <span
-      className={`inline-block animate-spin ${sizeClasses[size]} border-4 border-primary dark:border-accent border-t-transparent rounded-full`}
-      aria-hidden="true"
-    />
+    <div className="flex flex-col items-center justify-center space-y-3">
+      <div
+        className={`animate-spin ${sizeClasses[size]} ${strokeClasses[size]} ${colorClasses[color]} border-t-transparent rounded-full`}
+        aria-hidden="true"
+      />
+      {text && (
+        <p className="text-sm text-gray-600 dark:text-gray-400 font-medium animate-pulse">
+          {text}
+        </p>
+      )}
+    </div>
   );
 
-  // Fullscreen mode (covers entire viewport)
-  if (fullscreen) {
+  if (overlay || fullscreen) {
     return (
       <div
-        className={`fixed inset-0 z-50 flex flex-col items-center justify-center ${
-          backdropBlur ? "backdrop-blur-sm" : ""
-        }`}
+        className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm ${className}`}
         role="status"
         aria-live="polite"
       >
         {spinner}
-        <span className="mt-4 text-white font-medium text-lg">{label}</span>
-      </div>
-    );
-  }
-
-  // Overlay mode (covers parent container)
-  if (overlay) {
-    return (
-      <div
-        className={`absolute inset-0 z-10 flex flex-col items-center justify-center ${
-          backdropBlur ? "backdrop-blur-sm" : ""
-        } ${className}`}
-        role="status"
-        aria-live="polite"
-      >
-        {spinner}
-        <span className="mt-2 text-white text-sm">{label}</span>
       </div>
     );
   }
 
   // Regular mode (inline)
   return (
-    <div 
-      className={`flex flex-col items-center justify-center ${className}`} 
-      role="status" 
+    <div
+      className={`flex flex-col items-center justify-center ${className}`}
+      role="status"
       aria-live="polite"
     >
       {spinner}
-      <span className="mt-2 text-primary dark:text-accent text-sm">{label}</span>
     </div>
   );
 };

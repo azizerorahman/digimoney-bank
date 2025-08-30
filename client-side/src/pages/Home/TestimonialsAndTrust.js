@@ -5,7 +5,7 @@ import {
   Pagination,
   Navigation,
   Keyboard,
-  EffectFade,
+  EffectFade
 } from "swiper/modules";
 
 // Import Swiper styles
@@ -188,15 +188,18 @@ const TestimonialsAndTrust = () => {
       ref={sectionRef}
       className="pb-16 md:pb-24 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900"
     >
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
         {/* Section heading */}
         <div className="text-center mb-16">
           <h2
             ref={headingRef}
             className="text-3xl md:text-4xl font-bold mb-4 text-gray-800 dark:text-white/90"
           >
-            Trusted by <span className="text-primary dark:text-primary-content">Thousands</span> of Happy
-            Customers
+            Trusted by{" "}
+            <span className="text-primary dark:text-primary-content">
+              Thousands
+            </span>{" "}
+            of Happy Customers
           </h2>
           <p
             ref={descriptionRef}
@@ -323,8 +326,8 @@ const TestimonialsAndTrust = () => {
           </Swiper>
 
           {/* Custom navigation buttons */}
-          <div className="swiper-button-prev !text-primary dark:!text-accent !w-10 !h-10 !rounded-full !bg-white dark:!bg-gray-800 !shadow-lg after:!text-lg"></div>
-          <div className="swiper-button-next !text-primary dark:!text-accent !w-10 !h-10 !rounded-full !bg-white dark:!bg-gray-800 !shadow-lg after:!text-lg"></div>
+          <div className="swiper-button-prev !text-teal-500 dark:!text-teal-400 !w-10 !h-10 !rounded-full !bg-white dark:!bg-gray-800 !shadow-lg after:!text-lg"></div>
+          <div className="swiper-button-next !text-teal-500 dark:!text-teal-400 !w-10 !h-10 !rounded-full !bg-white dark:!bg-gray-800 !shadow-lg after:!text-lg"></div>
         </div>
 
         {/* Trust Badges */}

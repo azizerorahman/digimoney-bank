@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import {
@@ -6,13 +6,22 @@ import {
   useSignInWithEmailAndPassword,
 } from "react-firebase-hooks/auth";
 import auth from "../../firebase.init";
-import useToken from "../../hooks/useToken";
 import LoadingSpinner from "../../components/Loading";
+import RegionSelector from "../../components/RegionSelector";
+import encryptPassword from "./EncryptPassword";
 import { toast } from "react-toastify";
 
 const Login = () => {
   const navigate = useNavigate();
-  const region = localStorage.getItem('region')
+  const region = localStorage.getItem("region");
+  const passwordRef = useRef(null);
+
+  // Debug logging
+  useEffect(() => {
+    console.log("Login component loaded:");
+    console.log("- Region:", region);
+    console.log("- API URL:", process.env.REACT_APP_API_URL);
+  }, [region]);
 
   const {
     register,
@@ -22,14 +31,19 @@ const Login = () => {
     getValues,
     setFocus,
     trigger,
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      email: "demo@digimoney.com",
+      password: "AmiMaldu!###1",
+    },
+  });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [signInWithEmailAndPassword, user, loading, error] =
+  const [signInWithEmailAndPassword, user, firebaseLoading, error] =
     useSignInWithEmailAndPassword(auth);
 
-  const [token] = useToken(user);
   const [sendPasswordResetEmail, sending] = useSendPasswordResetEmail(auth);
 
   // Focus email on mount
@@ -59,25 +73,128 @@ const Login = () => {
     }
   }, [errors.email, errors.password]);
 
-  // Redirect if login successful
-  if (token) {
-    navigate("/dashboard", { replace: true });
-  }
+  // Common function to handle backend login - memoized with useCallback
+  const handleBackendLogin = useCallback(
+    async (email, password) => {
+      setIsLoading(true);
+      try {
+        const encryptedPassword = encryptPassword(password);
+        console.log("Attempting login with:", { email, region });
 
-  const onSubmit = (data) => {
-    if (region === 'global') {
-      signInWithEmailAndPassword(data.email, data.password);
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/login`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email,
+            encryptedPassword: encryptedPassword,
+            region: region, // Include region in the request
+          }),
+        });
+
+        console.log("Response status:", response.status);
+        console.log("Response headers:", response.headers);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("HTTP error response:", errorText);
+          throw new Error(
+            `HTTP error! status: ${response.status} - ${errorText}`
+          );
+        }
+
+        const result = await response.json();
+        console.log("Login response:", result);
+
+        if (result.success && result.token) {
+          // Store token and user data first
+          localStorage.setItem("accessToken", result.token);
+          localStorage.setItem("userId", result.uId);
+          // Store the user's actual region preference
+          if (result.userRegion) {
+            localStorage.setItem("userRegion", result.userRegion);
+          }
+
+          console.log("Login successful - stored data:", {
+            token: "***" + result.token.slice(-10),
+            userId: result.uId,
+            region: region,
+          });
+
+          // Show success message
+          toast.success(`Login successful! Welcome from ${region} region.`);
+
+          // Navigate to dashboard
+          navigate("/dashboard");
+        } else {
+          const errorMessage = result.message || result.error || "Login failed";
+          console.error("Login failed:", errorMessage);
+          toast.error(errorMessage);
+        }
+      } catch (err) {
+        console.error("Backend login error:", err);
+        if (err.name === "SyntaxError") {
+          toast.error(
+            "Invalid response from server. Please check your connection."
+          );
+        } else if (err.message.includes("fetch")) {
+          toast.error(
+            "Unable to connect to server. Please check your internet connection."
+          );
+        } else if (err.message.includes("404")) {
+          toast.error(
+            "Account not found. Please check your credentials or try a different region."
+          );
+        } else {
+          toast.error(err.message || "Network error. Please try again.");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [navigate, region]
+  );
+
+  // Handle Firebase user login success for global region
+  useEffect(() => {
+    if (user && region === "global" && passwordRef.current) {
+      handleBackendLogin(user.user.email, passwordRef.current);
+      // Clear password from ref after use for security
+      passwordRef.current = null;
     }
-    else {
-      toast.error("Login is not available in your region at the moment.");
-      setError("email", {
-        type: "manual",
-        message: "Login is not available in your region at the moment.",
-      });
-      setError("password", {
-        type: "manual",
-        message: "Login is not available in your region at the moment.",
-      });
+  }, [user, region, handleBackendLogin]);
+
+  const onSubmit = async (data) => {
+    console.log("Form submitted with data:", { email: data.email, region });
+
+    if (!region) {
+      toast.error("Please select a region first");
+      return;
+    }
+
+    if (region === "global") {
+      // For global region, use Firebase + backend authentication
+      passwordRef.current = data.password;
+      console.log("Using Firebase authentication for global region");
+      try {
+        await signInWithEmailAndPassword(data.email, data.password);
+        // Backend login will be handled in useEffect when user state changes
+      } catch (firebaseError) {
+        console.log(
+          "Firebase auth failed, trying direct backend for global user:",
+          firebaseError
+        );
+        // If Firebase fails, try direct backend login (account might exist in backend but not Firebase)
+        await handleBackendLogin(data.email, data.password);
+      }
+    } else if (region === "china") {
+      // For China region, try direct backend authentication
+      // This will now also check for global accounts that can be accessed from China
+      console.log("Using direct backend authentication for China region");
+      await handleBackendLogin(data.email, data.password);
+    } else {
+      toast.error("Please select a valid region (global or china)");
     }
   };
 
@@ -97,6 +214,10 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-950 via-primary to-indigo-900 dark:from-gray-900 dark:via-primary dark:to-gray-800">
+      <div className="absolute top-4 right-4 z-10">
+        <RegionSelector scrolled={false} />
+      </div>
+
       <div className="w-full max-w-md bg-white/10 dark:bg-white/5 rounded-xl shadow-xl p-8">
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center gap-2 mb-2">
@@ -123,6 +244,27 @@ const Login = () => {
           <h2 className="text-white dark:text-white/90 text-lg font-semibold">
             Login to your account
           </h2>
+          {region && (
+            <div className="mt-2 px-3 py-1 bg-accent/20 rounded-full">
+              <span className="text-accent text-sm font-medium">
+                Region: {region.charAt(0).toUpperCase() + region.slice(1)}
+              </span>
+            </div>
+          )}
+          {!region && (
+            <div className="mt-2 px-3 py-1 bg-yellow-500/20 rounded-full">
+              <span className="text-yellow-300 text-sm font-medium">
+                Please select a region first
+              </span>
+            </div>
+          )}
+          {region && (
+            <div className="mt-2 text-center">
+              <span className="text-white/60 text-xs">
+                Your account can be accessed from any region
+              </span>
+            </div>
+          )}
         </div>
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -143,7 +285,7 @@ const Login = () => {
               className={`w-full px-4 py-2 rounded-lg bg-white/20 dark:bg-white/10 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-accent transition ${
                 errors.email ? "ring-2 ring-error" : ""
               }`}
-              placeholder="you@email.com"
+              placeholder="demo@digimoney.com"
               {...register("email", {
                 required: "Email is required.",
                 pattern: {
@@ -169,7 +311,7 @@ const Login = () => {
                 className={`w-full px-4 py-2 rounded-lg bg-white/20 dark:bg-white/10 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-accent transition pr-12 ${
                   errors.password ? "ring-2 ring-error" : ""
                 }`}
-                placeholder="********"
+                placeholder="demo123"
                 {...register("password", {
                   required: "Password is required.",
                   minLength: {
@@ -226,21 +368,24 @@ const Login = () => {
               </button>
             </div>
           </div>
-          <div className="flex items-center justify-between">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="text-accent text-sm hover:underline bg-transparent border-none p-0"
-              style={{ background: "none" }}
-            >
-              Forgot password?
-            </button>
-          </div>
+          {region === "global" && (
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="text-accent text-sm hover:underline bg-transparent border-none p-0"
+                style={{ background: "none" }}
+              >
+                Forgot password?
+              </button>
+            </div>
+          )}
           <button
             type="submit"
-            className="w-full py-2 rounded-lg bg-accent text-white font-semibold hover:bg-accent/90 transition shadow"
+            disabled={isLoading || firebaseLoading}
+            className="w-full py-2 rounded-lg bg-accent text-white font-semibold hover:bg-accent/90 transition shadow disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Login
+            {isLoading || firebaseLoading ? "Logging in..." : "Login"}
           </button>
         </form>
         <p className="mt-8 text-center text-white/70 dark:text-white/80 text-sm">
@@ -250,7 +395,7 @@ const Login = () => {
           </Link>
         </p>
       </div>
-      {(loading || sending) && <LoadingSpinner fullscreen overlay />}
+      {(isLoading || firebaseLoading || sending) && <LoadingSpinner overlay />}
     </div>
   );
 };

@@ -3,18 +3,18 @@ import { signOut } from "firebase/auth";
 import { toast } from "react-toastify";
 import auth from "../firebase.init";
 
-const useUserInfo = (user) => {
-  const url = `http://localhost:4000/user-details?email=${user?.email}`;
-  
+const useUserInfo = (uId) => {
+  const url = `${process.env.REACT_APP_API_URL}/user-details?uId=${uId}`;
+
   const {
     data: userInfo,
     isLoading,
     error,
     refetch,
   } = useQuery(
-    [`userDetails${user?.email}`],
+    [`userDetails${uId}`],
     async () => {
-      if (!user?.email) {
+      if (!uId) {
         return null;
       }
       
@@ -50,7 +50,7 @@ const useUserInfo = (user) => {
       return data;
     },
     {
-      enabled: !!user?.email,
+      enabled: !!uId,
       onError: (err) => {
         console.error("Error fetching user details:", err);
       }

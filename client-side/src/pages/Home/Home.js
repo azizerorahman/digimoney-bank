@@ -14,9 +14,6 @@ const Home = () => {
       <HowItWorks />
       <CurrencyConverter />
       <Contact />
-
-      {/* <MobileApp />
-      <Security /> */}
     </div>
   );
 };
