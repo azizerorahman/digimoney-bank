@@ -122,45 +122,44 @@ export default async ({ req, res, log, error }) => {
       const { email, encryptedPassword } = body;
       
       try {
-        log(`Attempting to find user with email: ${email}`);
-        const user = await usersCollection.findOne({ email });
-        log(`User lookup result: ${user ? 'Found' : 'Not found'}`);
-        
-        if (!user) {
-          log(`No user found for email: ${email}`);
-          // Check if email exists with different casing
-          const userCaseInsensitive = await usersCollection.findOne({ 
-            email: { $regex: new RegExp(`^${email}$`, 'i') } 
-          });
-          log(`Case-insensitive lookup result: ${userCaseInsensitive ? 'Found' : 'Not found'}`);
-          
-          await client.close();
-          return corsResponse({ message: "User not found" }, 404);
-        }
-
-        const decryptedPassword = decryptPassword(encryptedPassword);
-        const storedDecryptedPassword = decryptPassword(user.encryptedPassword);
-
-        if (decryptedPassword === storedDecryptedPassword) {
-          const token = jwt.sign(
-            { email: user.email, uId: user._id },
-            process.env.SECRET_KEY,
-            { expiresIn: "7d" }
-          );
-
-          await client.close();
-          return corsResponse({
-            success: true,
-            accessToken: token,
-            uId: user._id,
-          });
-        } else {
-          await client.close();
-          return corsResponse({ message: "Invalid credentials" }, 401);
-        }
-      } catch (err) {
+      log(`Attempting to find user with email: ${email}`);
+      
+      // Use case-insensitive search from the start
+      const user = await usersCollection.findOne({ 
+        email: { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } 
+      });
+      log(`User lookup result: ${user ? 'Found' : 'Not found'}`);
+      
+      if (!user) {
+        log(`No user found for email: ${email}`);
         await client.close();
-        return corsResponse({ message: "Login failed" }, 500);
+        return corsResponse({ message: "User not found" }, 404);
+      }
+
+      const decryptedPassword = decryptPassword(encryptedPassword);
+      const storedDecryptedPassword = decryptPassword(user.encryptedPassword);
+
+      if (decryptedPassword === storedDecryptedPassword) {
+        const token = jwt.sign(
+        { email: user.email, uId: user._id },
+        process.env.SECRET_KEY,
+        { expiresIn: "7d" }
+        );
+
+        await client.close();
+        return corsResponse({
+        success: true,
+        accessToken: token,
+        uId: user._id,
+        });
+      } else {
+        await client.close();
+        return corsResponse({ message: "Invalid credentials" }, 401);
+      }
+      } catch (err) {
+      log(`Login error: ${err.message}`);
+      await client.close();
+      return corsResponse({ message: "Login failed" }, 500);
       }
     }
 
