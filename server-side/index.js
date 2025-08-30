@@ -3,14 +3,13 @@ const CryptoJS = require("crypto-js");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
-const moment = require("moment");
 const cors = require("cors");
-app.use(cors());
 var jwt = require("jsonwebtoken");
-app.use(express.json());
-// const nodemailer = require("nodemailer");
 
-const port = process.env.PORT;
+app.use(cors());
+app.use(express.json());
+
+const port = process.env.PORT || 5000;
 
 const uri = `mongodb+srv://${process.env.MONGODB_USER}:${process.env.MONGODB_PASSWORD}@dmb-cluster.6bs5ltd.mongodb.net/?retryWrites=true&w=majority&appName=DMB-Cluster`;
 const client = new MongoClient(uri, {
@@ -45,7 +44,6 @@ function verifyJWT(req, res, next) {
       next();
     });
   } catch (error) {
-    console.error("JWT verification error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -53,7 +51,7 @@ function verifyJWT(req, res, next) {
 async function run() {
   try {
     await client.connect();
-    console.log("Connected to MongoDB");
+
     // Collections
     const db = client.db("dgm-database");
     const usersCollection = db.collection("users");
@@ -65,14 +63,6 @@ async function run() {
     );
     const loansCollection = db.collection("loans");
     const insuranceCollection = db.collection("insurances");
-    const loanOfficersCollection = db.collection("loan-officers");
-    const loanApplicationsCollection = db.collection("loan-applications");
-    const customersCollection = db.collection("customers");
-    const activeLoansCollection = db.collection("active-loans");
-    const repaymentSchedulesCollection = db.collection("repayment-schedules");
-    const riskAssessmentsCollection = db.collection("risk-assessments");
-    const communicationLogsCollection = db.collection("communication-logs");
-    const superAdminDataCollection = db.collection("super-admin");
 
     //userCollection for generate web token
     app.put("/token/:email", async (req, res) => {
@@ -92,12 +82,12 @@ async function run() {
 
     app.post("/login", async (req, res) => {
       const { email, encryptedPassword } = req.body;
-      console.log("Login attempt:", { email, encryptedPassword });
+
       const password = CryptoJS.AES.decrypt(
         encryptedPassword,
         process.env.DECRYPTION_KEY
       ).toString(CryptoJS.enc.Utf8);
-      console.log("Decrypted password:", password);
+
       if (!email || !password) {
         return res
           .status(400)
@@ -105,18 +95,19 @@ async function run() {
       }
 
       const user = await usersCollection.findOne({ email: email });
-      console.log("User found:", user);
       const userEncryptedPassword = user?.encryptedPassword;
-      console.log("User encrypted password:", userEncryptedPassword);
-      const userPassword = user && userEncryptedPassword 
-        ? CryptoJS.AES.decrypt(userEncryptedPassword, process.env.DECRYPTION_KEY).toString(CryptoJS.enc.Utf8)
-        : null;
-      console.log("User decrypted password:", userPassword);
+      const userPassword =
+        user && userEncryptedPassword
+          ? CryptoJS.AES.decrypt(
+              userEncryptedPassword,
+              process.env.DECRYPTION_KEY
+            ).toString(CryptoJS.enc.Utf8)
+          : null;
+
       if (user && userPassword === password) {
         const token = jwt.sign({ email: user.email }, process.env.SECRET_KEY, {
           expiresIn: "7d",
         });
-        console.log("Login successful:", { token, uId: user._id });
         return res.status(200).send({ success: true, token, uId: user._id });
       } else {
         return res.status(401).send({
@@ -145,7 +136,6 @@ async function run() {
             .send({ success: false, message: "Registration failed" });
         }
       } catch (error) {
-        console.error("Registration error:", error);
         res
           .status(500)
           .send({ success: false, message: "Internal server error" });
@@ -167,7 +157,6 @@ async function run() {
           .toArray();
         res.send({ success: true, accounts });
       } catch (error) {
-        console.error("Error fetching accounts:", error);
         res
           .status(500)
           .send({ success: false, message: "Internal server error" });
@@ -320,7 +309,6 @@ async function run() {
 
         res.send({ success: true, recipients: uniqueRecipients });
       } catch (error) {
-        console.error("Error searching recipients:", error);
         res.status(500).send({
           success: false,
           message: "Failed to search recipients",
@@ -360,7 +348,6 @@ async function run() {
           referenceDate, // Include reference date for frontend
         });
       } catch (error) {
-        console.error("Failed to fetch transactions:", error);
         res
           .status(500)
           .send({ success: false, message: "Failed to fetch transactions" });
@@ -441,7 +428,6 @@ async function run() {
           referenceDate, // Include reference date for frontend
         });
       } catch (error) {
-        console.error("Failed to fetch transaction history:", error);
         res.status(500).send({
           success: false,
           message: "Failed to fetch transaction history",
@@ -620,7 +606,6 @@ async function run() {
           },
         });
       } catch (error) {
-        console.error("Error fetching spending by category:", error);
         res.status(500).json({
           success: false,
           message: error.message || "Failed to fetch spending by category",
@@ -639,7 +624,6 @@ async function run() {
         }
         res.send({ success: true, data: budget });
       } catch (error) {
-        console.error("Error fetching budget:", error);
         res
           .status(500)
           .send({ success: false, message: "Internal server error" });
@@ -724,7 +708,6 @@ async function run() {
           budget: newBudgetItem,
         });
       } catch (error) {
-        console.error("Error creating budget:", error);
         res
           .status(500)
           .send({ success: false, message: "Internal server error" });
@@ -1176,7 +1159,6 @@ async function run() {
           newBalance: senderAccount.balance - totalDebit,
         });
       } catch (error) {
-        console.error("Transfer error:", error);
         res.status(500).send({
           success: false,
           message: "Transfer failed",
@@ -1228,10 +1210,13 @@ async function run() {
     });
 
     app.get("/approvedUsers", async (req, res) => {
-      const query = {};
-      const cursor = approvedUsersCollection.find(query);
-      const users = await cursor.toArray();
-      res.send(users);
+      try {
+        const query = {};
+        const users = await usersCollection.find(query).toArray();
+        res.send(users);
+      } catch (error) {
+        res.status(500).send({ message: "Internal server error" });
+      }
     });
 
     app.get("/user-details", verifyJWT, async (req, res) => {
@@ -1255,898 +1240,6 @@ async function run() {
       }
     });
 
-    // ========================= LOAN OFFICER DASHBOARD ROUTES =========================
-
-    // Get loan officer profile
-    app.get("/loan-officer-profile/:userId", verifyJWT, async (req, res) => {
-      try {
-        const userId = req.params.userId;
-
-        // First verify the user has loan-officer role
-        const user = await usersCollection.findOne({ _id: ObjectId(userId) });
-        if (!user || !user.role?.includes("loan-officer")) {
-          return res
-            .status(403)
-            .send({ message: "Access denied. Loan officer role required." });
-        }
-
-        // Fetch loan officer profile data
-        const loanOfficerProfile = await loanOfficersCollection.findOne({
-          userId: userId,
-        });
-
-        if (!loanOfficerProfile) {
-          // Create default profile if doesn't exist
-          const defaultProfile = {
-            userId: userId,
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-            title: "Loan Officer",
-            department: "Loan Department",
-            branch: user.region || "Global Branch",
-            region: user.region || "global",
-            status: "Available",
-            employeeId: `LO-${new Date().getFullYear()}-${user.name
-              .substring(0, 2)
-              .toUpperCase()}`,
-            hireDate: user.createdAt || new Date(),
-            todayStats: {
-              applicationsReviewed: 0,
-              approvalRate: "0%",
-              avgProcessingTime: "0 days",
-              portfolioValue: "$0",
-            },
-            certifications: [],
-            performance: {
-              thisMonth: {
-                applications: 0,
-                approved: 0,
-                rejected: 0,
-                pending: 0,
-                volume: "$0",
-              },
-              thisQuarter: {
-                applications: 0,
-                approved: 0,
-                rejected: 0,
-                pending: 0,
-                volume: "$0",
-              },
-              yearToDate: {
-                applications: 0,
-                approved: 0,
-                rejected: 0,
-                pending: 0,
-                volume: "$0",
-              },
-            },
-            targets: {
-              monthlyApplications: 50,
-              monthlyVolume: "$2M",
-              approvalRateTarget: "75%",
-            },
-            specializations: ["Personal Loans", "Auto Loans", "Mortgage Loans"],
-            address: user.address || "",
-            verified: user.verified || false,
-            active: true,
-            lastLogin: new Date(),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          };
-
-          await loanOfficersCollection.insertOne(defaultProfile);
-          return res.send(defaultProfile);
-        }
-
-        res.send(loanOfficerProfile);
-      } catch (error) {
-        console.error("Error fetching loan officer profile:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // Get loan applications for a specific officer
-    app.get("/loan-applications", verifyJWT, async (req, res) => {
-      try {
-        const officerId = req.query.officerId;
-        const status = req.query.status;
-        const loanType = req.query.loanType;
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-
-        let query = {};
-        if (officerId) {
-          query.loanOfficerId = officerId;
-        }
-        if (status && status !== "all") {
-          query.status = status;
-        }
-        if (loanType && loanType !== "all") {
-          query.loanType = loanType;
-        }
-
-        const skip = (page - 1) * limit;
-        const applications = await loanApplicationsCollection
-          .find(query)
-          .sort({ submittedDate: -1 })
-          .skip(skip)
-          .limit(limit)
-          .toArray();
-
-        const total = await loanApplicationsCollection.countDocuments(query);
-
-        res.send({
-          applications,
-          pagination: {
-            page,
-            limit,
-            total,
-            pages: Math.ceil(total / limit),
-          },
-        });
-      } catch (error) {
-        console.error("Error fetching loan applications:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // Get single loan application
-    app.get("/loan-application/:id", verifyJWT, async (req, res) => {
-      try {
-        const applicationId = req.params.id;
-        const application = await loanApplicationsCollection.findOne({
-          _id: ObjectId(applicationId),
-        });
-
-        if (!application) {
-          return res.status(404).send({ message: "Application not found" });
-        }
-
-        res.send(application);
-      } catch (error) {
-        console.error("Error fetching loan application:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // Get active loans for a specific officer
-    app.get("/active-loans", verifyJWT, async (req, res) => {
-      try {
-        const officerId = req.query.officerId;
-        const status = req.query.status;
-        const loanType = req.query.loanType;
-
-        let query = {};
-        if (officerId) {
-          query.loanOfficerId = officerId;
-        }
-        if (status && status !== "all") {
-          query.status = status;
-        }
-        if (loanType && loanType !== "all") {
-          query.loanType = loanType;
-        }
-
-        const activeLoans = await activeLoansCollection.find(query).toArray();
-        res.send(activeLoans);
-      } catch (error) {
-        console.error("Error fetching active loans:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // Get customers
-    app.get("/customers", verifyJWT, async (req, res) => {
-      try {
-        const search = req.query.search;
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-
-        let query = {};
-        if (search) {
-          query = {
-            $or: [
-              { name: { $regex: search, $options: "i" } },
-              { email: { $regex: search, $options: "i" } },
-              { phone: { $regex: search, $options: "i" } },
-            ],
-          };
-        }
-
-        const skip = (page - 1) * limit;
-        const customers = await customersCollection
-          .find(query)
-          .skip(skip)
-          .limit(limit)
-          .toArray();
-
-        const total = await customersCollection.countDocuments(query);
-
-        res.send({
-          customers,
-          pagination: {
-            page,
-            limit,
-            total,
-            pages: Math.ceil(total / limit),
-          },
-        });
-      } catch (error) {
-        console.error("Error fetching customers:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // Get customer by ID
-    app.get("/customer/:id", verifyJWT, async (req, res) => {
-      try {
-        const customerId = req.params.id;
-        const customer = await customersCollection.findOne({
-          _id: ObjectId(customerId),
-        });
-
-        if (!customer) {
-          return res.status(404).send({ message: "Customer not found" });
-        }
-
-        res.send(customer);
-      } catch (error) {
-        console.error("Error fetching customer:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // Get repayment schedules
-    app.get("/repayment-schedules", verifyJWT, async (req, res) => {
-      try {
-        const loanId = req.query.loanId;
-
-        let query = {};
-        if (loanId) {
-          query.loanId = loanId;
-        }
-
-        const schedules = await repaymentSchedulesCollection
-          .find(query)
-          .toArray();
-        res.send(schedules);
-      } catch (error) {
-        console.error("Error fetching repayment schedules:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // Get risk assessments
-    app.get("/risk-assessments", verifyJWT, async (req, res) => {
-      try {
-        const assessments = await riskAssessmentsCollection.find({}).toArray();
-        res.send(assessments);
-      } catch (error) {
-        console.error("Error fetching risk assessments:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // Get credit analysis data - combined loan applications with risk data
-    app.get("/credit-analysis", verifyJWT, async (req, res) => {
-      try {
-        const officerId = req.query.officerId;
-        const status = req.query.status;
-        const creditRating = req.query.creditRating;
-
-        // Build query for loan applications
-        let query = {};
-        if (officerId) {
-          query.loanOfficerId = officerId;
-        }
-        if (status && status !== "all") {
-          query.status = status;
-        }
-
-        // Fetch loan applications with credit scores
-        const applications = await loanApplicationsCollection
-          .find({ ...query, creditScore: { $exists: true, $ne: null } })
-          .sort({ lastUpdated: -1 })
-          .toArray();
-
-        // Fetch risk assessments
-        const riskAssessments = await riskAssessmentsCollection
-          .find({})
-          .toArray();
-        const riskData = riskAssessments[0] || {};
-
-        // Process applications into credit analysis format
-        const creditAnalyses = applications.map((app) => {
-          const getCreditRating = (score) => {
-            if (score >= 750) return "excellent";
-            if (score >= 700) return "good";
-            if (score >= 650) return "fair";
-            return "poor";
-          };
-
-          const calculateRiskScore = (application) => {
-            let riskScore = 0;
-
-            // Credit score impact (40% weight)
-            if (application.creditScore < 650) riskScore += 40;
-            else if (application.creditScore < 700) riskScore += 25;
-            else if (application.creditScore < 750) riskScore += 10;
-
-            // DTI ratio impact (30% weight)
-            const dti = application.financials?.debtToIncome || 0;
-            if (dti > 45) riskScore += 30;
-            else if (dti > 35) riskScore += 20;
-            else if (dti > 25) riskScore += 10;
-
-            // Employment stability (20% weight)
-            const empYears = application.employment?.yearsEmployed || 0;
-            if (empYears < 1) riskScore += 20;
-            else if (empYears < 2) riskScore += 15;
-            else if (empYears < 3) riskScore += 5;
-
-            // Flags and trends (10% weight)
-            if (application.creditTrend === "down") riskScore += 10;
-            if (application.flags && application.flags.length > 0)
-              riskScore += application.flags.length * 5;
-
-            return Math.min(riskScore, 100);
-          };
-
-          return {
-            _id: app._id,
-            applicantName: app.applicantName,
-            applicationId: app.applicantId || app._id,
-            loanType: app.loanType?.toLowerCase() || "personal",
-            requestedAmount: app.amount || 0,
-            creditScore: app.creditScore,
-            creditRating: getCreditRating(app.creditScore),
-            creditTrend: app.creditTrend || "stable",
-            riskLevel: app.riskLevel || "Medium",
-            riskScore: calculateRiskScore(app),
-            debtToIncomeRatio: app.financials?.debtToIncome || 0,
-            annualIncome: app.employment?.income || 0,
-            employmentLength: app.employment?.yearsEmployed || 0,
-            analysisDate: app.lastUpdated || app.submittedDate,
-            status: app.status,
-            keyFactors:
-              app.flags?.map((flag) => ({
-                name: flag.type || "Risk Factor",
-                value: flag.message || "See details",
-                impact: flag.severity === "high" ? "negative" : "neutral",
-              })) || [],
-          };
-        });
-
-        // Filter by credit rating if specified
-        const filteredAnalyses =
-          creditRating && creditRating !== "all"
-            ? creditAnalyses.filter(
-                (analysis) => analysis.creditRating === creditRating
-              )
-            : creditAnalyses;
-
-        // Calculate statistics
-        const stats = {
-          total: applications.length,
-          excellent: creditAnalyses.filter(
-            (a) => a.creditRating === "excellent"
-          ).length,
-          good: creditAnalyses.filter((a) => a.creditRating === "good").length,
-          fair: creditAnalyses.filter((a) => a.creditRating === "fair").length,
-          poor: creditAnalyses.filter((a) => a.creditRating === "poor").length,
-          avgCreditScore:
-            applications.length > 0
-              ? Math.round(
-                  applications.reduce((sum, app) => sum + app.creditScore, 0) /
-                    applications.length
-                )
-              : 0,
-          riskDistribution: riskData.riskDistribution || {
-            low: 0,
-            medium: 0,
-            high: 0,
-          },
-          fraudAlerts: riskData.fraudAlerts?.length || 0,
-        };
-
-        stats.approvalRate =
-          stats.total > 0
-            ? Math.round(((stats.excellent + stats.good) / stats.total) * 100)
-            : 0;
-
-        res.send({
-          analyses: filteredAnalyses,
-          statistics: stats,
-          riskAssessment: riskData,
-        });
-      } catch (error) {
-        console.error("Error fetching credit analysis data:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // Get communication logs
-    app.get("/communication-logs", verifyJWT, async (req, res) => {
-      try {
-        const applicantId = req.query.applicantId;
-        const customerId = req.query.customerId;
-        const type = req.query.type;
-
-        let query = {};
-        if (applicantId) {
-          query.applicantId = applicantId;
-        }
-        if (customerId) {
-          query.customerId = customerId;
-        }
-        if (type) {
-          query.type = type;
-        }
-
-        const logs = await communicationLogsCollection
-          .find(query)
-          .sort({ date: -1 })
-          .toArray();
-
-        res.send(logs);
-      } catch (error) {
-        console.error("Error fetching communication logs:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // Update loan application status
-    app.patch("/loan-application/:id/status", verifyJWT, async (req, res) => {
-      try {
-        const applicationId = req.params.id;
-        const { status, note, officerId } = req.body;
-
-        const updateDoc = {
-          $set: {
-            status: status,
-            lastUpdated: new Date().toISOString().split("T")[0],
-          },
-          $push: {
-            notes: {
-              date: new Date().toISOString().split("T")[0],
-              author: req.decoded.email, // From JWT token
-              note: note,
-            },
-          },
-        };
-
-        const result = await loanApplicationsCollection.updateOne(
-          { _id: ObjectId(applicationId) },
-          updateDoc
-        );
-
-        res.send(result);
-      } catch (error) {
-        console.error("Error updating loan application:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // Add communication log
-    app.post("/communication-logs", verifyJWT, async (req, res) => {
-      try {
-        const logData = req.body;
-        logData.date = new Date().toISOString().split("T")[0];
-
-        const result = await communicationLogsCollection.insertOne(logData);
-        res.send(result);
-      } catch (error) {
-        console.error("Error adding communication log:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // ========== SUPER ADMIN DATA MANAGEMENT ENDPOINTS ==========
-
-    // Get all super admin data or by dataType
-    app.get("/super-admin-data", verifyJWT, async (req, res) => {
-      try {
-        const { dataType } = req.query;
-
-        let query = {};
-        if (dataType) {
-          query.dataType = dataType;
-        }
-
-        const data = await superAdminDataCollection
-          .find(query)
-          .sort({ updatedAt: -1 })
-          .toArray();
-
-        res.send(data);
-      } catch (error) {
-        console.error("Error fetching super admin data:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // Get specific super admin data by ID
-    app.get("/super-admin-data/:id", verifyJWT, async (req, res) => {
-      try {
-        const id = req.params.id;
-        const { ObjectId } = require("mongodb");
-
-        const data = await superAdminDataCollection.findOne({
-          _id: new ObjectId(id),
-        });
-
-        if (!data) {
-          return res.status(404).send({ message: "Data not found" });
-        }
-
-        res.send(data);
-      } catch (error) {
-        console.error("Error fetching super admin data by ID:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // ========== END SUPER ADMIN DATA MANAGEMENT ENDPOINTS ==========
-
-    // Update loan officer stats
-    app.patch("/loan-officer-stats/:userId", verifyJWT, async (req, res) => {
-      try {
-        const userId = req.params.userId;
-        const { action, amount } = req.body;
-
-        // This would involve complex calculations based on loan applications
-        // For now, we'll just acknowledge the update
-        const result = await loanOfficersCollection.updateOne(
-          { userId: userId },
-          { $set: { lastUpdated: new Date() } }
-        );
-
-        res.send(result);
-      } catch (error) {
-        console.error("Error updating loan officer stats:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
-
-    // ========================= END LOAN OFFICER ROUTES =========================
-
-    app.patch("/accountNumber/:id", async (req, res) => {
-      const id = req.params.id;
-      const data = req.body;
-      const query = { _id: ObjectId(id) };
-
-      const update = {
-        $set: {
-          accountNumber: data.accountNumber,
-        },
-      };
-      const result = await usersCollection.updateOne(query, update);
-      res.send(result);
-    });
-
-    app.post("/approvedUsers", async (req, res) => {
-      const newUser = req.body;
-
-      const result = await approvedUsersCollection.insertOne(newUser);
-
-      res.send(result);
-    });
-
-    app.patch("/approvedUsers/:id", async (req, res) => {
-      const id = req.params.id;
-      const updatedAmount = req.body;
-
-      const bankInfo = await bankDataCollection.findOne({
-        _id: ObjectId("630f439efda2555ca01f5ea0"),
-      });
-
-      const updatedBankAmount = bankInfo.amount - updatedAmount.withdrawAmount;
-
-      const updateBank = {
-        $set: { amount: updatedBankAmount },
-      };
-      const ifUpdated = await bankDataCollection.updateOne(
-        { _id: ObjectId("630f439efda2555ca01f5ea0") },
-        updateBank
-      );
-      const query = { accountNumber: id };
-      const update = {
-        $set: {
-          amount: updatedAmount.amount,
-        },
-      };
-      const result = await approvedUsersCollection.updateOne(query, update);
-      res.send(result);
-    });
-
-    app.put("/user/:email", async (req, res) => {
-      const email = req.params.email;
-      const user = req.body;
-      const filter = { email: email };
-      const options = { upsert: true };
-      const updateDoc = {
-        $set: user,
-      };
-      const result = await usersCollection.updateOne(
-        filter,
-        updateDoc,
-        options
-      );
-
-      res.send({ result });
-    });
-
-    app.patch("/profile/:email", async (req, res) => {
-      const email = req.params.email;
-      const profilePicture = req.body;
-      const filter = { email: email };
-      const update = {
-        $set: {
-          profileImage: profilePicture.profileImg,
-        },
-      };
-      const result = await approvedUsersCollection.updateOne(filter, update);
-      res.send(result);
-    });
-
-    app.delete("/users/:id", async (req, res) => {
-      const id = req.params.id;
-
-      const query = { _id: ObjectId(id) };
-      const result = await usersCollection.deleteOne(query);
-      res.send(result);
-    });
-
-    app.get("/approvedUsers", async (req, res) => {
-      const query = {};
-      const cursor = approvedUsersCollection.find(query);
-      const users = await cursor.toArray();
-      res.send(users);
-    });
-
-    app.patch("/accountNumber/:id", async (req, res) => {
-      const id = req.params.id;
-      const data = req.body;
-      const query = { _id: ObjectId(id) };
-
-      const update = {
-        $set: {
-          accountNumber: data.accountNumber,
-        },
-      };
-      const result = await usersCollection.updateOne(query, update);
-      res.send(result);
-    });
-
-    app.post("/approvedUsers", async (req, res) => {
-      const newUser = req.body;
-      const result = await approvedUsersCollection.insertOne(newUser);
-
-      res.send(result);
-    });
-
-    app.put("/approvedUsers/admin/:email", async (req, res) => {
-      const email = req.params.email;
-      const filter = { email: email };
-      const updateDoc = {
-        $set: { role: "admin" },
-      };
-      const result = await approvedUsersCollection.updateOne(filter, updateDoc);
-      res.send(result);
-    });
-
-    app.put("/user/:email", async (req, res) => {
-      const email = req.params.email;
-      const user = req.body;
-      const filter = { email: email };
-      const options = { upsert: true };
-      const updateDoc = {
-        $set: user,
-      };
-      const result = await usersCollection.updateOne(
-        filter,
-        updateDoc,
-        options
-      );
-
-      res.send({ result });
-    });
-
-    app.delete("/users/:id", async (req, res) => {
-      const id = req.params.id;
-
-      const query = { _id: ObjectId(id) };
-      const result = await usersCollection.deleteOne(query);
-      res.send(result);
-    });
-
-    app.post("/approvedUsers", async (req, res) => {
-      const newUser = req.body;
-
-      const result = await approvedUsersCollection.insertOne(newUser);
-
-      res.send(result);
-    });
-
-    app.get("/approvedUsers", async (req, res) => {
-      const query = {};
-      const cursor = approvedUsersCollection.find(query);
-      const users = await cursor.toArray();
-      res.send(users);
-    });
-
-    app.post("/approvedUser", async (req, res) => {
-      const newUser = req.body;
-      const result = await approvedUsersCollection.insertOne(newUser);
-      res.send(result);
-    });
-
-    app.delete("/approvedUser/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: id };
-      const result = await approvedUsersCollection.deleteOne(query);
-      res.send(result);
-    });
-
-    app.put("/approvedUser/admin/:email", async (req, res) => {
-      const email = req.params.email;
-      const filter = { email: email };
-      const updateDoc = {
-        $set: { role: "admin" },
-      };
-      const result = await approvedUsersCollection.updateOne(filter, updateDoc);
-      res.send(result);
-    });
-
-    // Create new loan application
-    app.post("/loan-applications", verifyJWT, async (req, res) => {
-      try {
-        const applicationData = req.body;
-
-        // Add timestamps
-        applicationData.createdAt = new Date();
-        applicationData.updatedAt = new Date();
-
-        const result = await loanApplicationsCollection.insertOne(
-          applicationData
-        );
-
-        if (result.insertedId) {
-          res.status(201).send({
-            success: true,
-            message: "Application created successfully",
-            applicationId: result.insertedId,
-          });
-        } else {
-          res.status(400).send({
-            success: false,
-            message: "Failed to create application",
-          });
-        }
-      } catch (error) {
-        console.error("Error creating loan application:", error);
-        res.status(500).send({
-          success: false,
-          message: "Internal server error",
-        });
-      }
-    });
-
-    // Update loan application status
-    app.put("/loan-applications/:id/status", verifyJWT, async (req, res) => {
-      try {
-        const applicationId = req.params.id;
-        const { status } = req.body;
-
-        if (!status) {
-          return res.status(400).send({
-            success: false,
-            message: "Status is required",
-          });
-        }
-
-        const updateDoc = {
-          $set: {
-            status: status,
-            lastUpdated: new Date(),
-            updatedAt: new Date(),
-          },
-        };
-
-        const result = await loanApplicationsCollection.updateOne(
-          { _id: new ObjectId(applicationId) },
-          updateDoc
-        );
-
-        if (result.modifiedCount > 0) {
-          res.send({
-            success: true,
-            message: "Application status updated successfully",
-          });
-        } else {
-          res.status(404).send({
-            success: false,
-            message: "Application not found or no changes made",
-          });
-        }
-      } catch (error) {
-        console.error("Error updating loan application status:", error);
-        res.status(500).send({
-          success: false,
-          message: "Internal server error",
-        });
-      }
-    });
-
-    // Update entire loan application
-    app.put("/loan-applications/:id", verifyJWT, async (req, res) => {
-      try {
-        const applicationId = req.params.id;
-        const updateData = req.body;
-
-        // Add updated timestamp
-        updateData.updatedAt = new Date();
-        updateData.lastUpdated = new Date();
-
-        const updateDoc = {
-          $set: updateData,
-        };
-
-        const result = await loanApplicationsCollection.updateOne(
-          { _id: new ObjectId(applicationId) },
-          updateDoc
-        );
-
-        if (result.modifiedCount > 0) {
-          res.send({
-            success: true,
-            message: "Application updated successfully",
-          });
-        } else {
-          res.status(404).send({
-            success: false,
-            message: "Application not found or no changes made",
-          });
-        }
-      } catch (error) {
-        console.error("Error updating loan application:", error);
-        res.status(500).send({
-          success: false,
-          message: "Internal server error",
-        });
-      }
-    });
-
-    // Delete loan application
-    app.delete("/loan-applications/:id", verifyJWT, async (req, res) => {
-      try {
-        const applicationId = req.params.id;
-
-        const result = await loanApplicationsCollection.deleteOne({
-          _id: new ObjectId(applicationId),
-        });
-
-        if (result.deletedCount > 0) {
-          res.send({
-            success: true,
-            message: "Application deleted successfully",
-          });
-        } else {
-          res.status(404).send({
-            success: false,
-            message: "Application not found",
-          });
-        }
-      } catch (error) {
-        console.error("Error deleting loan application:", error);
-        res.status(500).send({
-          success: false,
-          message: "Internal server error",
-        });
-      }
-    });
-
     app.get("/admin", async (req, res) => {
       try {
         const uId = req.query.uId;
@@ -2165,38 +1258,9 @@ async function run() {
             .send({ admin: false, message: "User not found" });
         }
       } catch (error) {
-        console.error("Error checking admin status:", error);
         return res
           .status(500)
           .send({ admin: false, message: "Internal server error" });
-      }
-    });
-
-    // Super Admin Data endpoint
-    app.get("/super-admin-data", verifyJWT, async (req, res) => {
-      try {
-        const { dataType } = req.query;
-
-        let query = {};
-        if (dataType) {
-          query.dataType = dataType;
-        }
-
-        const data = await superAdminDataCollection.find(query).toArray();
-
-        if (dataType && data.length > 0) {
-          // Return single document for specific dataType
-          res.status(200).json(data[0]);
-        } else {
-          // Return all documents
-          res.status(200).json(data);
-        }
-      } catch (error) {
-        console.error("Error fetching super admin data:", error);
-        res.status(500).json({
-          success: false,
-          message: "Internal server error",
-        });
       }
     });
   } finally {
