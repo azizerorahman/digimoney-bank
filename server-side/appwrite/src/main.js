@@ -86,7 +86,7 @@ export default async ({ req, res, log, error }) => {
     });
 
     await client.connect();
-    const db = client.db("DigiMoney-Bank");
+    const db = client.db("dgm-database");
 
     // Collections
     const usersCollection = db.collection("users");
