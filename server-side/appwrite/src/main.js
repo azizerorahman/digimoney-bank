@@ -123,6 +123,7 @@ export default async ({ req, res, log, error }) => {
       
       try {
         const user = await usersCollection.findOne({ email });
+        console.log(user);
         if (!user) {
           await client.close();
           return corsResponse({ message: "User not found" }, 404);
