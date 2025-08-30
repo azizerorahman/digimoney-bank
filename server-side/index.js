@@ -92,10 +92,12 @@ async function run() {
 
     app.post("/login", async (req, res) => {
       const { email, encryptedPassword } = req.body;
+      console.log("Login attempt:", { email, encryptedPassword });
       const password = CryptoJS.AES.decrypt(
         encryptedPassword,
         process.env.DECRYPTION_KEY
       ).toString(CryptoJS.enc.Utf8);
+      console.log("Decrypted password:", password);
       if (!email || !password) {
         return res
           .status(400)
@@ -103,15 +105,18 @@ async function run() {
       }
 
       const user = await usersCollection.findOne({ email: email });
+      console.log("User found:", user);
       const userEncryptedPassword = user?.encryptedPassword;
-      const userPassword = CryptoJS.AES.decrypt(
-        userEncryptedPassword,
-        process.env.DECRYPTION_KEY
-      ).toString(CryptoJS.enc.Utf8);
+      console.log("User encrypted password:", userEncryptedPassword);
+      const userPassword = user && userEncryptedPassword 
+        ? CryptoJS.AES.decrypt(userEncryptedPassword, process.env.DECRYPTION_KEY).toString(CryptoJS.enc.Utf8)
+        : null;
+      console.log("User decrypted password:", userPassword);
       if (user && userPassword === password) {
         const token = jwt.sign({ email: user.email }, process.env.SECRET_KEY, {
           expiresIn: "7d",
         });
+        console.log("Login successful:", { token, uId: user._id });
         return res.status(200).send({ success: true, token, uId: user._id });
       } else {
         return res.status(401).send({

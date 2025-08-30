@@ -16,6 +16,13 @@ const Login = () => {
   const region = localStorage.getItem("region");
   const passwordRef = useRef(null);
 
+  // Debug logging
+  useEffect(() => {
+    console.log("Login component loaded:");
+    console.log("- Region:", region);
+    console.log("- API URL:", process.env.REACT_APP_API_URL);
+  }, [region]);
+
   const {
     register,
     handleSubmit,
@@ -24,7 +31,12 @@ const Login = () => {
     getValues,
     setFocus,
     trigger,
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      email: "demo@digimoney.com",
+      password: "AmiMaldu!###1",
+    },
+  });
 
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -67,6 +79,8 @@ const Login = () => {
       setIsLoading(true);
       try {
         const encryptedPassword = encryptPassword(password);
+        console.log("Attempting login with:", { email, region });
+
         const response = await fetch(`${process.env.REACT_APP_API_URL}/login`, {
           method: "POST",
           headers: {
@@ -75,27 +89,71 @@ const Login = () => {
           body: JSON.stringify({
             email: email,
             encryptedPassword: encryptedPassword,
+            region: region, // Include region in the request
           }),
         });
 
+        console.log("Response status:", response.status);
+        console.log("Response headers:", response.headers);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("HTTP error response:", errorText);
+          throw new Error(
+            `HTTP error! status: ${response.status} - ${errorText}`
+          );
+        }
+
         const result = await response.json();
+        console.log("Login response:", result);
 
         if (result.success && result.token) {
+          // Store token and user data first
           localStorage.setItem("accessToken", result.token);
           localStorage.setItem("userId", result.uId);
-          toast.success("Login successful!");
-          navigate("/dashboard", { replace: true });
+          // Store the user's actual region preference
+          if (result.userRegion) {
+            localStorage.setItem("userRegion", result.userRegion);
+          }
+
+          console.log("Login successful - stored data:", {
+            token: "***" + result.token.slice(-10),
+            userId: result.uId,
+            region: region,
+          });
+
+          // Show success message
+          toast.success(`Login successful! Welcome from ${region} region.`);
+
+          // Navigate to dashboard
+          navigate("/dashboard");
         } else {
-          toast.error(result.message || "Login failed");
+          const errorMessage = result.message || result.error || "Login failed";
+          console.error("Login failed:", errorMessage);
+          toast.error(errorMessage);
         }
       } catch (err) {
         console.error("Backend login error:", err);
-        toast.error("Network error. Please try again.");
+        if (err.name === "SyntaxError") {
+          toast.error(
+            "Invalid response from server. Please check your connection."
+          );
+        } else if (err.message.includes("fetch")) {
+          toast.error(
+            "Unable to connect to server. Please check your internet connection."
+          );
+        } else if (err.message.includes("404")) {
+          toast.error(
+            "Account not found. Please check your credentials or try a different region."
+          );
+        } else {
+          toast.error(err.message || "Network error. Please try again.");
+        }
       } finally {
         setIsLoading(false);
       }
     },
-    [navigate]
+    [navigate, region]
   );
 
   // Handle Firebase user login success for global region
@@ -108,16 +166,35 @@ const Login = () => {
   }, [user, region, handleBackendLogin]);
 
   const onSubmit = async (data) => {
+    console.log("Form submitted with data:", { email: data.email, region });
+
+    if (!region) {
+      toast.error("Please select a region first");
+      return;
+    }
+
     if (region === "global") {
-      // Store password in ref for later use in useEffect
+      // For global region, use Firebase + backend authentication
       passwordRef.current = data.password;
-      await signInWithEmailAndPassword(data.email, data.password);
-      // Backend login will be handled in useEffect when user state changes
+      console.log("Using Firebase authentication for global region");
+      try {
+        await signInWithEmailAndPassword(data.email, data.password);
+        // Backend login will be handled in useEffect when user state changes
+      } catch (firebaseError) {
+        console.log(
+          "Firebase auth failed, trying direct backend for global user:",
+          firebaseError
+        );
+        // If Firebase fails, try direct backend login (account might exist in backend but not Firebase)
+        await handleBackendLogin(data.email, data.password);
+      }
     } else if (region === "china") {
-      // For China region, directly use backend authentication
+      // For China region, try direct backend authentication
+      // This will now also check for global accounts that can be accessed from China
+      console.log("Using direct backend authentication for China region");
       await handleBackendLogin(data.email, data.password);
     } else {
-      toast.error("Please select a valid region");
+      toast.error("Please select a valid region (global or china)");
     }
   };
 
@@ -167,6 +244,27 @@ const Login = () => {
           <h2 className="text-white dark:text-white/90 text-lg font-semibold">
             Login to your account
           </h2>
+          {region && (
+            <div className="mt-2 px-3 py-1 bg-accent/20 rounded-full">
+              <span className="text-accent text-sm font-medium">
+                Region: {region.charAt(0).toUpperCase() + region.slice(1)}
+              </span>
+            </div>
+          )}
+          {!region && (
+            <div className="mt-2 px-3 py-1 bg-yellow-500/20 rounded-full">
+              <span className="text-yellow-300 text-sm font-medium">
+                Please select a region first
+              </span>
+            </div>
+          )}
+          {region && (
+            <div className="mt-2 text-center">
+              <span className="text-white/60 text-xs">
+                Your account can be accessed from any region
+              </span>
+            </div>
+          )}
         </div>
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -187,7 +285,7 @@ const Login = () => {
               className={`w-full px-4 py-2 rounded-lg bg-white/20 dark:bg-white/10 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-accent transition ${
                 errors.email ? "ring-2 ring-error" : ""
               }`}
-              placeholder="you@email.com"
+              placeholder="demo@digimoney.com"
               {...register("email", {
                 required: "Email is required.",
                 pattern: {
@@ -213,7 +311,7 @@ const Login = () => {
                 className={`w-full px-4 py-2 rounded-lg bg-white/20 dark:bg-white/10 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-accent transition pr-12 ${
                   errors.password ? "ring-2 ring-error" : ""
                 }`}
-                placeholder="********"
+                placeholder="demo123"
                 {...register("password", {
                   required: "Password is required.",
                   minLength: {

@@ -29,6 +29,7 @@ import { RiHistoryLine } from "react-icons/ri";
 
 const Dashboard = () => {
   const [user] = useAuthState(auth);
+  const region = localStorage.getItem("region");
   // Sidebar open state: true for desktop, false for mobile by default
   const [open, setOpen] = useState(() => window.innerWidth >= 1024);
   const { pathname } = useLocation();
@@ -49,8 +50,32 @@ const Dashboard = () => {
     return userInfo?.role?.[0] || "user";
   });
 
-  // Get initial for avatar
-  const initial = user?.displayName?.charAt(0) || user?.email?.charAt(0);
+  // Get user display information based on region
+  const getUserDisplayInfo = () => {
+    if (region === "global" && user) {
+      // Global region: use Firebase user info
+      return {
+        displayName: user.displayName || user.email,
+        email: user.email,
+        initial: user.displayName?.charAt(0) || user.email?.charAt(0),
+      };
+    } else if (region === "china" && userInfo) {
+      // China region: use backend user info
+      return {
+        displayName: userInfo.name || userInfo.email,
+        email: userInfo.email,
+        initial: userInfo.name?.charAt(0) || userInfo.email?.charAt(0),
+      };
+    }
+    // Fallback
+    return {
+      displayName: "User",
+      email: "",
+      initial: "U",
+    };
+  };
+
+  const userDisplayInfo = getUserDisplayInfo();
   const color = "bg-primary";
 
   // Get user verification status
@@ -461,14 +486,14 @@ const Dashboard = () => {
                 <div
                   className={`${color} w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-semibold uppercase`}
                 >
-                  {initial}
+                  {userDisplayInfo.initial}
                 </div>
 
                 {/* User details - shown when sidebar is open */}
                 {open && (
                   <div className="mt-3 text-center w-full space-y-3">
                     <h4 className="text-sm font-medium text-white truncate">
-                      {user?.displayName || user?.email}
+                      {userDisplayInfo.displayName}
                     </h4>
 
                     {/* Role display/selector */}
