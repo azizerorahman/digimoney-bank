@@ -1,197 +1,93 @@
-# DigiMoney Bank - Frontend Client
+# DigiMoney Bank Client Side
 
-## 🌟 Overview
+![React](https://img.shields.io/badge/React-18.0+-blue)
+![React Router](https://img.shields.io/badge/React_Router-6.0+-CA4245)
+![Firebase](https://img.shields.io/badge/Firebase-9.0+-orange)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.0+-38B2AC)
+![Redux](https://img.shields.io/badge/Redux-Toolkit-764ABC)
 
-DigiMoney Bank Frontend is a modern, responsive React.js application that provides a comprehensive banking experience. Built with cutting-edge technologies, it offers role-based dashboards, real-time financial data, and an intuitive user interface for various banking operations.
+DigiMoney Bank is a comprehensive digital banking platform built with React and modern web technologies. This application provides a complete banking experience with role-based dashboards, real-time financial data, secure transactions, and intuitive user interfaces. Features include multi-tier user roles (User, Super Admin, Account Manager, Loan Officer, CSR), advanced budget management, investment tracking, and comprehensive financial analytics designed for modern digital banking needs.
 
-## 🚀 Features
+## Important Links
 
-### 🔐 Authentication & Security
-- **Firebase Authentication** - Secure user authentication and authorization
-- **Role-based Access Control** - Multi-tier permission system (User, Super Admin, Account Manager, Loan Officer, CSR)
-- **Protected Routes** - Secure navigation based on user roles
-- **JWT Token Management** - Secure API communication
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Visit_Site-2ea44f?style=for-the-badge&logo=vercel)](https://digimoney-bank.netlify.app/)
+[![Client Repository](https://img.shields.io/badge/Client_Code-GitHub-blue?style=for-the-badge&logo=github)](https://github.com/azizerorahman/digimoney-bank/tree/main/client-side)
+[![Server Repository](https://img.shields.io/badge/Server_Code-GitHub-blue?style=for-the-badge&logo=github)](https://github.com/azizerorahman/digimoney-bank/tree/main/server-side)
 
-### 👤 User Dashboard
-- **Account Overview** - Real-time balance and account information
-- **Transaction History** - Detailed transaction logs with filtering
-- **Budget Management** - Personal finance tracking and budgeting tools
-- **Investment Portfolio** - Investment tracking and performance metrics
-- **Credit Score & Reports** - Credit monitoring and financial health reports
-- **Loan & Mortgage Management** - Loan applications and management
-- **Insurance Coverage** - Insurance policy management
-- **Alerts & Notifications** - Real-time banking alerts
+## Table of Contents
 
-### 🛡️ Super Admin Dashboard
-- **User Management** - Complete user administration and role assignment
-- **Financial Reports** - Comprehensive banking analytics and reports
-- **Audit Logs** - System activity tracking and compliance monitoring
-- **System Configuration** - Platform settings and configuration management
-- **Security & Compliance** - Security monitoring and regulatory compliance tools
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Environment Variables](#environment-variables)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
 
-### 💼 Account Manager Dashboard
-- **Customer Portfolio** - Client relationship management
-- **Investment Performance** - Portfolio performance tracking
-- **Revenue Analytics** - Revenue analysis and forecasting
-- **Calendar & Meetings** - Appointment scheduling and management
-- **Communications** - Client communication tools
-- **Transaction Alerts** - Real-time transaction monitoring
+## Features
 
-### 🏦 Loan Officer Dashboard
-- **Loan Portfolio** - Loan management and tracking
-- **Application Pipeline** - Loan application processing workflow
-- **Credit Analysis** - Credit assessment and risk evaluation
-- **Risk Assessment** - Comprehensive risk analysis tools
-- **Communications** - Client communication and documentation
+- **Multi-Role Dashboard System**: Comprehensive dashboards for Users, Super Admins, Account Managers, Loan Officers, and CSR staff with role-based access control
+- **Secure Authentication**: Firebase authentication with Google login, JWT token management, and encrypted password storage
+- **Real-time Banking Operations**: Live account balances, instant transfers, and real-time transaction history
+- **Advanced Budget Management**: Personal finance tracking, spending analysis by category, and budget alerts
+- **Investment Portfolio Tracking**: Investment performance monitoring, portfolio analytics, and financial health reports
+- **Loan & Credit Management**: Loan applications, credit score monitoring, and mortgage management tools
+- **Insurance Integration**: Policy management and coverage tracking
+- **Transfer & Payment System**: Secure money transfers with recipient management and transaction verification
+- **Financial Analytics**: Comprehensive spending analysis, transaction categorization, and financial insights
+- **Dark/Light Mode**: Theme switching with persistent user preferences
+- **Responsive Design**: Works seamlessly across desktop, tablet, and mobile devices
+- **Protected Routes**: Secure navigation with comprehensive error handling
+- **Real-time Notifications**: Banking alerts, transaction confirmations, and system notifications
+- **Interactive Data Visualization**: Charts and graphs for financial data using Recharts
+- **Region-based Services**: Location-aware banking services with map integration
 
-### 🎧 Customer Service Representative (CSR) Dashboard
-- **Customer Profile** - Comprehensive customer information management
-- **Service Requests** - Customer service ticket management
-- **Quick Actions** - Common banking operations shortcuts
-- **Transaction Support** - Transaction assistance and dispute resolution
+## Technologies Used
 
-### 🎨 UI/UX Features
-- **Dark/Light Mode** - Theme switching with persistent preferences
-- **Responsive Design** - Mobile-first, cross-device compatibility
-- **Modern Components** - DaisyUI and Tailwind CSS styling
-- **Animations** - Smooth transitions with Framer Motion and GSAP
-- **Interactive Charts** - Data visualization with Recharts
-- **Real-time Updates** - Live data updates using React Query
+- **React**: Frontend library for building user interfaces with hooks and concurrent features
+- **React Router**: Navigation and routing for single-page application architecture
+- **Firebase**: Authentication service with Google login and real-time database integration
+- **Redux Toolkit**: State management with modern Redux patterns and RTK Query
+- **Tailwind CSS**: Utility-first CSS framework for responsive design
+- **DaisyUI**: Component library built on Tailwind CSS for consistent UI elements
+- **Framer Motion & GSAP**: Advanced animations and smooth transitions
+- **Recharts**: Data visualization library for financial charts and analytics
+- **React Query**: Server state management and efficient data fetching
+- **React Hook Form**: Form handling and validation with minimal re-renders
+- **React Firebase Hooks**: Simplified Firebase integration with React hooks
+- **React Toastify**: Toast notification system for user feedback
+- **Crypto-js**: Client-side encryption for secure data handling
+- **React Leaflet**: Interactive maps for location-based banking services
+- **React Icons**: Comprehensive icon library for UI elements
 
-## 🛠️ Technology Stack
+## Prerequisites
 
-### Core Framework
-- **React 18.2.0** - Modern React with hooks and concurrent features
-- **React Router DOM 6.3.0** - Client-side routing and navigation
-- **Redux Toolkit 1.8.5** - State management with modern Redux patterns
+Before you begin, ensure you have the following installed:
 
-### Styling & UI
-- **Tailwind CSS 3.1.6** - Utility-first CSS framework
-- **DaisyUI 2.19.0** - Tailwind CSS component library
-- **React Icons 4.4.0** - Comprehensive icon library
-- **Framer Motion 12.9.7** - Advanced animations and transitions
-- **GSAP 3.13.0** - High-performance animations
+- Node.js (v16 or higher)
+- npm or yarn
+- Firebase account and project setup
+- The DigiMoney Bank backend API running (see [Server Side Code](https://github.com/azizerorahman/digimoney-bank/tree/main/server-side))
 
-### Data & State Management
-- **React Query 4.1.0** - Server state management and caching
-- **Axios 0.27.2** - HTTP client for API communication
-- **React Hook Form 7.33.1** - Efficient form handling
-- **Redux Toolkit** - Global state management
+## Installation
 
-### Authentication & Security
-- **Firebase 9.9.1** - Authentication and real-time database
-- **React Firebase Hooks 5.0.3** - Firebase integration hooks
-- **Crypto-js 4.2.0** - Encryption and security utilities
+1. Clone the repository:
 
-### Data Visualization
-- **Recharts 2.1.13** - React charting library
-- **React Leaflet 5.0.0** - Interactive maps integration
-- **Leaflet 1.9.4** - Mobile-friendly interactive maps
-
-### Development Tools
-- **React Scripts 5.0.1** - Build tools and development server
-- **PostCSS 8.4.14** - CSS processing and optimization
-- **Autoprefixer 10.4.7** - CSS vendor prefixing
-
-### Additional Libraries
-- **Date-fns 2.29.2** & **Moment 2.29.4** - Date manipulation
-- **React Toastify 9.0.8** - Toast notifications
-- **React Dropzone 14.3.8** - File upload handling
-- **React Webcam 7.0.1** - Camera integration
-- **React Slick 0.29.0** - Carousel components
-
-## 📁 Project Structure
-
-```
-client-side/
-├── public/                     # Static assets
-│   ├── index.html             # Main HTML template
-│   ├── favicon.png            # App favicon
-│   ├── manifest.json          # PWA manifest
-│   ├── NewsData.json          # Sample news data
-│   └── preloader.gif          # Loading animation
-│
-├── src/
-│   ├── App.js                 # Main application component
-│   ├── App.css                # Global styles
-│   ├── index.js               # Application entry point
-│   ├── firebase.init.js       # Firebase configuration
-│   │
-│   ├── assets/                # Static assets
-│   │   └── images/            # Image assets
-│   │       ├── dashboard-icon/
-│   │       ├── logo/
-│   │       └── service/
-│   │
-│   ├── components/            # Reusable components
-│   │   ├── NavBar.js          # Navigation component
-│   │   ├── Footer.js          # Footer component
-│   │   ├── Loading.js         # Loading spinner
-│   │   ├── RegionSelector.js  # Region selection
-│   │   └── ScrollToTop.js     # Scroll utility
-│   │
-│   ├── hooks/                 # Custom React hooks
-│   │   ├── useAdmin.js        # Admin role hook
-│   │   ├── useToken.js        # Authentication token hook
-│   │   ├── useUserInfo.js     # User information hook
-│   │   ├── useTransaction.js  # Transaction data hook
-│   │   └── useFindTransection.js
-│   │
-│   ├── pages/                 # Page components
-│   │   ├── Home/              # Landing page
-│   │   ├── Auth/              # Authentication pages
-│   │   │   ├── Login.js
-│   │   │   ├── Register.js
-│   │   │   ├── ProtectedRoute.js
-│   │   │   └── Admin.js
-│   │   │
-│   │   ├── Dashboard/         # Dashboard pages
-│   │   │   ├── User/          # User dashboard
-│   │   │   ├── SuperAdmin/    # Super admin dashboard
-│   │   │   ├── AccountManager/ # Account manager dashboard
-│   │   │   ├── LoanOfficer/   # Loan officer dashboard
-│   │   │   ├── CSR/           # CSR dashboard
-│   │   │   └── Modal/         # Modal components
-│   │   │
-│   │   ├── About/             # About page
-│   │   ├── Blog/              # Blog and articles
-│   │   ├── Cards/             # Card services
-│   │   ├── Company/           # Company information
-│   │   └── Service/           # Services page
-│   │
-│   └── redux/                 # Redux store and reducers
-│       ├── store/             # Redux store configuration
-│       └── reducers/          # Redux reducers
-│
-├── package.json               # Dependencies and scripts
-├── tailwind.config.js         # Tailwind CSS configuration
-├── postcss.config.js          # PostCSS configuration
-└── README.md                  # Project documentation
-```
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- **Node.js** (v16.0.0 or higher)
-- **npm** (v8.0.0 or higher) or **yarn**
-- **Git** for version control
-
-### Installation
-
-1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/azizerorahman/digimoney-bank.git
    cd digimoney-bank/client-side
    ```
 
-2. **Install dependencies**
+2. Install dependencies:
+
    ```bash
    npm install
+   # or
+   yarn install
    ```
 
-3. **Environment Setup**
-   Create a `.env` file in the root directory:
+3. Create a `.env` file in the root directory:
+
    ```env
    # Firebase Configuration
    REACT_APP_FIREBASE_API_KEY=your_firebase_api_key
@@ -202,235 +98,163 @@ client-side/
    REACT_APP_FIREBASE_APP_ID=your_app_id
 
    # API Configuration
-   REACT_APP_API_URL=http://localhost:5000/api
+   REACT_APP_API_URL=http://localhost:5000
    REACT_APP_BASE_URL=http://localhost:5000
+
+   # Encryption Keys
+   REACT_APP_ENCRYPTION_KEY=your_encryption_key_for_passwords
    ```
 
-4. **Start the development server**
+4. Start the development server:
+
    ```bash
    npm start
+   # or
+   yarn start
    ```
 
-5. **Access the application**
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Open your browser and navigate to `http://localhost:3000`
 
-### Build for Production
+## Environment Variables
 
-```bash
-npm run build
+| Variable | Description |
+|----------|-------------|
+| REACT_APP_FIREBASE_API_KEY | Firebase API key for authentication |
+| REACT_APP_FIREBASE_AUTH_DOMAIN | Firebase authentication domain |
+| REACT_APP_FIREBASE_PROJECT_ID | Firebase project ID |
+| REACT_APP_FIREBASE_STORAGE_BUCKET | Firebase storage bucket |
+| REACT_APP_FIREBASE_MESSAGING_SENDER_ID | Firebase messaging sender ID |
+| REACT_APP_FIREBASE_APP_ID | Firebase application ID |
+| REACT_APP_API_URL | Backend API base URL |
+| REACT_APP_BASE_URL | Application base URL |
+| REACT_APP_ENCRYPTION_KEY | Encryption key for secure data handling |
+
+## Usage
+
+### Home Page
+
+The main interface displays featured banking services, financial news, currency converter, security features, and quick access to account management.
+
+### Authentication
+
+- Sign up or sign in using email/password or Google authentication
+- Secure access to protected routes and role-specific features
+- JWT token-based session management with automatic renewal
+
+### User Dashboard
+
+Navigate to your personal dashboard to:
+
+- View real-time account balances and transaction history
+- Transfer money between accounts and to external recipients
+- Create and manage personal budgets with spending analytics
+- Track investment portfolios and financial performance
+- Monitor credit scores and financial health reports
+- Apply for loans and manage insurance policies
+
+### Super Admin Dashboard
+
+Super Admin users can:
+
+- Manage all user accounts and assign roles
+- Monitor system-wide financial analytics and reports
+- Configure platform settings and security parameters
+- Track audit logs and compliance monitoring
+- Oversee all banking operations and transactions
+
+### Account Manager Dashboard
+
+Account Managers can:
+
+- Manage client portfolios and relationships
+- Track investment performance and revenue analytics
+- Schedule meetings and manage communications
+- Monitor client transactions and provide support
+
+### Loan Officer Dashboard
+
+Loan Officers can:
+
+- Process loan applications and manage portfolios
+- Conduct credit analysis and risk assessments
+- Communicate with clients and document interactions
+- Track loan performance and repayment schedules
+
+### CSR Dashboard
+
+Customer Service Representatives can:
+
+- Access comprehensive customer profiles
+- Handle service requests and support tickets
+- Perform quick banking operations for customers
+- Assist with transaction disputes and resolutions
+
+### Transfer & Payment System
+
+Secure money transfer functionality:
+
+- Internal bank transfers between accounts
+- External transfers to other financial institutions
+- Recipient management with saved contacts
+- Real-time transaction confirmations and receipts
+
+## Project Structure
+
+```text
+digimoney-bank/client-side/
+├── public/
+│   ├── favicon.png
+│   ├── index.html
+│   ├── manifest.json
+│   └── robots.txt
+├── src/
+│   ├── assets/
+│   │   └── images/
+│   │       └── map.png
+│   ├── components/
+│   │   ├── AnimatedSection.js
+│   │   ├── Footer.js
+│   │   ├── Loading.js
+│   │   ├── NavBar.js
+│   │   ├── RegionSelector.js
+│   │   └── Modal.js
+│   ├── hooks/
+│   │   ├── useLoanOfficerData.js
+│   │   ├── useSuperAdminData.js
+│   │   └── useUserInfo.js
+│   ├── pages/
+│   │   ├── Auth/
+│   │   │   ├── EncryptPassword.js
+│   │   │   ├── Login.js
+│   │   │   ├── ProtectedRoute.js
+│   │   │   └── Register.js
+│   │   ├── Dashboard/
+│   │   │   ├── Dashboard.js
+│   │   │   ├── Profile.js
+│   │   │   ├── AccountManager/
+│   │   │   ├── CSR/
+│   │   │   ├── LoanOfficer/
+│   │   │   ├── SuperAdmin/
+│   │   │   └── User/
+│   │   └── Home/
+│   │       ├── Contact.js
+│   │       ├── CurrencyConverter.js
+│   │       ├── Features.js
+│   │       ├── Header.js
+│   │       ├── Home.js
+│   │       ├── HowItWorks.js
+│   │       ├── MobileApp.js
+│   │       ├── Security.js
+│   │       └── TestimonialsAndTrust.js
+│   ├── App.css
+│   ├── App.js
+│   ├── firebase.init.js
+│   ├── index.css
+│   ├── index.js
+│   └── reportWebVitals.js
+├── .gitignore
+├── package.json
+├── postcss.config.js
+├── README.md
+└── tailwind.config.js
 ```
-
-This creates an optimized production build in the `build` folder.
-
-## 🔧 Configuration
-
-### Tailwind CSS Configuration
-
-The application uses a custom Tailwind configuration with:
-- **Dark mode support** - Class-based dark mode switching
-- **Custom animations** - fadeIn, float, and pulse animations
-- **Extended color palette** - Custom banking-themed colors
-- **Responsive breakpoints** - Mobile-first responsive design
-- **Custom components** - DaisyUI component integration
-
-### Firebase Configuration
-
-Firebase is used for:
-- **Authentication** - User login/logout and session management
-- **Security Rules** - Role-based access control
-- **Real-time Updates** - Live data synchronization
-
-### Redux Store Configuration
-
-The Redux store manages:
-- **User State** - Authentication and user information
-- **Dashboard State** - Role-specific dashboard data
-- **Transaction State** - Financial transaction data
-- **UI State** - Theme preferences and loading states
-
-## 🎨 Theming
-
-### Dark/Light Mode
-The application supports both dark and light themes:
-- **Automatic Detection** - Respects system preferences
-- **Manual Toggle** - User can switch themes manually
-- **Persistent Storage** - Theme preference saved in localStorage
-- **Smooth Transitions** - Animated theme switching
-
-### Customization
-- Modify colors in `tailwind.config.js`
-- Update component styles in respective CSS files
-- Customize animations and transitions
-
-## 🔐 Authentication Flow
-
-### Login Process
-1. User enters credentials on login page
-2. Firebase validates credentials
-3. JWT token received and stored
-4. User redirected to role-appropriate dashboard
-5. Protected routes activated based on user role
-
-### Role-Based Access
-- **User** - Personal banking features
-- **Super Admin** - Full system administration
-- **Account Manager** - Client relationship management
-- **Loan Officer** - Loan processing and management
-- **CSR** - Customer service operations
-
-## 📱 Responsive Design
-
-### Breakpoints
-- **Mobile** - 320px - 768px
-- **Tablet** - 768px - 1024px
-- **Desktop** - 1024px+
-
-### Mobile Features
-- Touch-friendly interface
-- Optimized navigation
-- Progressive Web App (PWA) capabilities
-- Offline support for key features
-
-## 🔗 API Integration
-
-### Endpoints Integration
-The frontend communicates with the backend API for:
-- **Authentication** - Login, register, logout
-- **User Management** - Profile, roles, permissions
-- **Transactions** - Money transfers, payments, history
-- **Account Operations** - Balance, statements, cards
-- **Administrative** - User management, reports, analytics
-
-### Data Flow
-1. **React Query** manages server state and caching
-2. **Axios** handles HTTP requests with interceptors
-3. **Redux** manages global application state
-4. **Custom hooks** encapsulate API logic
-
-## 🧪 Testing
-
-### Running Tests
-```bash
-npm test
-```
-
-### Test Coverage
-```bash
-npm test -- --coverage
-```
-
-### Testing Libraries
-- **Jest** - Test runner and assertion library
-- **React Testing Library** - Component testing utilities
-- **User Event** - User interaction simulation
-
-## 🚀 Deployment
-
-### Build Optimization
-- **Code Splitting** - Automatic route-based splitting
-- **Tree Shaking** - Unused code elimination
-- **Asset Optimization** - Image and CSS optimization
-- **Bundle Analysis** - Bundle size analysis tools
-
-### Deployment Platforms
-- **Netlify** - Recommended for static hosting
-- **Vercel** - Alternative static hosting
-- **AWS S3 + CloudFront** - Enterprise deployment
-- **Firebase Hosting** - Google Cloud integration
-
-### Environment Variables
-Set the following environment variables in your deployment platform:
-- All Firebase configuration variables
-- API URLs for different environments
-- Feature flags for environment-specific features
-
-## 🛠️ Development
-
-### Available Scripts
-- `npm start` - Start development server
-- `npm test` - Run test suite
-- `npm run build` - Build for production
-- `npm run eject` - Eject from Create React App (not recommended)
-
-### Code Style
-- **ESLint** - Code linting and formatting
-- **Prettier** - Code formatting (if configured)
-- **Husky** - Git hooks for code quality (if configured)
-
-### Development Workflow
-1. Create feature branch from main
-2. Develop feature with tests
-3. Run linting and tests
-4. Submit pull request
-5. Code review and merge
-
-## 🤝 Contributing
-
-### Getting Started
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new features
-5. Ensure all tests pass
-6. Submit a pull request
-
-### Code Guidelines
-- Follow React best practices
-- Use functional components with hooks
-- Implement proper error handling
-- Add comprehensive tests
-- Follow existing code style
-
-## 📈 Performance
-
-### Optimization Features
-- **React.memo** - Component memoization
-- **useMemo & useCallback** - Hook optimization
-- **Code Splitting** - Route-based lazy loading
-- **Image Optimization** - Responsive images
-- **Bundle Analysis** - Performance monitoring
-
-### Performance Monitoring
-- **Web Vitals** - Core web vitals tracking
-- **React DevTools** - Component performance profiling
-- **Lighthouse** - Performance auditing
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-**Build Failures**
-- Clear node_modules and package-lock.json, reinstall dependencies
-- Check Node.js version compatibility
-- Verify environment variables
-
-**Authentication Issues**
-- Check Firebase configuration
-- Verify API endpoint connectivity
-- Clear browser storage and cache
-
-**Styling Issues**
-- Rebuild Tailwind CSS
-- Check for conflicting CSS
-- Verify DaisyUI theme configuration
-
-### Debug Mode
-Enable debug logging by setting:
-```env
-REACT_APP_DEBUG=true
-```
-
-## 📄 License
-
-This project is proprietary software. All rights reserved.
-
-## 📞 Support
-
-For technical support or questions:
-- **Email**: support@digimoneybank.com
-- **Documentation**: [Internal Wiki]
-- **Issue Tracker**: [Project Issues]
-
----
-
-**DigiMoney Bank Frontend** - Building the future of digital banking experiences.
