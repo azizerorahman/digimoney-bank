@@ -63,6 +63,7 @@ const TransactionHistory = () => {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
+        console.log("Accounts response:", accountsRes.data);
 
         if (accountsRes.data && accountsRes.data.success) {
           setAccounts(accountsRes.data.accounts);
@@ -81,6 +82,8 @@ const TransactionHistory = () => {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
+
+        console.log("Transactions response:", transactionsRes.data);
 
         if (transactionsRes.data && transactionsRes.data.success) {
           referenceDate = transactionsRes.data.referenceDate;
@@ -111,6 +114,8 @@ const TransactionHistory = () => {
           }
         );
 
+        console.log("Transaction history response:", historyRes);
+
         if (historyRes.data && historyRes.data.success) {
           const transformedData = historyRes.data.transactions.map(
             (transaction) => ({
@@ -136,6 +141,7 @@ const TransactionHistory = () => {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
+        console.log("Spending by category response:", spendingRes.data);
 
         if (spendingRes.data && spendingRes.data.success) {
           setSpendingData(spendingRes.data.data.categories);

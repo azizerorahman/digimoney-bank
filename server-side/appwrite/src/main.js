@@ -326,6 +326,8 @@ export default async ({ req, res, log, error }) => {
         const decoded = verifyToken(headers.authorization);
         const uId = req.query?.uId || decoded.uId;
 
+        console.log("Transaction history request for user:", uId);
+
         const pipeline = [
           { $match: { userId: uId } },
           {
@@ -352,9 +354,13 @@ export default async ({ req, res, log, error }) => {
           { $sort: { _id: -1 } },
         ];
 
+        console.log("Transaction history aggregation pipeline:", JSON.stringify(pipeline, null, 2));
+
         const transactions = await transactionsCollection
           .aggregate(pipeline)
           .toArray();
+
+        console.log("Transaction history response:", transactions);
 
         await client.close();
         return corsResponse({ success: true, transactions });

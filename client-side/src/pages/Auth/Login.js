@@ -79,8 +79,6 @@ const Login = () => {
       setIsLoading(true);
       try {
         const encryptedPassword = encryptPassword(password);
-        console.log("Attempting login with:", { email, region });
-
         const response = await fetch(`${process.env.REACT_APP_API_URL}/login`, {
           method: "POST",
           headers: {
@@ -89,12 +87,8 @@ const Login = () => {
           body: JSON.stringify({
             email: email,
             encryptedPassword: encryptedPassword,
-            region: region, // Include region in the request
           }),
         });
-
-        console.log("Response status:", response.status);
-        console.log("Response headers:", response.headers);
 
         if (!response.ok) {
           const errorText = await response.text();
@@ -105,25 +99,12 @@ const Login = () => {
         }
 
         const result = await response.json();
-        console.log("Login response:", result);
 
-        if (result.success && result.token) {
-          // Store token and user data first
-          localStorage.setItem("accessToken", result.token);
+        if (result.success && result.accessToken) {
+          localStorage.setItem("accessToken", result.accessToken);
           localStorage.setItem("userId", result.uId);
-          // Store the user's actual region preference
-          if (result.userRegion) {
-            localStorage.setItem("userRegion", result.userRegion);
-          }
 
-          console.log("Login successful - stored data:", {
-            token: "***" + result.token.slice(-10),
-            userId: result.uId,
-            region: region,
-          });
-
-          // Show success message
-          toast.success(`Login successful! Welcome from ${region} region.`);
+          toast.success("Login successful!");
 
           // Navigate to dashboard
           navigate("/dashboard");
@@ -133,7 +114,6 @@ const Login = () => {
           toast.error(errorMessage);
         }
       } catch (err) {
-        console.error("Backend login error:", err);
         if (err.name === "SyntaxError") {
           toast.error(
             "Invalid response from server. Please check your connection."
@@ -153,7 +133,7 @@ const Login = () => {
         setIsLoading(false);
       }
     },
-    [navigate, region]
+    [navigate]
   );
 
   // Handle Firebase user login success for global region
