@@ -124,11 +124,27 @@ export default async ({ req, res, log, error }) => {
       try {
       log(`Attempting to find user with email: ${email}`);
       
-      // Use case-insensitive search from the start
-      const user = await usersCollection.findOne({ 
+      // First try exact match
+      let user = await usersCollection.findOne({ email: email });
+      log(`Exact match result: ${user ? 'Found' : 'Not found'}`);
+      
+      // If no exact match, try case-insensitive search
+      if (!user) {
+        user = await usersCollection.findOne({ 
         email: { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } 
-      });
-      log(`User lookup result: ${user ? 'Found' : 'Not found'}`);
+        });
+        log(`Case-insensitive match result: ${user ? 'Found' : 'Not found'}`);
+      }
+      
+      // Debug: Check if any users exist
+      const userCount = await usersCollection.countDocuments();
+      log(`Total users in database: ${userCount}`);
+      
+      // Debug: Check for similar emails
+      const similarUsers = await usersCollection.find({ 
+        email: { $regex: new RegExp(email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') } 
+      }).toArray();
+      log(`Users with similar emails: ${similarUsers.length}`);
       
       if (!user) {
         log(`No user found for email: ${email}`);
