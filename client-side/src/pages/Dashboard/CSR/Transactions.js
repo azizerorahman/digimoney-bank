@@ -1,562 +1,235 @@
+import AnimatedSection from "../../../components/AnimatedSection";
+
+const today = new Date();
+
 export const csrDashboardData = {
-  // Current CSR session info
-  csrInfo: {
-    name: "Sarah Johnson",
-    id: "CSR-2847",
-    department: "Customer Service",
-    shift: "Morning (8:00 AM - 4:00 PM)",
-    status: "Available",
-    currentCalls: 2,
-    todayStats: {
-      callsHandled: 23,
-      avgCallTime: "4:32",
-      resolutionRate: 87,
-      customerSatisfaction: 4.6
-    }
-  },
-
-  // Active customer (currently being helped)
-  activeCustomer: {
-    basicInfo: {
-      name: "Michael Rodriguez",
-      customerId: "CUST-789456",
-      accountNumber: "****-****-****-3847", // Masked for security
-      memberSince: "2019-03-15",
-      preferredName: "Mike",
-      contactMethod: "Phone",
-      language: "English"
-    },
-    contactInfo: {
-      phone: "(555) 234-5678",
-      email: "m.rodriguez@email.com",
-      address: {
-        street: "1234 Oak Street",
-        city: "Springfield",
-        state: "IL",
-        zip: "62701"
-      },
-      emergencyContact: {
-        name: "Maria Rodriguez",
-        relationship: "Spouse",
-        phone: "(555) 234-5679"
-      }
-    },
-    accountSummary: {
-      accounts: [
-        {
-          type: "Checking",
-          accountNumber: "****3847",
-          balance: 2847.32,
-          status: "Active",
-          lastActivity: "2024-06-02"
-        },
-        {
-          type: "Savings",
-          accountNumber: "****7291",
-          balance: 15420.88,
-          status: "Active",
-          lastActivity: "2024-05-28"
-        },
-        {
-          type: "Credit Card",
-          accountNumber: "****9156",
-          balance: -1247.65,
-          creditLimit: 5000,
-          status: "Active",
-          paymentDue: "2024-06-15"
-        }
-      ],
-      totalRelationship: 17020.55,
-      creditScore: "Good (720-750)", // Range for privacy
-      riskLevel: "Low"
-    },
-    alerts: [
-      {
-        type: "info",
-        message: "Customer called 3 times this month",
-        priority: "Medium",
-        date: "2024-06-03"
-      },
-      {
-        type: "warning", 
-        message: "Credit card payment due in 12 days",
-        priority: "Low",
-        date: "2024-06-03"
-      },
-      {
-        type: "overdraft",
-        message: "Account overdraft: -$150.00 (Fee: $35.00)",
-        priority: "High", 
-        date: "2024-06-03",
-        amount: -150,
-        fee: 35
-      },
-      {
-        type: "hold",
-        message: "Temporary hold: $500.00 - Check verification pending",
-        priority: "Medium",
-        date: "2024-06-03",
-        amount: 500,
-        reason: "Check verification"
-      },
-      {
-        type: "suspicious",
-        message: "Suspicious activity: ATM withdrawal $800 - unusual location",
-        priority: "High",
-        date: "2024-06-03",
-        transaction: "ATM withdrawal $800 - unusual location"
-      }
-    ]
-  },
-
-  // Recent transactions (last 10)
   recentTransactions: [
     {
-      id: "TXN-2024060301",
-      date: "2024-06-02",
+      id: "TXN-2025010801",
+      date: today.toISOString().split('T')[0],
       time: "14:23",
       type: "Debit Card Purchase",
       merchant: "Grocery Store Plus",
       amount: -87.45,
       account: "****3847",
       status: "Posted",
-      category: "Groceries"
+      category: "Groceries",
     },
     {
-      id: "TXN-2024060201",
-      date: "2024-06-01",
+      id: "TXN-2025010802",
+      date: new Date(today.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       time: "09:15",
       type: "Direct Deposit",
       merchant: "ABC Company Payroll",
       amount: 2847.33,
       account: "****3847",
       status: "Posted",
-      category: "Income"
+      category: "Income",
     },
     {
-      id: "TXN-2024053101",
-      date: "2024-05-31",
+      id: "TXN-2025010803",
+      date: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       time: "16:45",
       type: "Online Transfer",
       merchant: "Transfer to Savings",
-      amount: -500.00,
+      amount: -500.0,
       account: "****3847",
       status: "Posted",
-      category: "Transfer"
+      category: "Transfer",
     },
     {
-      id: "TXN-2024053001",
-      date: "2024-05-30",
+      id: "TXN-2025010804",
+      date: new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       time: "12:30",
       type: "ATM Withdrawal",
       merchant: "First National ATM #4521",
-      amount: -80.00,
+      amount: -80.0,
       account: "****3847",
       status: "Posted",
-      category: "Cash"
+      category: "Cash",
     },
     {
-      id: "TXN-2024052901",
-      date: "2024-05-29",
+      id: "TXN-2025010805",
+      date: new Date(today.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       time: "19:22",
       type: "Credit Card Payment",
       merchant: "Online Payment",
-      amount: -200.00,
+      amount: -200.0,
       account: "****3847",
       status: "Posted",
-      category: "Payment"
+      category: "Payment",
+    },
+    {
+      id: "TXN-2025010806",
+      date: new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      time: "10:15",
+      type: "Mobile Deposit",
+      merchant: "Mobile Check Deposit",
+      amount: 1250.00,
+      account: "****3847",
+      status: "Posted",
+      category: "Deposit",
+    },
+    {
+      id: "TXN-2025010807",
+      date: new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      time: "15:33",
+      type: "Debit Card Purchase",
+      merchant: "Gas Station Express",
+      amount: -45.67,
+      account: "****3847",
+      status: "Posted",
+      category: "Gas",
+    },
+    {
+      id: "TXN-2025010808",
+      date: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      time: "11:20",
+      type: "ACH Transfer",
+      merchant: "Utility Company",
+      amount: -125.50,
+      account: "****3847",
+      status: "Posted",
+      category: "Utilities",
+    },
+    {
+      id: "TXN-2024123109",
+      date: new Date(today.getTime() - 8 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      time: "08:45",
+      type: "Debit Card Purchase",
+      merchant: "Coffee Shop Downtown",
+      amount: -12.85,
+      account: "****3847",
+      status: "Pending",
+      category: "Food & Dining",
+    },
+    {
+      id: "TXN-2024123010",
+      date: new Date(today.getTime() - 9 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      time: "17:30",
+      type: "Wire Transfer",
+      merchant: "Investment Account",
+      amount: -1000.00,
+      account: "****3847",
+      status: "Posted",
+      category: "Investment",
     }
   ],
-
-  // Current service requests/tickets
-  activeTickets: [
-    {
-      ticketId: "REQ-2024-5847",
-      customerId: "CUST-789456",
-      customerName: "Michael Rodriguez",
-      issue: "Request to increase credit limit",
-      priority: "Medium",
-      status: "In Progress",
-      createdDate: "2024-06-03",
-      createdTime: "10:30 AM",
-      slaDeadline: "2024-06-04 10:30 AM",
-      timeRemaining: "23h 36m",
-      category: "Credit Services",
-      description: "Customer requesting credit limit increase from $5,000 to $8,000. Employment verification needed.",
-      assignedTo: "Sarah Johnson",
-      escalationRequired: true,
-      escalateTo: "Credit Department",
-      updates: [
-        {
-          timestamp: "2024-06-03 10:35 AM",
-          action: "Ticket Created",
-          note: "Initial request logged"
-        }
-      ]
-    }
-  ],
-
-  // My ticket queue
-  myTicketQueue: [
-    {
-      ticketId: "REQ-2024-5847",
-      customerId: "CUST-789456",
-      customerName: "Michael Rodriguez",
-      issue: "Credit limit increase request",
-      priority: "Medium",
-      status: "In Progress",
-      slaDeadline: "2024-06-04 10:30 AM",
-      timeRemaining: "23h 36m",
-      category: "Credit Services"
-    },
-    {
-      ticketId: "REQ-2024-5846",
-      customerId: "CUST-445789",
-      customerName: "Jennifer Chen",
-      issue: "Dispute unauthorized charge",
-      priority: "High",
-      status: "New",
-      slaDeadline: "2024-06-03 16:00 PM",
-      timeRemaining: "5h 6m",
-      category: "Fraud/Disputes"
-    },
-    {
-      ticketId: "REQ-2024-5845",
-      customerId: "CUST-223456",
-      customerName: "Robert Thompson",
-      issue: "Update contact information",
-      priority: "Low",
-      status: "Pending Approval",
-      slaDeadline: "2024-06-05 12:00 PM",
-      timeRemaining: "2d 1h 6m",
-      category: "Account Updates"
-    },
-    {
-      ticketId: "REQ-2024-5844",
-      customerId: "CUST-667890",
-      customerName: "Lisa Martinez",
-      issue: "Account locked - password reset",
-      priority: "High",
-      status: "New",
-      slaDeadline: "2024-06-03 14:00 PM",
-      timeRemaining: "3h 6m",
-      category: "Account Access"
-    }
-  ],
-
-  // Quick actions available to CSR
-  quickActions: [
-    {
-      id: "update-contact",
-      title: "Update Contact Info",
-      description: "Change phone, email, or address",
-      icon: "contact",
-      permission: "direct",
-      category: "Account Updates"
-    },
-    {
-      id: "account-preferences",
-      title: "Account Preferences",
-      description: "Update notifications, statements",
-      icon: "settings",
-      permission: "direct",
-      category: "Account Updates"
-    },
-    {
-      id: "temporary-hold",
-      title: "Temporary Account Hold",
-      description: "Place temporary hold on account",
-      icon: "lock",
-      permission: "direct",
-      category: "Security"
-    },
-    {
-      id: "process-payment",
-      title: "Process Payment",
-      description: "Process loan or credit card payment",
-      icon: "payment",
-      permission: "direct",
-      category: "Transactions"
-    },
-    {
-      id: "transfer-funds",
-      title: "Transfer Funds",
-      description: "Transfer between customer accounts",
-      icon: "transfer",
-      permission: "direct",
-      category: "Transactions"
-    },
-    {
-      id: "credit-limit",
-      title: "Credit Limit Change",
-      description: "Request credit limit adjustment",
-      icon: "credit",
-      permission: "approval",
-      category: "Credit Services"
-    },
-    {
-      id: "account-closure",
-      title: "Account Closure",
-      description: "Initiate account closure process",
-      icon: "close",
-      permission: "approval",
-      category: "Account Management"
-    },
-    {
-      id: "fraud-report",
-      title: "Report Fraud",
-      description: "Report suspicious activity",
-      icon: "alert",
-      permission: "escalation",
-      category: "Security"
-    }
-  ],
-
-  // Escalation departments
-  escalationDepartments: [
-    {
-      id: "credit",
-      name: "Credit Department",
-      phone: "ext. 2500",
-      email: "credit@bank.com",
-      availableHours: "8:00 AM - 6:00 PM",
-      avgResponseTime: "2 hours",
-      specialties: ["Credit limits", "Loan applications", "Credit disputes"]
-    },
-    {
-      id: "fraud",
-      name: "Fraud Prevention",
-      phone: "ext. 911",
-      email: "fraud@bank.com",
-      availableHours: "24/7",
-      avgResponseTime: "15 minutes",
-      specialties: ["Suspicious activity", "Identity theft", "Card disputes"]
-    },
-    {
-      id: "loans",
-      name: "Loan Department",
-      phone: "ext. 2600",
-      email: "loans@bank.com",
-      availableHours: "9:00 AM - 5:00 PM",
-      avgResponseTime: "4 hours",
-      specialties: ["Mortgage", "Personal loans", "Business loans"]
-    },
-    {
-      id: "technical",
-      name: "Technical Support",
-      phone: "ext. 3000",
-      email: "techsupport@bank.com",
-      availableHours: "7:00 AM - 11:00 PM",
-      avgResponseTime: "30 minutes",
-      specialties: ["Online banking", "Mobile app", "System issues"]
-    }
-  ],
-
-  // FAQ and scripts for common issues
-  supportResources: {
-    commonIssues: [
-      {
-        category: "Account Access",
-        issues: [
-          {
-            title: "Forgot Password",
-            script: "I can help you reset your password. For security, I'll need to verify your identity with your date of birth and the last 4 digits of your SSN.",
-            steps: [
-              "Verify customer identity",
-              "Generate temporary password",
-              "Email reset link to registered email",
-              "Advise customer to change password on first login"
-            ]
-          },
-          {
-            title: "Account Locked",
-            script: "I see your account has been temporarily locked for security. Let me verify your identity and unlock it for you.",
-            steps: [
-              "Verify customer identity",
-              "Check reason for lock",
-              "Remove security hold if appropriate",
-              "Advise customer on security best practices"
-            ]
-          }
-        ]
-      },
-      {
-        category: "Transactions",
-        issues: [
-          {
-            title: "Disputed Charge",
-            script: "I understand you're questioning a charge on your account. Let me pull up your recent transactions and we can review this together.",
-            steps: [
-              "Locate the disputed transaction",
-              "Gather details about the dispute",
-              "Determine if merchant contact is needed",
-              "Initiate formal dispute if necessary",
-              "Provide dispute timeline to customer"
-            ]
-          },
-          {
-            title: "Missing Deposit",
-            script: "Let me check your account for any pending deposits. Sometimes deposits can take 1-2 business days to appear.",
-            steps: [
-              "Check for pending deposits",
-              "Verify deposit method and timing",
-              "Check with originating bank if needed",
-              "Provide expected posting timeline"
-            ]
-          }
-        ]
-      }
-    ],
-    quickResponses: [
-      {
-        trigger: "hours",
-        response: "Our customer service is available Monday-Friday 8:00 AM to 8:00 PM, and Saturday 9:00 AM to 5:00 PM."
-      },
-      {
-        trigger: "routing",
-        response: "Your routing number is 123456789. You can also find this on your checks or in online banking."
-      },
-      {
-        trigger: "fees",
-        response: "Let me pull up your fee schedule. I can also email you a complete list of current fees and charges."
-      }
-    ]
-  },
-
-  // Performance metrics for the CSR
-  performanceMetrics: {
-    today: {
-      callsHandled: 23,
-      avgCallTime: "4:32",
-      resolutionRate: 87,
-      customerSatisfaction: 4.6,
-      ticketsResolved: 8,
-      escalationRate: 12
-    },
-    thisWeek: {
-      callsHandled: 127,
-      avgCallTime: "4:45",
-      resolutionRate: 89,
-      customerSatisfaction: 4.5,
-      ticketsResolved: 45,
-      escalationRate: 15
-    },
-    thisMonth: {
-      callsHandled: 534,
-      avgCallTime: "4:38",
-      resolutionRate: 91,
-      customerSatisfaction: 4.7,
-      ticketsResolved: 198,
-      escalationRate: 13
-    }
-  }
 };
 
-// Customer search results (when CSR searches for customers)
-export const customerSearchResults = [
-  {
-    customerId: "CUST-789456",
-    name: "Michael Rodriguez",
-    accountNumber: "****3847",
-    phone: "(555) 234-5678",
-    status: "Active",
-    lastContact: "2024-06-01",
-    riskLevel: "Low"
-  },
-  {
-    customerId: "CUST-445789",
-    name: "Jennifer Chen",
-    accountNumber: "****7291",
-    phone: "(555) 345-6789",
-    status: "Active",
-    lastContact: "2024-05-28",
-    riskLevel: "Low"
-  },
-  {
-    customerId: "CUST-223456",
-    name: "Robert Thompson",
-    accountNumber: "****9156",
-    phone: "(555) 456-7890",
-    status: "Active",
-    lastContact: "2024-05-25",
-    riskLevel: "Medium"
-  }
-];
-
 const Transactions = () => {
-
   return (
-    <div className="bg-gray-50 dark:bg-gray-900">
-          {/* Tab Content */}
-            {/* Transactions Tab */}
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white">Recent Transactions</h3>
-                  <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium">
-                    View All Transactions
-                  </button>
-                </div>
-                
-                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                      <thead className="bg-gray-50 dark:bg-gray-800">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                            Date & Time
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                            Description
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                            Account
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                            Amount
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-black dark:text-white uppercase tracking-wider">
-                            Status
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        {csrDashboardData.recentTransactions.map((transaction) => (
-                          <tr key={transaction.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-black dark:text-white">{transaction.date}</div>
-                              <div className="text-sm text-black dark:text-white">{transaction.time}</div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="text-sm text-black dark:text-white">{transaction.type}</div>
-                              <div className="text-sm text-black dark:text-white">{transaction.merchant}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-black dark:text-white">
-                              {transaction.account}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className={`text-sm font-medium ${
-                                transaction.amount > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                              }`}>
-                                {transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount).toLocaleString()}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                transaction.status === 'Posted' ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' :
-                                transaction.status === 'Pending' ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400' :
-                                'bg-gray-100 dark:bg-gray-800 text-black dark:text-white'
-                              }`}>
-                                {transaction.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-7xl">
+        {/* Header Section */}
+        <AnimatedSection delay={100}>
+          <div className="text-center sm:text-left mb-8 sm:mb-10 lg:mb-12">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
+              Recent Transactions
+            </h1>
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-300 mt-2 sm:mt-3">
+              View and manage customer transaction history
+            </p>
+          </div>
+        </AnimatedSection>
 
+        {/* Transactions Section */}
+        <AnimatedSection delay={200}>
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl shadow-2xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 p-6 sm:p-8 lg:p-10 transition-all duration-500">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
+              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white">
+                Transaction History
+              </h3>
+              <button className="bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-medium hover:from-blue-600 hover:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl hover:shadow-blue-500/30">
+                View All Transactions
+              </button>
+            </div>
+
+            <div className="bg-white/50 dark:bg-gray-900/50 rounded-xl sm:rounded-2xl border border-gray-200/30 dark:border-gray-700/30 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200/50 dark:divide-gray-700/50">
+                  <thead className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700">
+                    <tr>
+                      <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                        Date & Time
+                      </th>
+                      <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                        Description
+                      </th>
+                      <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                        Account
+                      </th>
+                      <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                        Amount
+                      </th>
+                      <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white/30 dark:bg-gray-800/30 divide-y divide-gray-200/30 dark:divide-gray-700/30">
+                    {csrDashboardData.recentTransactions.map(
+                      (transaction, index) => (
+                        <tr
+                          key={transaction.id}
+                          className="group hover:bg-white/60 dark:hover:bg-gray-700/60 transition-all duration-300"
+                        >
+                          <td className="px-4 sm:px-6 py-4 sm:py-5 whitespace-nowrap">
+                            <div className="text-sm sm:text-base font-medium text-gray-900 dark:text-white">
+                              {transaction.date}
+                            </div>
+                            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                              {transaction.time}
+                            </div>
+                          </td>
+                          <td className="px-4 sm:px-6 py-4 sm:py-5">
+                            <div className="text-sm sm:text-base font-medium text-gray-900 dark:text-white">
+                              {transaction.type}
+                            </div>
+                            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                              {transaction.merchant}
+                            </div>
+                          </td>
+                          <td className="px-4 sm:px-6 py-4 sm:py-5 whitespace-nowrap">
+                            <span className="text-sm sm:text-base font-mono text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-lg">
+                              {transaction.account}
+                            </span>
+                          </td>
+                          <td className="px-4 sm:px-6 py-4 sm:py-5 whitespace-nowrap">
+                            <div
+                              className={`text-sm sm:text-base font-bold ${
+                                transaction.amount > 0
+                                  ? "text-green-600 dark:text-green-400"
+                                  : "text-red-600 dark:text-red-400"
+                              }`}
+                            >
+                              {transaction.amount > 0 ? "+" : ""}$
+                              {Math.abs(transaction.amount).toLocaleString()}
+                            </div>
+                          </td>
+                          <td className="px-4 sm:px-6 py-4 sm:py-5 whitespace-nowrap">
+                            <span
+                              className={`inline-flex px-3 py-1 text-xs sm:text-sm font-semibold rounded-full ${
+                                transaction.status === "Posted"
+                                  ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-700"
+                                  : transaction.status === "Pending"
+                                  ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-700"
+                                  : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700"
+                              }`}
+                            >
+                              {transaction.status}
+                            </span>
+                          </td>
+                        </tr>
+                      )
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </AnimatedSection>
+      </div>
     </div>
   );
 };
