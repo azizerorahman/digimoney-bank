@@ -370,7 +370,7 @@ const Dashboard = () => {
     csr: [
       {
         title: "Customer Profile",
-        path: "/dashboard/csr/customer-portfolio",
+        path: "/dashboard/csr/customer-profile",
         src: <FaUsers className="w-5 h-5" />,
         description: "View customer profiles",
       },

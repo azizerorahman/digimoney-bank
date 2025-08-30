@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   AlertTriangle,
-  XCircle,
   Shield,
   Eye,
   Flag,
@@ -13,6 +12,7 @@ import {
 import useSuperAdminData from "../../../hooks/useSuperAdminData";
 import LoadingSpinner from "../../../components/Loading";
 import AnimatedSection from "../../../components/AnimatedSection";
+import Modal from "../../../components/Modal";
 
 const SecurityAndCompliance = () => {
   const [selectedSecurityEvent, setSelectedSecurityEvent] = useState(null);
@@ -370,123 +370,85 @@ const SecurityAndCompliance = () => {
         </AnimatedSection>
 
         {/* Security Event Details Modal */}
-        {showSecurityEventModal && selectedSecurityEvent && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
-                    Security Event Details
-                  </h3>
-                  <button
-                    onClick={() => setShowSecurityEventModal(false)}
-                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-                  >
-                    <XCircle className="h-6 w-6" />
-                  </button>
-                </div>
+        <Modal
+          isOpen={showSecurityEventModal && selectedSecurityEvent}
+          onClose={() => setShowSecurityEventModal(false)}
+          title="Security Event Details"
+          size="md"
+        >
+          <div className="space-y-6">
+            {/* Essential Event Information */}
+            <div className="bg-gray-50/80 dark:bg-gray-700/50 rounded-xl p-6 border border-gray-200/50 dark:border-gray-600/50">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-4 text-lg flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                {selectedSecurityEvent?.type}
+              </h4>
+
+              {/* Severity and Status */}
+              <div className="flex gap-3 mb-4">
+                <span
+                  className={`px-3 py-2 rounded-lg text-sm font-medium border ${getSeverityColor(
+                    selectedSecurityEvent?.severity
+                  )}`}
+                >
+                  {selectedSecurityEvent?.severity} Risk
+                </span>
+                <span
+                  className={`px-3 py-2 rounded-lg text-sm font-medium border ${getStatusColor(
+                    selectedSecurityEvent?.status
+                  )}`}
+                >
+                  {selectedSecurityEvent?.status}
+                </span>
               </div>
 
-              <div className="p-6">
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Event ID
-                      </label>
-                      <p className="text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
-                        {selectedSecurityEvent.id}
-                      </p>
-                    </div>
+              {/* Description */}
+              <div className="mb-4">
+                <p className="text-gray-900 dark:text-white bg-white dark:bg-gray-600 px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-500 leading-relaxed">
+                  {selectedSecurityEvent?.description}
+                </p>
+              </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Type
-                      </label>
-                      <p className="text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
-                        {selectedSecurityEvent.type}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Severity
-                      </label>
-                      <span
-                        className={`inline-block px-3 py-2 rounded-lg text-sm font-medium border ${getSeverityColor(
-                          selectedSecurityEvent.severity
-                        )}`}
-                      >
-                        {selectedSecurityEvent.severity}
-                      </span>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Status
-                      </label>
-                      <span
-                        className={`inline-block px-3 py-2 rounded-lg text-sm font-medium border ${getStatusColor(
-                          selectedSecurityEvent.status
-                        )}`}
-                      >
-                        {selectedSecurityEvent.status}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Description
-                    </label>
-                    <p className="text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
-                      {selectedSecurityEvent.description}
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Affected User
-                      </label>
-                      <p className="text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
-                        {selectedSecurityEvent.affectedUser}
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Timestamp
-                      </label>
-                      <p className="text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
-                        {selectedSecurityEvent.timestamp}
-                      </p>
-                    </div>
-                  </div>
+              {/* Key Details */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400 font-medium">
+                    User:
+                  </span>
+                  <span className="text-gray-900 dark:text-white font-semibold">
+                    {selectedSecurityEvent?.affectedUser}
+                  </span>
                 </div>
-
-                <div className="flex space-x-3 mt-8">
-                  <button
-                    type="button"
-                    onClick={() => setShowSecurityEventModal(false)}
-                    className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
-                  >
-                    Close
-                  </button>
-                  <button
-                    type="button"
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg transition-all duration-200 font-medium flex items-center justify-center space-x-2"
-                  >
-                    <Save className="h-4 w-4" />
-                    <span>Take Action</span>
-                  </button>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400 font-medium">
+                    Time:
+                  </span>
+                  <span className="text-gray-900 dark:text-white font-semibold">
+                    {selectedSecurityEvent?.timestamp}
+                  </span>
                 </div>
               </div>
             </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowSecurityEventModal(false)}
+                className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-all duration-200 hover:scale-105"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                className="flex-1 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 hover:scale-105"
+              >
+                <Save className="h-4 w-4" />
+                Take Action
+              </button>
+            </div>
           </div>
-        )}
+        </Modal>
       </div>
     </div>
   );

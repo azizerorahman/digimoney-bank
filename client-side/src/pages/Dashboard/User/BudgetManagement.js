@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo } from "react";
 import { toast } from "react-toastify";
 import LoadingSpinner from "../../../components/Loading";
 import AnimatedSection from "../../../components/AnimatedSection";
+import Modal from "../../../components/Modal";
 
 const BudgetManagement = () => {
   const uId = localStorage.getItem("userId");
@@ -643,203 +644,201 @@ const BudgetManagement = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-7xl">
         {/* Budget Management Modal */}
-        {showBudgetModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 w-full max-w-md max-h-[95vh] overflow-y-auto shadow-2xl border border-gray-200/50 dark:border-gray-700/50 animate-in fade-in duration-300 scale-in-95">
-              <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
-                {editingBudget ? "Edit Budget" : "Add New Budget"}
-              </h3>
-
-              <div className="space-y-4 sm:space-y-5">
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
-                    Category *
-                  </label>
-                  <select
-                    value={budgetForm.category}
-                    onChange={(e) =>
-                      setBudgetForm({
-                        ...budgetForm,
-                        category: e.target.value,
-                        customCategory: "",
-                      })
-                    }
-                    className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
-                  >
-                    <option value="">Select Category</option>
-                    {availableCategories
-                      .filter(
-                        (cat) =>
-                          editingBudget?.category === cat ||
-                          !budgets.budgets.some((b) => b.category === cat)
-                      )
-                      .map((category) => (
-                        <option key={category} value={category}>
-                          {getCategoryIcon(category)} {category}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-                {/* Custom Category Name for "Others" */}
-                {budgetForm.category === "Others" && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
-                      Custom Category Name *
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter custom category name (e.g., Pet Expenses, Hobbies)"
-                      value={budgetForm.customCategory}
-                      onChange={(e) =>
-                        setBudgetForm({
-                          ...budgetForm,
-                          customCategory: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
-                    />
-                    <div className="text-xs mt-1 text-gray-600 dark:text-gray-300">
-                      This will be the display name for your custom category
-                    </div>
-                  </div>
-                )}
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
-                    Monthly Budget Amount *
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="Enter budget amount"
-                    value={budgetForm.budgeted}
-                    onChange={(e) =>
-                      setBudgetForm({ ...budgetForm, budgeted: e.target.value })
-                    }
-                    className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
-                    Description (Optional)
-                  </label>
-                  <textarea
-                    placeholder="Add a description for this budget category..."
-                    value={budgetForm.description}
-                    onChange={(e) =>
-                      setBudgetForm({
-                        ...budgetForm,
-                        description: e.target.value,
-                      })
-                    }
-                    rows={3}
-                    className="w-full px-3 py-2 rounded-lg border resize-none bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
-                  />
-                  <div className="text-xs mt-1 text-gray-600 dark:text-gray-300">
-                    *Describe what expenses this budget will cover
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
-                    Color Theme
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {availableColors.map((color) => (
-                      <button
-                        key={color}
-                        onClick={() => setBudgetForm({ ...budgetForm, color })}
-                        className={`w-8 h-8 rounded-full border-2 ${
-                          budgetForm.color === color
-                            ? "ring-2 ring-offset-2"
-                            : ""
-                        }`}
-                        style={{
-                          background: color,
-                          borderColor:
-                            budgetForm.color === color
-                              ? currentTheme?.primary
-                              : "transparent",
-                          ringColor: currentTheme?.primary,
-                        }}
-                      />
-                    ))}
-                  </div>
+        <Modal
+          isOpen={showBudgetModal}
+          onClose={() => setShowBudgetModal(false)}
+          title={editingBudget ? "Edit Budget" : "Add New Budget"}
+          size="md"
+          footer={
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowBudgetModal(false)}
+                className="px-4 py-2 rounded-lg font-medium"
+                style={{
+                  background: "var(--background)",
+                  border: `1px solid ${currentTheme?.primary}40`,
+                  color: "var(--text-secondary)",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveBudget}
+                className="px-4 py-2 rounded-lg font-medium text-white"
+                style={{
+                  background: currentTheme?.gradient,
+                  boxShadow: currentTheme?.shadow,
+                }}
+              >
+                {editingBudget ? "Update Budget" : "Create Budget"}
+              </button>
+            </div>
+          }
+        >
+          <div className="space-y-4 sm:space-y-5">
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
+                Category *
+              </label>
+              <select
+                value={budgetForm.category}
+                onChange={(e) =>
+                  setBudgetForm({
+                    ...budgetForm,
+                    category: e.target.value,
+                    customCategory: "",
+                  })
+                }
+                className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
+              >
+                <option value="">Select Category</option>
+                {availableCategories
+                  .filter(
+                    (cat) =>
+                      editingBudget?.category === cat ||
+                      !budgets.budgets.some((b) => b.category === cat)
+                  )
+                  .map((category) => (
+                    <option key={category} value={category}>
+                      {getCategoryIcon(category)} {category}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            {/* Custom Category Name for "Others" */}
+            {budgetForm.category === "Others" && (
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
+                  Custom Category Name *
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter custom category name (e.g., Pet Expenses, Hobbies)"
+                  value={budgetForm.customCategory}
+                  onChange={(e) =>
+                    setBudgetForm({
+                      ...budgetForm,
+                      customCategory: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
+                />
+                <div className="text-xs mt-1 text-gray-600 dark:text-gray-300">
+                  This will be the display name for your custom category
                 </div>
               </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowBudgetModal(false)}
-                  className="px-4 py-2 rounded-lg font-medium"
-                  style={{
-                    background: "var(--background)",
-                    border: `1px solid ${currentTheme?.primary}40`,
-                    color: "var(--text-secondary)",
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveBudget}
-                  className="px-4 py-2 rounded-lg font-medium text-white"
-                  style={{
-                    background: currentTheme?.gradient,
-                    boxShadow: currentTheme?.shadow,
-                  }}
-                >
-                  {editingBudget ? "Update Budget" : "Create Budget"}
-                </button>
+            )}
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
+                Monthly Budget Amount *
+              </label>
+              <input
+                type="number"
+                placeholder="Enter budget amount"
+                value={budgetForm.budgeted}
+                onChange={(e) =>
+                  setBudgetForm({ ...budgetForm, budgeted: e.target.value })
+                }
+                className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
+                Description (Optional)
+              </label>
+              <textarea
+                placeholder="Add a description for this budget category..."
+                value={budgetForm.description}
+                onChange={(e) =>
+                  setBudgetForm({
+                    ...budgetForm,
+                    description: e.target.value,
+                  })
+                }
+                rows={3}
+                className="w-full px-3 py-2 rounded-lg border resize-none bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
+              />
+              <div className="text-xs mt-1 text-gray-600 dark:text-gray-300">
+                *Describe what expenses this budget will cover
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
+                Color Theme
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {availableColors.map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => setBudgetForm({ ...budgetForm, color })}
+                    className={`w-8 h-8 rounded-full border-2 ${
+                      budgetForm.color === color ? "ring-2 ring-offset-2" : ""
+                    }`}
+                    style={{
+                      background: color,
+                      borderColor:
+                        budgetForm.color === color
+                          ? currentTheme?.primary
+                          : "transparent",
+                      ringColor: currentTheme?.primary,
+                    }}
+                  />
+                ))}
               </div>
             </div>
           </div>
-        )}
+        </Modal>
 
         {/* Monthly Budget Modal */}
-        {showMonthlyBudgetModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 w-full max-w-md max-h-[95vh] shadow-2xl border border-gray-200/50 dark:border-gray-700/50 animate-in fade-in duration-300 scale-in-95">
-              <div className="space-y-4 sm:space-y-5">
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
-                    Monthly Budget Limit
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="Enter monthly budget limit"
-                    value={tempBudgetInput}
-                    onChange={(e) => setTempBudgetInput(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
-                  />
-                  <div className="text-xs mt-1 text-gray-600 dark:text-gray-300 ">
-                    *This will be used as your overall monthly spending target
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowMonthlyBudgetModal(false)}
-                  className="px-4 py-2 rounded-lg font-medium"
-                  style={{
-                    background: "var(--background)",
-                    border: `1px solid ${currentTheme?.primary}40`,
-                    color: "var(--text-secondary)",
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveMonthlyBudget}
-                  className="px-4 py-2 rounded-lg font-medium text-white"
-                  style={{
-                    background: currentTheme?.gradient,
-                    boxShadow: currentTheme?.shadow,
-                  }}
-                >
-                  Save Budget
-                </button>
+        <Modal
+          isOpen={showMonthlyBudgetModal}
+          onClose={() => setShowMonthlyBudgetModal(false)}
+          title="Set Monthly Budget Limit"
+          size="md"
+          footer={
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowMonthlyBudgetModal(false)}
+                className="px-4 py-2 rounded-lg font-medium"
+                style={{
+                  background: "var(--background)",
+                  border: `1px solid ${currentTheme?.primary}40`,
+                  color: "var(--text-secondary)",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveMonthlyBudget}
+                className="px-4 py-2 rounded-lg font-medium text-white"
+                style={{
+                  background: currentTheme?.gradient,
+                  boxShadow: currentTheme?.shadow,
+                }}
+              >
+                Save Budget
+              </button>
+            </div>
+          }
+        >
+          <div className="space-y-4 sm:space-y-5">
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
+                Monthly Budget Limit
+              </label>
+              <input
+                type="number"
+                placeholder="Enter monthly budget limit"
+                value={tempBudgetInput}
+                onChange={(e) => setTempBudgetInput(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white"
+              />
+              <div className="text-xs mt-1 text-gray-600 dark:text-gray-300 ">
+                *This will be used as your overall monthly spending target
               </div>
             </div>
           </div>
-        )}
+        </Modal>
 
         {/* BUDGET MANAGEMENT SECTION */}
         <div className="">

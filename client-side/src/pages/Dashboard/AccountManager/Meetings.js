@@ -1,16 +1,14 @@
 import { useState } from "react";
 import LoadingSpinner from "../../../components/Loading";
 import AnimatedSection from "../../../components/AnimatedSection";
+import Modal from "../../../components/Modal";
 import {
   Calendar,
   Clock,
   Plus,
-  Edit,
   Video,
   X,
   CheckCircle,
-  MapPin,
-  Users,
   Eye,
 } from "lucide-react";
 
@@ -150,30 +148,12 @@ const CalendarMeetings = () => {
     setShowNewMeetingModal(true);
   };
 
-  const handleEditMeeting = (meeting) => {
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      alert(`Edit meeting: ${meeting.type} with ${meeting.customerName}`);
-    }, 1000);
-  };
-
   const handleJoinMeeting = (meeting) => {
     setLoading(true);
     // Simulate API call
     setTimeout(() => {
       setLoading(false);
       alert(`Joining meeting: ${meeting.type} with ${meeting.customerName}`);
-    }, 1000);
-  };
-
-  const handleCancelMeeting = (meeting) => {
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      alert(`Meeting cancelled: ${meeting.type} with ${meeting.customerName}`);
     }, 1000);
   };
 
@@ -238,145 +218,98 @@ const CalendarMeetings = () => {
     if (!selectedMeeting) return null;
 
     return (
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 w-full max-w-2xl max-h-[95vh] overflow-y-auto shadow-2xl border border-gray-200 dark:border-gray-700 animate-in fade-in duration-300 scale-in-95">
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <h3 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
-              Meeting Details
-            </h3>
-            <button
-              onClick={() => setShowMeetingDetails(false)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors duration-200"
-            >
-              <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-            </button>
-          </div>
+      <Modal
+        isOpen={showMeetingDetails}
+        onClose={() => setShowMeetingDetails(false)}
+        title="Meeting Details"
+        size="md"
+      >
+        <div className="space-y-6">
+          {/* Meeting Overview */}
+          <div className="bg-gray-50/80 dark:bg-gray-700/50 rounded-xl p-6 border border-gray-200/50 dark:border-gray-600/50">
+            <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              {selectedMeeting.type}
+            </h4>
+            <p className="text-lg text-gray-700 dark:text-gray-300 mb-4">
+              {selectedMeeting.customerName}
+            </p>
 
-          <div className="space-y-4 sm:space-y-6">
-            {/* Meeting Header */}
-            <div className="flex items-start justify-between p-4 bg-gradient-to-r from-[#6160DC]/10 to-[#8B7EFF]/10 rounded-xl">
-              <div>
-                <h4 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {selectedMeeting.type}
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {selectedMeeting.id}
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
-                      selectedMeeting.status
-                    )}`}
-                  >
-                    {selectedMeeting.status}
-                  </span>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(
-                      selectedMeeting.priority
-                    )}`}
-                  >
-                    {selectedMeeting.priority} Priority
-                  </span>
-                </div>
-              </div>
+            <div className="flex items-center gap-2 mb-4">
+              <span
+                className={`px-3 py-1 rounded-lg text-sm font-medium ${getStatusColor(
+                  selectedMeeting.status
+                )}`}
+              >
+                {selectedMeeting.status}
+              </span>
+              <span
+                className={`px-3 py-1 rounded-lg text-sm font-medium ${getPriorityColor(
+                  selectedMeeting.priority
+                )}`}
+              >
+                {selectedMeeting.priority} Priority
+              </span>
             </div>
 
-            {/* Meeting Information */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
-                <div className="flex items-center mb-2">
-                  <Users className="w-5 h-5 text-blue-600 mr-2" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Customer
-                  </span>
-                </div>
-                <p className="text-lg font-bold text-gray-900 dark:text-white">
-                  {selectedMeeting.customerName}
-                </p>
-              </div>
-
-              <div className="p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
-                <div className="flex items-center mb-2">
-                  <Calendar className="w-5 h-5 text-green-600 mr-2" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Date & Time
-                  </span>
-                </div>
-                <p className="text-lg font-bold text-gray-900 dark:text-white">
+            {/* Key Meeting Info */}
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Date:</span>
+                <span className="font-semibold text-gray-900 dark:text-white">
                   {formatDate(selectedMeeting.date)}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Time:</span>
+                <span className="font-semibold text-gray-900 dark:text-white">
                   {selectedMeeting.time}
-                </p>
+                </span>
               </div>
-
-              <div className="p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
-                <div className="flex items-center mb-2">
-                  <Clock className="w-5 h-5 text-purple-600 mr-2" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Duration
-                  </span>
-                </div>
-                <p className="text-lg font-bold text-gray-900 dark:text-white">
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">
+                  Duration:
+                </span>
+                <span className="font-semibold text-gray-900 dark:text-white">
                   {selectedMeeting.duration}
-                </p>
+                </span>
               </div>
-
-              <div className="p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
-                <div className="flex items-center mb-2">
-                  <MapPin className="w-5 h-5 text-orange-600 mr-2" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Location
-                  </span>
-                </div>
-                <p className="text-lg font-bold text-gray-900 dark:text-white">
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">
+                  Location:
+                </span>
+                <span className="font-semibold text-gray-900 dark:text-white">
                   {selectedMeeting.location}
-                </p>
+                </span>
               </div>
             </div>
 
             {/* Agenda */}
-            <div className="p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
-              <h5 className="font-semibold text-gray-900 dark:text-white mb-2">
-                Agenda
-              </h5>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {selectedMeeting.agenda}
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <p className="text-sm text-blue-800 dark:text-blue-300">
+                <strong>Agenda:</strong> {selectedMeeting.agenda}
               </p>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex gap-3">
             <button
-              onClick={() => handleEditMeeting(selectedMeeting)}
-              disabled={loading}
-              className="flex-1 bg-gradient-to-r from-[#6160DC] to-[#8B7EFF] text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-300 disabled:opacity-50 flex items-center justify-center"
+              onClick={() => setShowMeetingDetails(false)}
+              className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-all duration-200 hover:scale-105"
             >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Meeting
+              Close
             </button>
-
             <button
               onClick={() => handleJoinMeeting(selectedMeeting)}
               disabled={loading}
-              className="flex-1 bg-gradient-to-r from-[#36D399] to-[#4AE3AA] text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-300 disabled:opacity-50 flex items-center justify-center"
+              className="flex-1 bg-gradient-to-r from-[#36D399] to-[#4AE3AA] text-white px-4 py-3 rounded-xl hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 hover:scale-105 disabled:opacity-50"
             >
-              <Video className="w-4 h-4 mr-2" />
+              <Video className="w-4 h-4" />
               Join Meeting
-            </button>
-
-            <button
-              onClick={() => handleCancelMeeting(selectedMeeting)}
-              disabled={loading}
-              className="flex-1 bg-gradient-to-r from-[#EF4444] to-[#F87171] text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-300 disabled:opacity-50 flex items-center justify-center"
-            >
-              <X className="w-4 h-4 mr-2" />
-              Cancel
             </button>
           </div>
         </div>
-      </div>
+      </Modal>
     );
   };
 

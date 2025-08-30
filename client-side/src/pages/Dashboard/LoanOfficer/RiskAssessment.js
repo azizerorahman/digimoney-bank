@@ -3,6 +3,7 @@ import axios from "axios";
 import useUserInfo from "../../../hooks/useUserInfo";
 import LoadingSpinner from "../../../components/Loading";
 import AnimatedSection from "../../../components/AnimatedSection";
+import Modal from "../../../components/Modal";
 import { toast } from "react-toastify";
 import {
   FileText,
@@ -11,7 +12,6 @@ import {
   BarChart3,
   Shield,
   Search,
-  X,
   RefreshCw,
   Download,
 } from "lucide-react";
@@ -807,182 +807,106 @@ const RiskAssessment = () => {
         </AnimatedSection>
 
         {/* Details Modal */}
-        {showDetailsModal && selectedAssessment && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-              {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20">
-                <div className="flex items-center space-x-4">
-                  <div className="h-12 w-12 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-800/50 dark:to-red-700/50 rounded-xl flex items-center justify-center">
-                    {getAssessmentIcon(selectedAssessment.type)}
-                  </div>
-                  <div>
-                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-                      {selectedAssessment.applicantName || "Unknown Applicant"}
-                    </h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Risk Assessment Details
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowDetailsModal(false)}
-                  className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200"
+        <Modal
+          isOpen={showDetailsModal && selectedAssessment}
+          onClose={() => setShowDetailsModal(false)}
+          title={selectedAssessment?.applicantName || "Unknown Applicant"}
+          subtitle="Risk Assessment Details"
+          size="xl"
+        >
+          {/* Risk Analysis */}
+          <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border border-red-200 dark:border-red-700/30 rounded-xl p-6 mb-8">
+            <div className="flex items-center space-x-3 mb-4">
+              <BarChart3 className="h-5 w-5 text-red-600 dark:text-red-400" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Risk Analysis
+              </h3>
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="text-center">
+                <div
+                  className={`text-4xl font-bold ${getRiskScoreColor(
+                    selectedAssessment?.riskScore
+                  )} mb-2`}
                 >
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
-
-              {/* Modal Content */}
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-                {/* Basic Information */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                      Basic Information
-                    </h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-300">
-                          Application ID:
-                        </span>
-                        <span className="font-medium text-gray-900 dark:text-white">
-                          {selectedAssessment.applicationId}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-300">
-                          Assessment Type:
-                        </span>
-                        <span className="font-medium text-gray-900 dark:text-white capitalize">
-                          {selectedAssessment.type === "fraud"
-                            ? "Fraud Alert"
-                            : "Risk Assessment"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-300">
-                          Status:
-                        </span>
-                        <span className="font-medium text-gray-900 dark:text-white capitalize">
-                          {selectedAssessment.status}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-300">
-                          Assessment Date:
-                        </span>
-                        <span className="font-medium text-gray-900 dark:text-white">
-                          {selectedAssessment.assessmentDate
-                            ? new Date(
-                                selectedAssessment.assessmentDate
-                              ).toLocaleDateString()
-                            : "N/A"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                      Risk Analysis
-                    </h3>
-                    <div className="space-y-4">
-                      <div className="text-center">
-                        <div
-                          className={`text-4xl font-bold ${getRiskScoreColor(
-                            selectedAssessment.riskScore
-                          )} mb-2`}
-                        >
-                          {selectedAssessment.riskScore}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-300">
-                          Risk Score
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <div
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getRiskLevelColor(
-                            selectedAssessment.riskLevel
-                          )}`}
-                        >
-                          {selectedAssessment.riskLevel.toUpperCase()} RISK
-                        </div>
-                      </div>
-                      {selectedAssessment.type === "fraud" && (
-                        <div className="text-center">
-                          <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-600 text-white border-red-600">
-                            FRAUD ALERT
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  {selectedAssessment?.riskScore}
                 </div>
-
-                {/* Risk Factors */}
-                {selectedAssessment.factors &&
-                  selectedAssessment.factors.length > 0 && (
-                    <div className="mb-8">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        Risk Factors
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {selectedAssessment.factors.map((factor, idx) => (
-                          <div
-                            key={idx}
-                            className="bg-white/80 dark:bg-gray-700/80 rounded-lg border border-gray-200 dark:border-gray-600 p-4"
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <h4 className="font-medium text-gray-900 dark:text-white">
-                                {factor}
-                              </h4>
-                              <span className="text-lg font-bold text-red-600 dark:text-red-400">
-                                ⚠
-                              </span>
-                            </div>
-                            <div className="text-xs mt-2 px-2 py-1 rounded-md inline-block bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
-                              High Impact
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                {/* Recommendation */}
-                {selectedAssessment.recommendation && (
-                  <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                      Recommendation
-                    </h3>
-                    <p className="text-gray-700 dark:text-gray-300">
-                      {selectedAssessment.recommendation}
-                    </p>
-                    {selectedAssessment.type === "fraud" &&
-                      selectedAssessment.alertType && (
-                        <div className="mt-4 p-4 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                          <h4 className="font-medium text-red-900 dark:text-red-300 mb-2">
-                            Fraud Alert Details:
-                          </h4>
-                          <p className="text-red-700 dark:text-red-300 text-sm">
-                            {selectedAssessment.alertType}
-                          </p>
-                          {selectedAssessment.severity && (
-                            <div className="mt-2">
-                              <span className="text-xs font-medium text-red-600 dark:text-red-400">
-                                Severity: {selectedAssessment.severity}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                  </div>
-                )}
+                <div className="text-sm text-gray-600 dark:text-gray-300">
+                  Risk Score
+                </div>
+              </div>
+              <div className="text-center">
+                <div
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getRiskLevelColor(
+                    selectedAssessment?.riskLevel
+                  )}`}
+                >
+                  {selectedAssessment?.riskLevel?.toUpperCase()} RISK
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-300 mt-2">
+                  Risk Level
+                </div>
               </div>
             </div>
           </div>
-        )}
+
+          {/* Risk Factors */}
+          {selectedAssessment?.factors &&
+            selectedAssessment.factors.length > 0 && (
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border border-orange-200 dark:border-orange-700/30 rounded-xl p-6 mb-8">
+                <div className="flex items-center space-x-3 mb-4">
+                  <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Key Risk Factors
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedAssessment.factors.slice(0, 4).map((factor, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-white/80 dark:bg-gray-700/80 rounded-lg border border-gray-200 dark:border-gray-600 p-4"
+                    >
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium text-gray-900 dark:text-white">
+                          {factor}
+                        </h4>
+                        <span className="text-lg font-bold text-red-600 dark:text-red-400">
+                          ⚠
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          {/* Recommendation */}
+          {selectedAssessment?.recommendation && (
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border border-purple-200 dark:border-purple-700/30 rounded-xl p-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Recommendation
+                </h3>
+              </div>
+              <p className="text-gray-700 dark:text-gray-300 text-lg font-medium">
+                {selectedAssessment.recommendation}
+              </p>
+              {selectedAssessment.type === "fraud" && (
+                <div className="mt-4 p-4 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                  <h4 className="font-medium text-red-900 dark:text-red-300 mb-2">
+                    ⚠ Fraud Alert - Immediate Action Required
+                  </h4>
+                  {selectedAssessment.alertType && (
+                    <p className="text-red-700 dark:text-red-300 text-sm">
+                      {selectedAssessment.alertType}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </Modal>
       </div>
     </div>
   );

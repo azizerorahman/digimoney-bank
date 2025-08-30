@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Phone, Mail, MapPin, AlertTriangle } from "lucide-react";
 import AnimatedSection from "../../../components/AnimatedSection";
+import Modal from "../../../components/Modal";
 
 export const csrDashboardData = {
   activeCustomer: {
@@ -192,124 +193,92 @@ const CSRCustomerProfile = () => {
       zip: customer?.contactInfo?.address?.zip || "",
     });
 
-    if (!isOpen) return null;
-
     return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 w-full max-w-lg border border-gray-200/50 dark:border-gray-700/50 shadow-2xl">
-          <h3 className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent mb-6">
-            Update Customer Information
-          </h3>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Update Contact Info"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-3">
+            <input
+              type="tel"
+              value={formData.phone}
+              onChange={(e) =>
+                setFormData({ ...formData, phone: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Phone number"
+            />
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
-                }
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-black dark:text-white bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                placeholder="Enter phone number"
-              />
-            </div>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Email address"
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Email Address
-              </label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-black dark:text-white bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                placeholder="Enter email address"
-              />
-            </div>
+            <input
+              type="text"
+              value={formData.street}
+              onChange={(e) =>
+                setFormData({ ...formData, street: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Street address"
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Street Address
-              </label>
+            <div className="grid grid-cols-3 gap-2">
               <input
                 type="text"
-                value={formData.street}
+                value={formData.city}
                 onChange={(e) =>
-                  setFormData({ ...formData, street: e.target.value })
+                  setFormData({ ...formData, city: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-black dark:text-white bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                placeholder="Enter street address"
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="City"
               />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  City
-                </label>
-                <input
-                  type="text"
-                  value={formData.city}
-                  onChange={(e) =>
-                    setFormData({ ...formData, city: e.target.value })
-                  }
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-black dark:text-white bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                  placeholder="City"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  State
-                </label>
-                <input
-                  type="text"
-                  value={formData.state}
-                  onChange={(e) =>
-                    setFormData({ ...formData, state: e.target.value })
-                  }
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-black dark:text-white bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                  placeholder="State"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                ZIP Code
-              </label>
+              <input
+                type="text"
+                value={formData.state}
+                onChange={(e) =>
+                  setFormData({ ...formData, state: e.target.value })
+                }
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="State"
+              />
               <input
                 type="text"
                 value={formData.zip}
                 onChange={(e) =>
                   setFormData({ ...formData, zip: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-black dark:text-white bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                placeholder="ZIP Code"
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="ZIP"
               />
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mt-8">
+          <div className="flex space-x-3 pt-2">
             <button
               onClick={() => onUpdate(formData)}
-              className="flex-1 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white py-3 px-6 rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl hover:shadow-blue-500/30"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-all duration-300 hover:scale-105"
             >
-              Update Information
+              Update
             </button>
             <button
               onClick={onClose}
-              className="flex-1 bg-gradient-to-br from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 text-white py-3 px-6 rounded-xl font-medium hover:from-gray-500 hover:to-gray-600 dark:hover:from-gray-700 dark:hover:to-gray-800 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg font-medium transition-all duration-300 hover:scale-105"
             >
               Cancel
             </button>
           </div>
         </div>
-      </div>
+      </Modal>
     );
   };
 
@@ -319,121 +288,119 @@ const CSRCustomerProfile = () => {
       category: "Account Updates",
       priority: "Medium",
       description: "",
-      slaDeadline: "",
     });
 
-    if (!isOpen) return null;
-
     return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 w-full max-w-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-2xl max-h-[90vh] overflow-y-auto">
-          <h3 className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-green-600 to-blue-600 dark:from-green-400 dark:to-blue-400 bg-clip-text text-transparent mb-6">
-            Create Service Request
-          </h3>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Issue Title
-              </label>
-              <input
-                type="text"
-                value={formData.issue}
-                onChange={(e) =>
-                  setFormData({ ...formData, issue: e.target.value })
-                }
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-black dark:text-white bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
-                placeholder="Brief description of the issue"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Create Service Request"
+        size="md"
+      >
+        <div className="space-y-6">
+          {/* Request Details Section */}
+          <div className="bg-gray-50/80 dark:bg-gray-700/50 rounded-xl p-4">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+              Request Details
+            </h4>
+            <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Category
+                  Issue Title
                 </label>
-                <select
-                  value={formData.category}
+                <input
+                  type="text"
+                  value={formData.issue}
                   onChange={(e) =>
-                    setFormData({ ...formData, category: e.target.value })
+                    setFormData({ ...formData, issue: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-black dark:text-white bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
-                >
-                  <option value="Account Updates">Account Updates</option>
-                  <option value="Credit Services">Credit Services</option>
-                  <option value="Fraud/Disputes">Fraud/Disputes</option>
-                  <option value="Account Access">Account Access</option>
-                  <option value="Transactions">Transactions</option>
-                  <option value="Security">Security</option>
-                </select>
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-black dark:text-white bg-white dark:bg-gray-700 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
+                  placeholder="Brief description of the issue"
+                />
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Category
+                  </label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) =>
+                      setFormData({ ...formData, category: e.target.value })
+                    }
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-black dark:text-white bg-white dark:bg-gray-700 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
+                  >
+                    <option value="Account Updates">Account Updates</option>
+                    <option value="Credit Services">Credit Services</option>
+                    <option value="Fraud/Disputes">Fraud/Disputes</option>
+                    <option value="Account Access">Account Access</option>
+                    <option value="Transactions">Transactions</option>
+                    <option value="Security">Security</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Priority
+                  </label>
+                  <select
+                    value={formData.priority}
+                    onChange={(e) =>
+                      setFormData({ ...formData, priority: e.target.value })
+                    }
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-black dark:text-white bg-white dark:bg-gray-700 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Priority
+                  Description
                 </label>
-                <select
-                  value={formData.priority}
+                <textarea
+                  value={formData.description}
                   onChange={(e) =>
-                    setFormData({ ...formData, priority: e.target.value })
+                    setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-black dark:text-white bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
-                >
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                </select>
+                  rows={4}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-black dark:text-white bg-white dark:bg-gray-700 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 resize-none"
+                  placeholder="Detailed description of the request"
+                />
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Description
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                rows={4}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-black dark:text-white bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 resize-none"
-                placeholder="Detailed description of the request"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                SLA Deadline
-              </label>
-              <input
-                type="datetime-local"
-                value={formData.slaDeadline}
-                onChange={(e) =>
-                  setFormData({ ...formData, slaDeadline: e.target.value })
-                }
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-black dark:text-white bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
-              />
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mt-8">
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 pt-4">
             <button
-              onClick={() => onSubmit(formData)}
-              className="flex-1 bg-gradient-to-br from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 text-white py-3 px-6 rounded-xl font-medium hover:from-green-600 hover:to-green-700 dark:hover:from-green-700 dark:hover:to-green-800 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl hover:shadow-green-500/30"
+              onClick={() => {
+                const ticketData = {
+                  ...formData,
+                  slaDeadline: new Date(
+                    Date.now() + 24 * 60 * 60 * 1000
+                  ).toISOString(), // 24 hours from now
+                };
+                onSubmit(ticketData);
+              }}
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 transform hover:scale-105"
             >
               Create Request
             </button>
             <button
               onClick={onClose}
-              className="flex-1 bg-gradient-to-br from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 text-white py-3 px-6 rounded-xl font-medium hover:from-gray-500 hover:to-gray-600 dark:hover:from-gray-700 dark:hover:to-gray-800 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 transform hover:scale-105"
             >
               Cancel
             </button>
           </div>
         </div>
-      </div>
+      </Modal>
     );
   };
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -736,7 +703,6 @@ const CSRCustomerProfile = () => {
           customer={selectedCustomer}
           onSubmit={handleCreateTicket}
         />
-
       </div>
     </div>
   );

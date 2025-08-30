@@ -255,9 +255,9 @@ function App() {
           >
             <Route
               index
-              element={<Navigate to="customer-portfolio" replace />}
+              element={<Navigate to="customer-profile" replace />}
             />
-            <Route path="customer-portfolio" element={<CSRCustomerProfile />} />
+            <Route path="customer-profile" element={<CSRCustomerProfile />} />
             <Route path="quick-actions" element={<QuickActions />} />
             <Route path="service-requests" element={<ServiceRequests />} />
             <Route path="transactions" element={<Transactions />} />

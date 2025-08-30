@@ -1,16 +1,7 @@
 import { useState } from "react";
 import AnimatedSection from "../../../components/AnimatedSection";
-import {
-  Calendar,
-  FileText,
-  X,
-  MessageSquare,
-  DollarSign,
-  CreditCard,
-  TrendingUp,
-  AlertCircle,
-  Eye,
-} from "lucide-react";
+import Modal from "../../../components/Modal";
+import { Calendar, DollarSign, TrendingUp, Eye } from "lucide-react";
 
 const AMCustomerPortfolio = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -136,145 +127,105 @@ const AMCustomerPortfolio = () => {
     if (!selectedCustomer) return null;
 
     return (
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 w-full max-w-2xl max-h-[95vh] overflow-y-auto shadow-2xl border border-gray-200 dark:border-gray-700 animate-in fade-in duration-300 scale-in-95">
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <h3 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
-              Customer Details
-            </h3>
-            <button
-              onClick={() => setShowCustomerDetails(false)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors duration-200"
-            >
-              <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-            </button>
-          </div>
-
-          <div className="space-y-4 sm:space-y-6">
-            {/* Customer Header */}
-            <div className="flex items-start justify-between p-4 bg-gradient-to-r from-[#6160DC]/10 to-[#8B7EFF]/10 rounded-xl">
-              <div>
-                <h4 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {selectedCustomer.name}
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {selectedCustomer.id}
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${getCustomerTypeColor(
-                      selectedCustomer.type
-                    )}`}
-                  >
-                    {selectedCustomer.type}
-                  </span>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
-                      selectedCustomer.status
-                    )}`}
-                  >
-                    {selectedCustomer.status}
-                  </span>
-                </div>
-              </div>
+      <Modal
+        isOpen={showCustomerDetails}
+        onClose={() => setShowCustomerDetails(false)}
+        title="Customer Portfolio"
+        size="md"
+      >
+        <div className="space-y-6">
+          {/* Customer Overview */}
+          <div className="bg-gray-50/80 dark:bg-gray-700/50 rounded-xl p-6 border border-gray-200/50 dark:border-gray-600/50">
+            <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              {selectedCustomer.name}
+            </h4>
+            <div className="flex items-center gap-2 mb-4">
+              <span
+                className={`px-3 py-1 rounded-lg text-sm font-medium ${getCustomerTypeColor(
+                  selectedCustomer.type
+                )}`}
+              >
+                {selectedCustomer.type}
+              </span>
+              <span
+                className={`px-3 py-1 rounded-lg text-sm font-medium ${getStatusColor(
+                  selectedCustomer.status
+                )}`}
+              >
+                {selectedCustomer.status}
+              </span>
             </div>
 
-            {/* Financial Overview */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
-                <div className="flex items-center mb-2">
-                  <DollarSign className="w-5 h-5 text-green-600 mr-2" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            {/* Key Metrics */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center p-3 bg-white dark:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-500">
+                <div className="flex items-center justify-center mb-1">
+                  <DollarSign className="w-4 h-4 text-green-600 mr-1" />
+                  <span className="text-xs text-gray-600 dark:text-gray-400">
                     Total Value
                   </span>
                 </div>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">
+                <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {formatCurrency(selectedCustomer.totalValue)}
                 </p>
               </div>
 
-              <div className="p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
-                <div className="flex items-center mb-2">
-                  <TrendingUp className="w-5 h-5 text-blue-600 mr-2" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              <div className="text-center p-3 bg-white dark:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-500">
+                <div className="flex items-center justify-center mb-1">
+                  <TrendingUp className="w-4 h-4 text-blue-600 mr-1" />
+                  <span className="text-xs text-gray-600 dark:text-gray-400">
                     Monthly Revenue
                   </span>
                 </div>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">
+                <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {formatCurrency(selectedCustomer.monthlyRevenue)}
                 </p>
               </div>
+            </div>
 
-              <div className="p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
-                <div className="flex items-center mb-2">
-                  <CreditCard className="w-5 h-5 text-purple-600 mr-2" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Accounts
-                  </span>
-                </div>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">
-                  {selectedCustomer.accounts}
-                </p>
-              </div>
-
-              <div className="p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
-                <div className="flex items-center mb-2">
-                  <AlertCircle className="w-5 h-5 text-orange-600 mr-2" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Risk Profile
-                  </span>
-                </div>
-                <p className="text-lg font-semibold text-gray-900 dark:text-white">
+            {/* Risk & Accounts */}
+            <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">
+                  Risk Profile:
+                </span>
+                <span className="font-semibold text-gray-900 dark:text-white">
                   {selectedCustomer.riskProfile}
-                </p>
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">
+                  Accounts:
+                </span>
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  {selectedCustomer.accounts}
+                </span>
               </div>
             </div>
 
-            {/* Additional Information */}
-            <div className="p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
-              <h5 className="font-semibold text-gray-900 dark:text-white mb-2">
-                Notes
-              </h5>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            {/* Notes */}
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <p className="text-sm text-blue-800 dark:text-blue-300">
                 {selectedCustomer.notes}
-              </p>
-            </div>
-
-            <div className="p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
-              <h5 className="font-semibold text-gray-900 dark:text-white mb-2">
-                Last Contact
-              </h5>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {new Date(selectedCustomer.lastContact).toLocaleDateString()}
               </p>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex gap-3">
             <button
-              className="flex-1 bg-gradient-to-r from-[#6160DC] to-[#8B7EFF] text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-300 disabled:opacity-50 flex items-center justify-center"
+              onClick={() => setShowCustomerDetails(false)}
+              className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-all duration-200 hover:scale-105"
             >
-              <Calendar className="w-4 h-4 mr-2" />
+              Close
+            </button>
+            <button className="flex-1 bg-gradient-to-r from-[#6160DC] to-[#8B7EFF] text-white px-4 py-3 rounded-xl hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 hover:scale-105">
+              <Calendar className="w-4 h-4" />
               Schedule Meeting
-            </button>
-
-            <button
-              className="flex-1 bg-gradient-to-r from-[#36D399] to-[#4AE3AA] text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-300 disabled:opacity-50 flex items-center justify-center"
-            >
-              <MessageSquare className="w-4 h-4 mr-2" />
-              Send Message
-            </button>
-
-            <button
-              className="flex-1 bg-gradient-to-r from-[#FFAA5A] to-[#FFBB7C] text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-300 disabled:opacity-50 flex items-center justify-center"
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Generate Report
             </button>
           </div>
         </div>
-      </div>
+      </Modal>
     );
   };
 

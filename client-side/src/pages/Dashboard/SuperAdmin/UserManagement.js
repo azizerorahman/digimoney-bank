@@ -4,7 +4,6 @@ import {
   User,
   Users,
   AlertTriangle,
-  XCircle,
   Edit,
   Shield,
   UserCheck,
@@ -17,6 +16,7 @@ import {
 import useSuperAdminData from "../../../hooks/useSuperAdminData";
 import LoadingSpinner from "../../../components/Loading";
 import AnimatedSection from "../../../components/AnimatedSection";
+import Modal from "../../../components/Modal";
 
 const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -485,283 +485,240 @@ const UserManagement = () => {
       </div>
 
       {/* User Details Modal */}
-      {showUserDetails && selectedUser && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                  User Details
-                </h3>
-                <button
-                  onClick={() => setShowUserDetails(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+      <Modal
+        isOpen={showUserDetails && selectedUser}
+        onClose={() => setShowUserDetails(false)}
+        title="User Details"
+        size="lg"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Basic Information Section */}
+          <div className="bg-gray-50/80 dark:bg-gray-700/50 rounded-xl p-6 border border-gray-200/50 dark:border-gray-600/50">
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-4 text-lg flex items-center gap-2">
+              <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              Basic Information
+            </h4>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Name:
+                </span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {selectedUser?.name}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Email:
+                </span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {selectedUser?.email}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  User ID:
+                </span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {selectedUser?.id}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Role:
+                </span>
+                <span
+                  className={`text-sm px-2 py-1 rounded-lg font-medium ${getRoleColor(
+                    selectedUser?.role
+                  )}`}
                 >
-                  <XCircle className="h-6 w-6" />
-                </button>
+                  {selectedUser?.role}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Department:
+                </span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {selectedUser?.department}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Status:
+                </span>
+                <span
+                  className={`text-sm px-2 py-1 rounded-lg font-medium ${getStatusColor(
+                    selectedUser?.status
+                  )}`}
+                >
+                  {selectedUser?.status}
+                </span>
               </div>
             </div>
+          </div>
 
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-4 text-lg">
-                    Basic Information
-                  </h4>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                        Name:
-                      </span>
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {selectedUser.name}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                        Email:
-                      </span>
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {selectedUser.email}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                        User ID:
-                      </span>
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {selectedUser.id}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                        Role:
-                      </span>
-                      <span
-                        className={`text-sm px-2 py-1 rounded-lg font-medium ${getRoleColor(
-                          selectedUser.role
-                        )}`}
-                      >
-                        {selectedUser.role}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                        Department:
-                      </span>
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {selectedUser.department}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                        Status:
-                      </span>
-                      <span
-                        className={`text-sm px-2 py-1 rounded-lg font-medium ${getStatusColor(
-                          selectedUser.status
-                        )}`}
-                      >
-                        {selectedUser.status}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-4 text-lg">
-                    Activity Information
-                  </h4>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                        Created:
-                      </span>
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {selectedUser.createdDate}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                        Last Login:
-                      </span>
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {selectedUser.lastLogin}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                        Login Count:
-                      </span>
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {formatNumber(selectedUser.loginCount)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                        Last Activity:
-                      </span>
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {selectedUser.lastActivity}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+          {/* Activity Information Section */}
+          <div className="bg-gray-50/80 dark:bg-gray-700/50 rounded-xl p-6 border border-gray-200/50 dark:border-gray-600/50">
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-4 text-lg flex items-center gap-2">
+              <UserCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
+              Activity Information
+            </h4>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Created:
+                </span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {selectedUser?.createdDate}
+                </span>
               </div>
-
-              <div className="mt-6">
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-4 text-lg">
-                  Permissions
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {selectedUser.permissions?.map((permission, idx) => (
-                    <div
-                      key={idx}
-                      className="text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-lg font-medium"
-                    >
-                      {permission
-                        .replace(/_/g, " ")
-                        .replace(/\b\w/g, (l) => l.toUpperCase())}
-                    </div>
-                  ))}
-                </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Last Login:
+                </span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {selectedUser?.lastLogin}
+                </span>
               </div>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                <button
-                  onClick={() => handleEditUser(selectedUser)}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
-                >
-                  <Edit className="h-4 w-4" />
-                  Edit User
-                </button>
-                <button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2">
-                  <Key className="h-4 w-4" />
-                  Reset Password
-                </button>
-                {selectedUser.status === "Active" ? (
-                  <button className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2">
-                    <UserX className="h-4 w-4" />
-                    Suspend User
-                  </button>
-                ) : (
-                  <button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2">
-                    <UserCheck className="h-4 w-4" />
-                    Activate User
-                  </button>
-                )}
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Login Count:
+                </span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {selectedUser ? formatNumber(selectedUser.loginCount) : ""}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Last Activity:
+                </span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {selectedUser?.lastActivity}
+                </span>
               </div>
             </div>
           </div>
         </div>
-      )}
+
+        {/* Action Buttons */}
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            onClick={() => handleEditUser(selectedUser)}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:scale-105"
+          >
+            <Edit className="h-4 w-4" />
+            Edit User
+          </button>
+          <button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:scale-105">
+            <Key className="h-4 w-4" />
+            Reset Password
+          </button>
+          {selectedUser?.status === "Active" ? (
+            <button className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:scale-105">
+              <UserX className="h-4 w-4" />
+              Suspend User
+            </button>
+          ) : (
+            <button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:scale-105">
+              <UserCheck className="h-4 w-4" />
+              Activate User
+            </button>
+          )}
+        </div>
+      </Modal>
 
       {/* Edit User Modal */}
-      {showEditUserModal && editingUser && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md mx-4">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Edit User
-                </h3>
-                <button
-                  onClick={() => setShowEditUserModal(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
-                >
-                  <XCircle className="h-6 w-6" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6">
-              <form className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    defaultValue={editingUser.name}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    defaultValue={editingUser.email}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Role
-                  </label>
-                  <select
-                    defaultValue={editingUser.role}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  >
-                    <option>Account Manager</option>
-                    <option>Loan Officer</option>
-                    <option>Compliance Officer</option>
-                    <option>IT Administrator</option>
-                    <option>Super Admin</option>
-                    <option>Customer</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Department
-                  </label>
-                  <select
-                    defaultValue={editingUser.department}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  >
-                    <option>Private Banking</option>
-                    <option>Commercial Lending</option>
-                    <option>Risk & Compliance</option>
-                    <option>Information Technology</option>
-                    <option>N/A</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Status
-                  </label>
-                  <select
-                    defaultValue={editingUser.status}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  >
-                    <option>Active</option>
-                    <option>Suspended</option>
-                    <option>Pending</option>
-                  </select>
-                </div>
-
-                <div className="flex gap-3 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setShowEditUserModal(false)}
-                    className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-all duration-200"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2"
-                  >
-                    <Save className="h-4 w-4" />
-                    Save Changes
-                  </button>
-                </div>
-              </form>
-            </div>
+      <Modal
+        isOpen={showEditUserModal && editingUser}
+        onClose={() => setShowEditUserModal(false)}
+        title="Edit User"
+        size="md"
+      >
+        <form className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Full Name
+            </label>
+            <input
+              type="text"
+              defaultValue={editingUser?.name}
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            />
           </div>
-        </div>
-      )}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Email
+            </label>
+            <input
+              type="email"
+              defaultValue={editingUser?.email}
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Role
+            </label>
+            <select
+              defaultValue={editingUser?.role}
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            >
+              <option>Account Manager</option>
+              <option>Loan Officer</option>
+              <option>Compliance Officer</option>
+              <option>IT Administrator</option>
+              <option>Super Admin</option>
+              <option>Customer</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Department
+            </label>
+            <select
+              defaultValue={editingUser?.department}
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            >
+              <option>Private Banking</option>
+              <option>Commercial Lending</option>
+              <option>Risk & Compliance</option>
+              <option>Information Technology</option>
+              <option>N/A</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Status
+            </label>
+            <select
+              defaultValue={editingUser?.status}
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            >
+              <option>Active</option>
+              <option>Suspended</option>
+              <option>Pending</option>
+            </select>
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <button
+              type="button"
+              onClick={() => setShowEditUserModal(false)}
+              className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-all duration-200 hover:scale-105"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 hover:scale-105"
+            >
+              <Save className="h-4 w-4" />
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

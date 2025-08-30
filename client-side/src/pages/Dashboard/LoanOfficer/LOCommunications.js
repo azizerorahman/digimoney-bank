@@ -8,7 +8,6 @@ import {
   FileText,
   Mail,
   Phone,
-  Eye,
   MessageSquare,
   Send,
   AlertTriangle,
@@ -29,8 +28,6 @@ const LOCommunications = () => {
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showNewCommModal, setShowNewCommModal] = useState(false);
-  const [selectedComm, setSelectedComm] = useState(null);
-  const [showCommDetails, setShowCommDetails] = useState(false);
   const [newCommData, setNewCommData] = useState({
     applicantId: "",
     customerId: "",
@@ -175,12 +172,6 @@ const LOCommunications = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // Handle viewing communication details
-  const handleViewCommDetails = (comm) => {
-    setSelectedComm(comm);
-    setShowCommDetails(true);
   };
 
   // Memoized filtered communications data
@@ -689,13 +680,6 @@ const LOCommunications = () => {
                               </div>
                             </div>
                           </div>
-
-                          <button
-                            onClick={() => handleViewCommDetails(comm)}
-                            className="p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200 group-hover:scale-110"
-                          >
-                            <Eye className="h-5 w-5" />
-                          </button>
                         </div>
                       </div>
 
@@ -1002,203 +986,6 @@ const LOCommunications = () => {
                   </button>
                 </div>
               </form>
-            </div>
-          </div>
-        )}
-
-        {/* Communication Details Modal */}
-        {showCommDetails && selectedComm && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-              {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
-                <div className="flex items-center space-x-4">
-                  <div className="h-12 w-12 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-800/50 dark:to-purple-700/50 rounded-xl flex items-center justify-center">
-                    {getTypeIcon(selectedComm.type)}
-                  </div>
-                  <div>
-                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-                      Communication Details
-                    </h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      {selectedComm.subject ||
-                        `${selectedComm.type} Communication`}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowCommDetails(false)}
-                  className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
-
-              {/* Modal Content */}
-              <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
-                {/* Basic Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                      Communication Info
-                    </h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-300">
-                          Type:
-                        </span>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">
-                          {selectedComm.type}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-300">
-                          Direction:
-                        </span>
-                        <span
-                          className={`text-sm font-medium px-2 py-1 rounded-full ${getDirectionColor(
-                            selectedComm.direction
-                          )}`}
-                        >
-                          {selectedComm.direction}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-300">
-                          Status:
-                        </span>
-                        <span
-                          className={`text-sm font-medium px-2 py-1 rounded-full ${getStatusColor(
-                            selectedComm.status
-                          )}`}
-                        >
-                          {selectedComm.status}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-300">
-                          Date:
-                        </span>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">
-                          {selectedComm.date
-                            ? new Date(selectedComm.date).toLocaleDateString()
-                            : "N/A"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                      Customer Info
-                    </h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-300">
-                          Applicant ID:
-                        </span>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">
-                          {selectedComm.applicantId || "N/A"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-300">
-                          Customer ID:
-                        </span>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">
-                          {selectedComm.customerId || "N/A"}
-                        </span>
-                      </div>
-                      {selectedComm.duration && (
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-600 dark:text-gray-300">
-                            Duration:
-                          </span>
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">
-                            {selectedComm.duration}
-                          </span>
-                        </div>
-                      )}
-                      {selectedComm.outcome && (
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-600 dark:text-gray-300">
-                            Outcome:
-                          </span>
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">
-                            {selectedComm.outcome}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Subject */}
-                {selectedComm.subject && (
-                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                      Subject
-                    </h3>
-                    <p className="text-blue-800 dark:text-blue-200">
-                      {selectedComm.subject}
-                    </p>
-                  </div>
-                )}
-
-                {/* Content */}
-                {selectedComm.content && (
-                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                      Content
-                    </h3>
-                    <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                      {selectedComm.content}
-                    </p>
-                  </div>
-                )}
-
-                {/* Additional Information */}
-                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-100 mb-3">
-                    Additional Information
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-purple-700 dark:text-purple-300">
-                          Handler:
-                        </span>
-                        <span className="text-sm font-medium text-purple-900 dark:text-purple-100">
-                          {selectedComm.sentBy ||
-                            selectedComm.handledBy ||
-                            userInfo?.name ||
-                            "System"}
-                        </span>
-                      </div>
-                      {selectedComm.readAt && (
-                        <div className="flex justify-between">
-                          <span className="text-sm text-purple-700 dark:text-purple-300">
-                            Read At:
-                          </span>
-                          <span className="text-sm font-medium text-purple-900 dark:text-purple-100">
-                            {new Date(selectedComm.readAt).toLocaleString()}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Close Button */}
-                <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <button
-                    onClick={() => setShowCommDetails(false)}
-                    className="px-6 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 font-medium"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         )}

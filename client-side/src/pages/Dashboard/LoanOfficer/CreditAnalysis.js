@@ -3,6 +3,7 @@ import axios from "axios";
 import useUserInfo from "../../../hooks/useUserInfo";
 import LoadingSpinner from "../../../components/Loading";
 import AnimatedSection from "../../../components/AnimatedSection";
+import Modal from "../../../components/Modal";
 import { toast } from "react-toastify";
 import {
   FileText,
@@ -15,7 +16,6 @@ import {
   GraduationCap,
   Search,
   Shield,
-  X,
   Download,
 } from "lucide-react";
 
@@ -262,194 +262,153 @@ const CreditAnalysis = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-7xl">
         {/* Details Modal */}
-        {showDetailsModal && selectedAnalysis && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 w-full max-w-2xl max-h-[95vh] overflow-y-auto shadow-2xl border border-gray-200/50 dark:border-gray-700/50 animate-in fade-in duration-300 scale-in-95">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
-                  Credit Analysis Details
-                </h3>
-                <button
-                  onClick={() => setShowDetailsModal(false)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  <X className="h-5 w-5 text-gray-500" />
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                {/* Applicant Info */}
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 border border-blue-200 dark:border-blue-700/50 rounded-xl p-4">
-                  <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-3">
-                    Applicant Information
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <span className="text-sm text-blue-700 dark:text-blue-300">
-                        Name:
-                      </span>
-                      <p className="font-medium text-blue-900 dark:text-blue-100">
-                        {selectedAnalysis.applicantName}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-blue-700 dark:text-blue-300">
-                        Application ID:
-                      </span>
-                      <p className="font-medium text-blue-900 dark:text-blue-100">
-                        {selectedAnalysis.applicationId}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-blue-700 dark:text-blue-300">
-                        Loan Type:
-                      </span>
-                      <p className="font-medium text-blue-900 dark:text-blue-100 capitalize">
-                        {selectedAnalysis.loanType}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-blue-700 dark:text-blue-300">
-                        Requested Amount:
-                      </span>
-                      <p className="font-medium text-blue-900 dark:text-blue-100">
-                        ${selectedAnalysis.requestedAmount?.toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
+        <Modal
+          isOpen={showDetailsModal && selectedAnalysis}
+          onClose={() => setShowDetailsModal(false)}
+          title={`Credit Analysis - ${selectedAnalysis?.applicantName || ""}`}
+          size="xl"
+        >
+          <div className="space-y-6">
+            {/* Applicant Info */}
+            <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                <FileText className="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" />
+                Applicant Information
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    Application ID:
+                  </span>
+                  <p className="text-gray-900 dark:text-white">
+                    {selectedAnalysis?.applicationId}
+                  </p>
                 </div>
-
-                {/* Credit Score Info */}
-                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 border border-green-200 dark:border-green-700/50 rounded-xl p-4">
-                  <h4 className="font-semibold text-green-900 dark:text-green-100 mb-3">
-                    Credit Assessment
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div
-                        className={`text-3xl font-bold ${getCreditScoreColor(
-                          selectedAnalysis.creditScore
-                        )} mb-1`}
-                      >
-                        {selectedAnalysis.creditScore}
-                      </div>
-                      <span className="text-sm text-green-700 dark:text-green-300">
-                        Credit Score
-                      </span>
-                    </div>
-                    <div className="text-center">
-                      <div
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getCreditRatingColor(
-                          selectedAnalysis.creditRating
-                        )}`}
-                      >
-                        {selectedAnalysis.creditRating?.toUpperCase()}
-                      </div>
-                      <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                        Credit Rating
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-orange-600 mb-1">
-                        {selectedAnalysis.riskScore}%
-                      </div>
-                      <span className="text-sm text-green-700 dark:text-green-300">
-                        Risk Score
-                      </span>
-                    </div>
-                  </div>
+                <div>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    Loan Type:
+                  </span>
+                  <p className="text-gray-900 dark:text-white capitalize">
+                    {selectedAnalysis?.loanType}
+                  </p>
                 </div>
-
-                {/* Financial Details */}
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20 border border-purple-200 dark:border-purple-700/50 rounded-xl p-4">
-                  <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-3">
-                    Financial Profile
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <span className="text-sm text-purple-700 dark:text-purple-300">
-                        Annual Income:
-                      </span>
-                      <p className="font-medium text-purple-900 dark:text-purple-100">
-                        ${selectedAnalysis.annualIncome?.toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-purple-700 dark:text-purple-300">
-                        Debt-to-Income Ratio:
-                      </span>
-                      <p className="font-medium text-purple-900 dark:text-purple-100">
-                        {selectedAnalysis.debtToIncomeRatio}%
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-purple-700 dark:text-purple-300">
-                        Employment Length:
-                      </span>
-                      <p className="font-medium text-purple-900 dark:text-purple-100">
-                        {selectedAnalysis.employmentLength} years
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-purple-700 dark:text-purple-300">
-                        Analysis Date:
-                      </span>
-                      <p className="font-medium text-purple-900 dark:text-purple-100">
-                        {selectedAnalysis.analysisDate
-                          ? new Date(
-                              selectedAnalysis.analysisDate
-                            ).toLocaleDateString()
-                          : "N/A"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Key Factors */}
-                {selectedAnalysis.keyFactors &&
-                  selectedAnalysis.keyFactors.length > 0 && (
-                    <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/30 dark:to-yellow-800/20 border border-yellow-200 dark:border-yellow-700/50 rounded-xl p-4">
-                      <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-3">
-                        Risk Factors
-                      </h4>
-                      <div className="space-y-2">
-                        {selectedAnalysis.keyFactors.map((factor, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between bg-white/50 dark:bg-gray-800/50 rounded-lg p-3"
-                          >
-                            <div>
-                              <span className="font-medium text-yellow-900 dark:text-yellow-100">
-                                {factor.name}
-                              </span>
-                              <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                                {factor.value}
-                              </p>
-                            </div>
-                            <span
-                              className={`text-lg font-bold ${
-                                factor.impact === "positive"
-                                  ? "text-green-600"
-                                  : factor.impact === "negative"
-                                  ? "text-red-600"
-                                  : "text-gray-600"
-                              }`}
-                            >
-                              {factor.impact === "positive"
-                                ? "↑"
-                                : factor.impact === "negative"
-                                ? "↓"
-                                : "→"}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
               </div>
             </div>
+
+            {/* Credit Score Info */}
+            <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                <TrendingUp className="w-4 h-4 mr-2 text-green-600 dark:text-green-400" />
+                Credit Assessment
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="text-center">
+                  <div
+                    className={`text-3xl font-bold ${getCreditScoreColor(
+                      selectedAnalysis?.creditScore
+                    )} mb-1`}
+                  >
+                    {selectedAnalysis?.creditScore}
+                  </div>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    Credit Score
+                  </span>
+                </div>
+                <div className="text-center">
+                  <div
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getCreditRatingColor(
+                      selectedAnalysis?.creditRating
+                    )}`}
+                  >
+                    {selectedAnalysis?.creditRating?.toUpperCase()}
+                  </div>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
+                    Credit Rating
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-600 mb-1">
+                    {selectedAnalysis?.riskScore}%
+                  </div>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    Risk Score
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Financial Details */}
+            <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                <AlertTriangle className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-400" />
+                Financial Profile
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    Annual Income:
+                  </span>
+                  <p className="text-gray-900 dark:text-white">
+                    ${selectedAnalysis?.annualIncome?.toLocaleString()}
+                  </p>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    Debt-to-Income Ratio:
+                  </span>
+                  <p className="text-gray-900 dark:text-white">
+                    {selectedAnalysis?.debtToIncomeRatio}%
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Key Factors */}
+            {selectedAnalysis?.keyFactors &&
+              selectedAnalysis.keyFactors.length > 0 && (
+                <div className="p-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                    <Shield className="w-4 h-4 mr-2 text-orange-600 dark:text-orange-400" />
+                    Key Risk Factors
+                  </h4>
+                  <div className="space-y-2">
+                    {selectedAnalysis.keyFactors
+                      .slice(0, 3)
+                      .map((factor, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between bg-white/50 dark:bg-gray-800/50 rounded-lg p-3"
+                        >
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-white">
+                              {factor.name}
+                            </span>
+                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                              {factor.value}
+                            </p>
+                          </div>
+                          <span
+                            className={`text-lg font-bold ${
+                              factor.impact === "positive"
+                                ? "text-green-600"
+                                : factor.impact === "negative"
+                                ? "text-red-600"
+                                : "text-gray-600"
+                            }`}
+                          >
+                            {factor.impact === "positive"
+                              ? "↑"
+                              : factor.impact === "negative"
+                              ? "↓"
+                              : "→"}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
           </div>
-        )}
+        </Modal>
 
         {/* Header Section */}
         <AnimatedSection delay={50}>
@@ -932,258 +891,6 @@ const CreditAnalysis = () => {
             )}
           </div>
         </AnimatedSection>
-
-        {/* Details Modal */}
-        {showDetailsModal && selectedAnalysis && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-              {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
-                <div className="flex items-center space-x-4">
-                  <div className="h-12 w-12 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800/50 dark:to-blue-700/50 rounded-xl flex items-center justify-center">
-                    {getLoanTypeIcon(selectedAnalysis.loanType)}
-                  </div>
-                  <div>
-                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-                      {selectedAnalysis.applicantName || "Unknown Applicant"}
-                    </h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Credit Analysis Details
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowDetailsModal(false)}
-                  className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
-
-              {/* Modal Content */}
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-                {/* Application Overview */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                      Application Overview
-                    </h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-300">
-                          Application ID:
-                        </span>
-                        <span className="font-medium text-gray-900 dark:text-white">
-                          {selectedAnalysis.applicationId || "N/A"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-300">
-                          Loan Type:
-                        </span>
-                        <span className="font-medium text-gray-900 dark:text-white capitalize">
-                          {selectedAnalysis.loanType || "N/A"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-300">
-                          Requested Amount:
-                        </span>
-                        <span className="font-medium text-green-600 dark:text-green-400">
-                          $
-                          {(
-                            selectedAnalysis.requestedAmount || 0
-                          ).toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-300">
-                          Status:
-                        </span>
-                        <span className="font-medium text-gray-900 dark:text-white capitalize">
-                          {selectedAnalysis.status || "In Review"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                      Credit Scores
-                    </h3>
-                    <div className="space-y-4">
-                      <div className="text-center">
-                        <div
-                          className={`text-4xl font-bold ${getCreditScoreColor(
-                            selectedAnalysis.creditScore
-                          )} mb-2`}
-                        >
-                          {selectedAnalysis.creditScore || "N/A"}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-300">
-                          Credit Score
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">
-                          {selectedAnalysis.riskScore || 0}%
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-300">
-                          Risk Score
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <div
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getCreditRatingColor(
-                            selectedAnalysis.creditRating
-                          )}`}
-                        >
-                          {selectedAnalysis.creditRating?.toUpperCase() ||
-                            "UNRATED"}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Financial Metrics */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    Financial Metrics
-                  </h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border border-purple-200 dark:border-purple-700/30 rounded-xl p-4 text-center">
-                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-2">
-                        {selectedAnalysis.debtToIncomeRatio || "N/A"}%
-                      </div>
-                      <div className="text-sm text-purple-700 dark:text-purple-300 font-medium">
-                        Debt-to-Income Ratio
-                      </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border border-green-200 dark:border-green-700/30 rounded-xl p-4 text-center">
-                      <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">
-                        ${(selectedAnalysis.annualIncome || 0).toLocaleString()}
-                      </div>
-                      <div className="text-sm text-green-700 dark:text-green-300 font-medium">
-                        Annual Income
-                      </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border border-blue-200 dark:border-blue-700/30 rounded-xl p-4 text-center">
-                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                        {selectedAnalysis.employmentLength || "N/A"}
-                      </div>
-                      <div className="text-sm text-blue-700 dark:text-blue-300 font-medium">
-                        Years Employed
-                      </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 border border-indigo-200 dark:border-indigo-700/30 rounded-xl p-4 text-center">
-                      <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">
-                        {selectedAnalysis.creditTrend === "up"
-                          ? "↗ Improving"
-                          : selectedAnalysis.creditTrend === "down"
-                          ? "↘ Declining"
-                          : "→ Stable"}
-                      </div>
-                      <div className="text-sm text-indigo-700 dark:text-indigo-300 font-medium">
-                        Credit Trend
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Key Factors */}
-                {selectedAnalysis.keyFactors &&
-                  selectedAnalysis.keyFactors.length > 0 && (
-                    <div className="mb-8">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        Risk Assessment Factors
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {selectedAnalysis.keyFactors.map((factor, idx) => (
-                          <div
-                            key={idx}
-                            className="bg-white/80 dark:bg-gray-700/80 rounded-lg border border-gray-200 dark:border-gray-600 p-4"
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <h4 className="font-medium text-gray-900 dark:text-white">
-                                {factor.name}
-                              </h4>
-                              <span
-                                className={`text-lg font-bold ${
-                                  factor.impact === "positive"
-                                    ? "text-green-600 dark:text-green-400"
-                                    : factor.impact === "negative"
-                                    ? "text-red-600 dark:text-red-400"
-                                    : "text-gray-600 dark:text-gray-400"
-                                }`}
-                              >
-                                {factor.impact === "positive"
-                                  ? "↑"
-                                  : factor.impact === "negative"
-                                  ? "↓"
-                                  : "→"}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-300">
-                              {factor.value}
-                            </p>
-                            <div
-                              className={`text-xs mt-2 px-2 py-1 rounded-md inline-block ${
-                                factor.impact === "positive"
-                                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
-                                  : factor.impact === "negative"
-                                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
-                                  : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
-                              }`}
-                            >
-                              {factor.impact} impact
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                {/* Analysis Summary */}
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    Analysis Summary
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">
-                        Analysis Date
-                      </h4>
-                      <p className="text-gray-600 dark:text-gray-300">
-                        {selectedAnalysis.analysisDate
-                          ? new Date(
-                              selectedAnalysis.analysisDate
-                            ).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            })
-                          : "Not specified"}
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">
-                        Analyst Notes
-                      </h4>
-                      <p className="text-gray-600 dark:text-gray-300">
-                        {selectedAnalysis.notes ||
-                          "No additional notes provided for this analysis."}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

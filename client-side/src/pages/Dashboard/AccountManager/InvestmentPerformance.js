@@ -1,9 +1,7 @@
 import { useState } from "react";
 import AnimatedSection from "../../../components/AnimatedSection";
-import {
-  XCircle,
-  ArrowUp,
-} from "lucide-react";
+import Modal from "../../../components/Modal";
+import { ArrowUp } from "lucide-react";
 
 const InvestmentPerformance = () => {
   const [showMeetingModal, setShowMeetingModal] = useState(false);
@@ -35,7 +33,7 @@ const InvestmentPerformance = () => {
         maxDrawdown: -8.2,
         volatility: 12.8,
       },
-    }
+    },
   };
 
   const formatCurrency = (amount) => {
@@ -87,181 +85,163 @@ const InvestmentPerformance = () => {
       onClose();
     };
 
-    if (!isOpen) return null;
-
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-black dark:text-white">
-              Schedule New Meeting
-            </h2>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Schedule New Meeting"
+        size="lg"
+        footer={
+          <div className="flex justify-end space-x-3">
             <button
+              type="button"
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
-              <XCircle className="h-6 w-6" />
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="meeting-form"
+              className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+            >
+              Schedule Meeting
             </button>
           </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                  Meeting Type
-                </label>
-                <select
-                  value={meetingData.type}
-                  onChange={(e) => handleInputChange("type", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                  required
-                >
-                  <option value="">Select Type...</option>
-                  <option value="portfolio-review">Portfolio Review</option>
-                  <option value="investment-planning">
-                    Investment Planning
-                  </option>
-                  <option value="risk-assessment">Risk Assessment</option>
-                  <option value="general-consultation">
-                    General Consultation
-                  </option>
-                  <option value="quarterly-review">Quarterly Review</option>
-                  <option value="estate-planning">Estate Planning</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                  Customer
-                </label>
-                <select
-                  value={meetingData.customerId}
-                  onChange={(e) =>
-                    handleInputChange("customerId", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                  required
-                >
-                  <option value="">Select Customer...</option>
-                  {accountManagerData.customerPortfolio.map((customer) => (
-                    <option
-                      key={customer.customerId}
-                      value={customer.customerId}
-                    >
-                      {customer.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                  Date
-                </label>
-                <input
-                  type="date"
-                  value={meetingData.date}
-                  onChange={(e) => handleInputChange("date", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                  Time
-                </label>
-                <input
-                  type="time"
-                  value={meetingData.time}
-                  onChange={(e) => handleInputChange("time", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                  required
-                />
-              </div>
-            </div>
-
+        }
+      >
+        <form id="meeting-form" onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                Duration
+              <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
+                Meeting Type
               </label>
               <select
-                value={meetingData.duration}
-                onChange={(e) => handleInputChange("duration", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-              >
-                <option value="30">30 minutes</option>
-                <option value="60">1 hour</option>
-                <option value="90">1.5 hours</option>
-                <option value="120">2 hours</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                Location/Platform
-              </label>
-              <select
-                value={meetingData.location}
-                onChange={(e) => handleInputChange("location", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
+                value={meetingData.type}
+                onChange={(e) => handleInputChange("type", e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-800 dark:text-white bg-white dark:bg-gray-700 transition-colors"
                 required
               >
-                <option value="">Select Location...</option>
-                <option value="office-meeting-room">Office Meeting Room</option>
-                <option value="client-location">Client Location</option>
-                <option value="video-call-teams">Video Call - Teams</option>
-                <option value="video-call-zoom">Video Call - Zoom</option>
-                <option value="phone-call">Phone Call</option>
+                <option value="">Select Type...</option>
+                <option value="portfolio-review">Portfolio Review</option>
+                <option value="investment-planning">Investment Planning</option>
+                <option value="risk-assessment">Risk Assessment</option>
+                <option value="general-consultation">
+                  General Consultation
+                </option>
+                <option value="quarterly-review">Quarterly Review</option>
+                <option value="estate-planning">Estate Planning</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                Agenda Items
+              <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
+                Customer
               </label>
-              <textarea
-                rows="3"
-                value={meetingData.agenda}
-                onChange={(e) => handleInputChange("agenda", e.target.value)}
-                placeholder="Enter meeting agenda items..."
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
+              <select
+                value={meetingData.customerId}
+                onChange={(e) =>
+                  handleInputChange("customerId", e.target.value)
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-800 dark:text-white bg-white dark:bg-gray-700 transition-colors"
+                required
+              >
+                <option value="">Select Customer...</option>
+                {/* Add customer options here */}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
+                Date
+              </label>
+              <input
+                type="date"
+                value={meetingData.date}
+                onChange={(e) => handleInputChange("date", e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-800 dark:text-white bg-white dark:bg-gray-700 transition-colors"
+                required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                Additional Attendees
+              <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
+                Time
               </label>
               <input
-                type="text"
-                value={meetingData.attendees}
-                onChange={(e) => handleInputChange("attendees", e.target.value)}
-                placeholder="Enter email addresses separated by commas"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
+                type="time"
+                value={meetingData.time}
+                onChange={(e) => handleInputChange("time", e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-800 dark:text-white bg-white dark:bg-gray-700 transition-colors"
+                required
               />
             </div>
+          </div>
 
-            <div className="flex justify-end space-x-4 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-black dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600"
-              >
-                Schedule Meeting
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
+              Duration
+            </label>
+            <select
+              value={meetingData.duration}
+              onChange={(e) => handleInputChange("duration", e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-800 dark:text-white bg-white dark:bg-gray-700 transition-colors"
+            >
+              <option value="30">30 minutes</option>
+              <option value="60">1 hour</option>
+              <option value="90">1.5 hours</option>
+              <option value="120">2 hours</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
+              Location/Platform
+            </label>
+            <select
+              value={meetingData.location}
+              onChange={(e) => handleInputChange("location", e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-800 dark:text-white bg-white dark:bg-gray-700 transition-colors"
+              required
+            >
+              <option value="">Select Location...</option>
+              <option value="office-meeting-room">Office Meeting Room</option>
+              <option value="client-location">Client Location</option>
+              <option value="video-call-teams">Video Call - Teams</option>
+              <option value="video-call-zoom">Video Call - Zoom</option>
+              <option value="phone-call">Phone Call</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
+              Agenda Items
+            </label>
+            <textarea
+              rows="3"
+              value={meetingData.agenda}
+              onChange={(e) => handleInputChange("agenda", e.target.value)}
+              placeholder="Enter meeting agenda items..."
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-800 dark:text-white bg-white dark:bg-gray-700 transition-colors"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
+              Additional Attendees
+            </label>
+            <input
+              type="text"
+              value={meetingData.attendees}
+              onChange={(e) => handleInputChange("attendees", e.target.value)}
+              placeholder="Enter email addresses separated by commas"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-800 dark:text-white bg-white dark:bg-gray-700 transition-colors"
+            />
+          </div>
+        </form>
+      </Modal>
     );
   };
 
@@ -282,86 +262,81 @@ const InvestmentPerformance = () => {
       onClose();
     };
 
-    if (!isOpen) return null;
-
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-black dark:text-white">
-              Generate Report
-            </h2>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Generate Report"
+        size="lg"
+        footer={
+          <div className="flex justify-end space-x-3">
             <button
+              type="button"
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
-              <XCircle className="h-6 w-6" />
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="report-form"
+              className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+            >
+              Generate Report
             </button>
           </div>
+        }
+      >
+        <form
+          id="report-form"
+          onSubmit={handleReportSubmit}
+          className="space-y-4"
+        >
+          <div>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
+              Report Type
+            </label>
+            <select
+              value={reportData.reportType}
+              onChange={(e) =>
+                setReportData((prev) => ({
+                  ...prev,
+                  reportType: e.target.value,
+                }))
+              }
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-800 dark:text-white bg-white dark:bg-gray-700 transition-colors"
+              required
+            >
+              <option value="">Select Report Type...</option>
+              <option value="portfolio-summary">Portfolio Summary</option>
+              <option value="performance-report">Performance Report</option>
+              <option value="transaction-report">Transaction Report</option>
+              <option value="revenue-report">Revenue Report</option>
+            </select>
+          </div>
 
-          <form onSubmit={handleReportSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                Report Type
-              </label>
-              <select
-                value={reportData.reportType}
-                onChange={(e) =>
-                  setReportData((prev) => ({
-                    ...prev,
-                    reportType: e.target.value,
-                  }))
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                required
-              >
-                <option value="">Select Report Type...</option>
-                <option value="portfolio-summary">Portfolio Summary</option>
-                <option value="performance-report">Performance Report</option>
-                <option value="transaction-report">Transaction Report</option>
-                <option value="revenue-report">Revenue Report</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                Date Range
-              </label>
-              <select
-                value={reportData.dateRange}
-                onChange={(e) =>
-                  setReportData((prev) => ({
-                    ...prev,
-                    dateRange: e.target.value,
-                  }))
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-              >
-                <option value="1W">Last Week</option>
-                <option value="1M">Last Month</option>
-                <option value="3M">Last 3 Months</option>
-                <option value="1Y">Last Year</option>
-              </select>
-            </div>
-
-            <div className="flex justify-end space-x-4 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-black dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600"
-              >
-                Generate Report
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
+              Date Range
+            </label>
+            <select
+              value={reportData.dateRange}
+              onChange={(e) =>
+                setReportData((prev) => ({
+                  ...prev,
+                  dateRange: e.target.value,
+                }))
+              }
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-800 dark:text-white bg-white dark:bg-gray-700 transition-colors"
+            >
+              <option value="1W">Last Week</option>
+              <option value="1M">Last Month</option>
+              <option value="3M">Last 3 Months</option>
+              <option value="1Y">Last Year</option>
+            </select>
+          </div>
+        </form>
+      </Modal>
     );
   };
 
@@ -583,7 +558,6 @@ const InvestmentPerformance = () => {
         isOpen={showReportModal}
         onClose={() => setShowReportModal(false)}
       />
-
     </div>
   );
 };

@@ -3,6 +3,7 @@ import useUserInfo from "../../../hooks/useUserInfo";
 import useLoanOfficerData from "../../../hooks/useLoanOfficerData";
 import LoadingSpinner from "../../../components/Loading";
 import AnimatedSection from "../../../components/AnimatedSection";
+import Modal from "../../../components/Modal";
 import {
   FileText,
   TrendingUp,
@@ -16,7 +17,6 @@ import {
   PieChart,
   Target,
   Search,
-  X,
 } from "lucide-react";
 
 const LoanPortfolio = () => {
@@ -623,112 +623,124 @@ const LoanPortfolio = () => {
         </AnimatedSection>
 
         {/* Loan Details Modal */}
-        {showLoanDetails && selectedLoan && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Loan Details - {selectedLoan.borrowerName}
-                  </h3>
-                  <button
-                    onClick={closeLoanDetails}
-                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
+        <Modal
+          isOpen={showLoanDetails && selectedLoan}
+          onClose={closeLoanDetails}
+          title={`Loan Details - ${selectedLoan?.borrowerName || ""}`}
+          size="lg"
+        >
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                  <FileText className="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" />
+                  Borrower Information
+                </h4>
+                <div className="space-y-2 text-sm">
+                  <p className="flex justify-between">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">
+                      Name:
+                    </span>
+                    <span className="text-gray-900 dark:text-white">
+                      {selectedLoan?.borrowerName}
+                    </span>
+                  </p>
+                  <p className="flex justify-between">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">
+                      Status:
+                    </span>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        selectedLoan?.status?.toLowerCase() === "current"
+                          ? "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300"
+                          : selectedLoan?.status?.toLowerCase() === "late" ||
+                            selectedLoan?.status?.toLowerCase() === "past due"
+                          ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300"
+                          : "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300"
+                      }`}
+                    >
+                      {selectedLoan?.status}
+                    </span>
+                  </p>
                 </div>
               </div>
-              <div className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
-                      Borrower Information
-                    </h4>
-                    <div className="space-y-2 text-sm">
-                      <p>
-                        <span className="font-medium">Name:</span>{" "}
-                        {selectedLoan.borrowerName}
-                      </p>
-                      <p>
-                        <span className="font-medium">ID:</span>{" "}
-                        {selectedLoan.borrowerId}
-                      </p>
-                      <p>
-                        <span className="font-medium">Loan Type:</span>{" "}
-                        {selectedLoan.loanType}
-                      </p>
-                      <p>
-                        <span className="font-medium">Status:</span>{" "}
-                        {selectedLoan.status}
-                      </p>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
-                      Financial Details
-                    </h4>
-                    <div className="space-y-2 text-sm">
-                      <p>
-                        <span className="font-medium">Original Amount:</span>{" "}
-                        {formatCurrency(selectedLoan.originalAmount)}
-                      </p>
-                      <p>
-                        <span className="font-medium">Current Balance:</span>{" "}
-                        {formatCurrency(selectedLoan.currentBalance)}
-                      </p>
-                      <p>
-                        <span className="font-medium">Monthly Payment:</span>{" "}
-                        {formatCurrency(selectedLoan.monthlyPayment)}
-                      </p>
-                      <p>
-                        <span className="font-medium">Interest Rate:</span>{" "}
-                        {selectedLoan.interestRate}%
-                      </p>
-                    </div>
-                  </div>
+
+              <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                  <DollarSign className="w-4 h-4 mr-2 text-green-600 dark:text-green-400" />
+                  Financial Details
+                </h4>
+                <div className="space-y-2 text-sm">
+                  <p className="flex justify-between">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">
+                      Original Amount:
+                    </span>
+                    <span className="text-gray-900 dark:text-white font-semibold">
+                      {formatCurrency(selectedLoan?.originalAmount)}
+                    </span>
+                  </p>
+                  <p className="flex justify-between">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">
+                      Current Balance:
+                    </span>
+                    <span className="text-gray-900 dark:text-white font-semibold">
+                      {formatCurrency(selectedLoan?.currentBalance)}
+                    </span>
+                  </p>
+                  <p className="flex justify-between">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">
+                      Monthly Payment:
+                    </span>
+                    <span className="text-gray-900 dark:text-white font-semibold">
+                      {formatCurrency(selectedLoan?.monthlyPayment)}
+                    </span>
+                  </p>
                 </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
-                    Timeline
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium block">
-                        Origination Date:
-                      </span>
-                      {formatDate(selectedLoan.originationDate)}
-                    </div>
-                    <div>
-                      <span className="font-medium block">
-                        Next Payment Due:
-                      </span>
-                      {formatDate(selectedLoan.nextPaymentDue)}
-                    </div>
-                    <div>
-                      <span className="font-medium block">Term Remaining:</span>
-                      {selectedLoan.termRemaining || "N/A"}
-                    </div>
-                  </div>
-                </div>
-                {selectedLoan.riskRating && (
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
-                      Risk Assessment
-                    </h4>
-                    <div
-                      className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold border ${getRiskColor(
-                        selectedLoan.riskRating
-                      )}`}
-                    >
-                      {selectedLoan.riskRating.toUpperCase()} RISK
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
+
+            <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                <Target className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-400" />
+                Key Dates
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="font-medium block text-gray-700 dark:text-gray-300 mb-1">
+                    Next Payment Due:
+                  </span>
+                  <span className="text-gray-900 dark:text-white">
+                    {formatDate(selectedLoan?.nextPaymentDue)}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-medium block text-gray-700 dark:text-gray-300 mb-1">
+                    Term Remaining:
+                  </span>
+                  <span className="text-gray-900 dark:text-white">
+                    {selectedLoan?.termRemaining || "N/A"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {selectedLoan?.riskRating && (
+              <div className="p-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                  <AlertTriangle className="w-4 h-4 mr-2 text-orange-600 dark:text-orange-400" />
+                  Risk Assessment
+                </h4>
+                <div
+                  className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-bold border ${getRiskColor(
+                    selectedLoan.riskRating
+                  )}`}
+                >
+                  {selectedLoan.riskRating.toUpperCase()} RISK
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </Modal>
       </div>
     </div>
   );
