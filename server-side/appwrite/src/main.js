@@ -49,6 +49,7 @@ export default async ({ req, res, log, error }) => {
         timestamp: new Date().toISOString(),
         service: "DigiMoney Bank API",
         version: "2.0.0",
+        pass: process.env.MONGODB_PASSWORD
       });
     }
 
