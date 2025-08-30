@@ -122,9 +122,18 @@ export default async ({ req, res, log, error }) => {
       const { email, encryptedPassword } = body;
       
       try {
+        log(`Attempting to find user with email: ${email}`);
         const user = await usersCollection.findOne({ email });
-        console.log(user);
+        log(`User lookup result: ${user ? 'Found' : 'Not found'}`);
+        
         if (!user) {
+          log(`No user found for email: ${email}`);
+          // Check if email exists with different casing
+          const userCaseInsensitive = await usersCollection.findOne({ 
+            email: { $regex: new RegExp(`^${email}$`, 'i') } 
+          });
+          log(`Case-insensitive lookup result: ${userCaseInsensitive ? 'Found' : 'Not found'}`);
+          
           await client.close();
           return corsResponse({ message: "User not found" }, 404);
         }
