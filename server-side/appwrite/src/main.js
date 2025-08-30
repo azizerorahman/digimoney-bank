@@ -49,7 +49,6 @@ export default async ({ req, res, log, error }) => {
         timestamp: new Date().toISOString(),
         service: "DigiMoney Bank API",
         version: "2.0.0",
-        pass: process.env.MONGODB_PASSWORD
       });
     }
 
@@ -61,7 +60,6 @@ export default async ({ req, res, log, error }) => {
         timestamp: new Date().toISOString(),
         endpoints: {
           health: "/health",
-          createTestUser: "/create-test-user",
           login: "/login",
           register: "/register",
           userDetails: "/user-details",
@@ -93,7 +91,7 @@ export default async ({ req, res, log, error }) => {
     const accountsCollection = db.collection("accounts");
     const transactionsCollection = db.collection("transactions");
     const budgetsCollection = db.collection("budgets");
-    const investmentsCollection = db.collection("investments");
+    const investmentsCollection = db.collection("investment-portfolios");
     const recipientsCollection = db.collection("recipients");
 
     log("Database connected successfully");
@@ -118,76 +116,6 @@ export default async ({ req, res, log, error }) => {
       return bytes.toString(CryptoJS.enc.Utf8);
     };
 
-    // GET /create-test-user - Create test user for development
-    if (path === "/create-test-user" && method === "GET") {
-      try {
-        // Check if test user already exists
-        const existingUser = await usersCollection.findOne({
-          email: "demo@digimoney.com",
-        });
-
-        if (existingUser) {
-          await client.close();
-          return corsResponse({
-            success: false,
-            message: "Test user already exists",
-            email: "demo@digimoney.com",
-          });
-        }
-
-        // Create test user (you'll need to encrypt the password properly)
-        const testUser = {
-          name: "Demo User",
-          email: "demo@digimoney.com",
-          encryptedPassword: "U2FsdGVkX19GzI9v8ZF0QQO7fNZj3X5K3gEzIy7K2I4=", // This should be "password123" encrypted with your key
-          verified: true,
-          admin: false,
-          createdAt: new Date(),
-          phone: "+1234567890",
-          address: "123 Demo Street, Demo City, DC 12345",
-        };
-
-        const result = await usersCollection.insertOne(testUser);
-
-        // Also create a test account for this user
-        const testAccount = {
-          userId: result.insertedId.toString(),
-          accountNumber: "ACC" + Date.now(),
-          accountName: "Demo Checking Account",
-          type: "checking",
-          balance: 5000.0,
-          currency: "USD",
-          isActive: true,
-          createdAt: new Date(),
-        };
-
-        await accountsCollection.insertOne(testAccount);
-
-        await client.close();
-        return corsResponse({
-          success: true,
-          message: "Test user created successfully",
-          user: {
-            email: testUser.email,
-            name: testUser.name,
-            password: "password123", // Only show in development
-          },
-          account: testAccount,
-        });
-      } catch (err) {
-        log(`Error creating test user: ${err.message}`);
-        await client.close();
-        return corsResponse(
-          {
-            success: false,
-            message: "Failed to create test user",
-            error: err.message,
-          },
-          500
-        );
-      }
-    }
-
     // ==================== AUTHENTICATION ENDPOINTS ====================
 
     // POST /login - User login
@@ -195,55 +123,10 @@ export default async ({ req, res, log, error }) => {
       const { email, encryptedPassword } = body;
 
       try {
-        log(`Attempting to find user with email: ${email}`);
-
-        // First try exact match
-        let user = await usersCollection.findOne({ email: email });
-        log(`Exact match result: ${user ? "Found" : "Not found"}`);
-
-        // If no exact match, try case-insensitive search
+        const user = await usersCollection.findOne({ email });
         if (!user) {
-          user = await usersCollection.findOne({
-            email: {
-              $regex: new RegExp(
-                `^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
-                "i"
-              ),
-            },
-          });
-          log(`Case-insensitive match result: ${user ? "Found" : "Not found"}`);
-        }
-
-        // Debug: Check if any users exist
-        const userCount = await usersCollection.countDocuments();
-        log(`Total users in database: ${userCount}`);
-
-        // Debug: Check for similar emails
-        const similarUsers = await usersCollection
-          .find({
-            email: {
-              $regex: new RegExp(
-                email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-                "i"
-              ),
-            },
-          })
-          .toArray();
-        log(`Users with similar emails: ${similarUsers.length}`);
-
-        if (!user) {
-          log(`No user found for email: ${email}`);
-          log(`Database has ${userCount} total users`);
           await client.close();
-          return corsResponse(
-            {
-              message:
-                userCount === 0
-                  ? "No users found in database. Please register first."
-                  : "User not found. Please check your email address.",
-            },
-            404
-          );
+          return corsResponse({ message: "User not found" }, 404);
         }
 
         const decryptedPassword = decryptPassword(encryptedPassword);
@@ -267,7 +150,6 @@ export default async ({ req, res, log, error }) => {
           return corsResponse({ message: "Invalid credentials" }, 401);
         }
       } catch (err) {
-        log(`Login error: ${err.message}`);
         await client.close();
         return corsResponse({ message: "Login failed" }, 500);
       }
@@ -1017,7 +899,6 @@ export default async ({ req, res, log, error }) => {
         availableEndpoints: [
           "/",
           "/health",
-          "/create-test-user",
           "/login",
           "/register",
           "/token/:email",
