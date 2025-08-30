@@ -3,12 +3,10 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { BsArrowLeftCircle } from "react-icons/bs";
 import { RiBarChartHorizontalLine } from "react-icons/ri";
-import { AiFillHome } from "react-icons/ai";
 import { FiLogOut } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useAuthState } from "react-firebase-hooks/auth";
 import auth from "../../firebase.init";
-import useAdmin from "../../hooks/useAdmin";
 import useUserInfo from "../../hooks/useUserInfo";
 import AccountUnderVerification from "./AccountUnderVerification";
 import LoadingSpinner from "../../components/Loading";
@@ -22,7 +20,8 @@ import {
   FaShieldAlt,
   FaLightbulb,
   FaBell,
-  FaMoneyBillTransfer,
+  FaMoon,
+  FaSun,
 } from "react-icons/fa";
 import { MdRateReview, MdDashboard } from "react-icons/md";
 import { ImProfile } from "react-icons/im";
@@ -467,27 +466,27 @@ const Dashboard = () => {
 
                 {/* User details - shown when sidebar is open */}
                 {open && (
-                  <div className="mt-3 text-center w-full">
+                  <div className="mt-3 text-center w-full space-y-3">
                     <h4 className="text-sm font-medium text-white truncate">
                       {user?.displayName || user?.email}
                     </h4>
 
                     {/* Role display/selector */}
                     {userInfo?.role && (
-                      <div className="mt-3 w-full">
+                      <div className="w-full">
                         {/* Role selector dropdown - for multiple roles */}
                         {Array.isArray(userInfo.role) &&
                         userInfo.role.length > 1 ? (
                           <select
                             value={activeRole}
                             onChange={(e) => handleRoleChange(e.target.value)}
-                            className="w-full text-xs bg-transparent text-gray-300 border border-gray-600 rounded-md p-1 focus:outline-none focus:ring-1 focus:ring-accent"
+                            className="w-full text-xs bg-indigo-800 dark:bg-gray-700 text-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-10 appearance-none cursor-pointer transition-all duration-200"
                           >
                             {userInfo.role.map((r) => (
                               <option
                                 key={r}
                                 value={r}
-                                className="bg-gray-800 text-white"
+                                className="bg-indigo-800 dark:bg-gray-700 text-white"
                               >
                                 {formatRoleName(r)}
                               </option>
@@ -495,19 +494,62 @@ const Dashboard = () => {
                           </select>
                         ) : (
                           /* Single role display */
-                          <p className="text-xs text-gray-300 bg-indigo-800 dark:bg-gray-700 py-1 px-2 rounded-md">
+                          <div className="w-full text-xs text-gray-300 bg-indigo-800 dark:bg-gray-700 px-3 py-2.5 rounded-lg h-10 flex items-center justify-center font-medium">
                             {formatRoleName(
                               typeof userInfo.role === "string"
                                 ? userInfo.role
                                 : userInfo.role[0]
                             )}
-                          </p>
+                          </div>
                         )}
                       </div>
                     )}
+
+                    {/* Dark mode toggle */}
+                    <div className="w-full">
+                      <button
+                        onClick={() => setDarkMode(!darkMode)}
+                        className="w-full h-10 flex items-center justify-between bg-indigo-800 dark:bg-gray-700 hover:bg-indigo-700 dark:hover:bg-gray-600 text-white rounded-lg transition-all duration-200 px-3 py-2.5 group"
+                        title={
+                          darkMode
+                            ? "Switch to Light Mode"
+                            : "Switch to Dark Mode"
+                        }
+                      >
+                        <span className="text-xs font-medium text-gray-300 group-hover:text-white transition-colors duration-200">
+                          {darkMode ? "Light Mode" : "Dark Mode"}
+                        </span>
+                        <div className="text-gray-300 group-hover:text-white transition-colors duration-200">
+                          {darkMode ? (
+                            <FaSun className="w-4 h-4" />
+                          ) : (
+                            <FaMoon className="w-4 h-4" />
+                          )}
+                        </div>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
+
+              {/* Dark mode toggle for collapsed sidebar */}
+              {!open && (
+                <div className="flex justify-center px-2 mt-4">
+                  <button
+                    onClick={() => setDarkMode(!darkMode)}
+                    className="w-10 h-10 flex items-center justify-center bg-indigo-800 dark:bg-gray-700 hover:bg-indigo-700 dark:hover:bg-gray-600 text-white rounded-lg transition-all duration-200"
+                    title={
+                      darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"
+                    }
+                  >
+                    {darkMode ? (
+                      <FaSun className="w-5 h-5" />
+                    ) : (
+                      <FaMoon className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              )}
 
               {/* Menu items */}
               <div className="flex flex-col justify-between flex-1 mt-6 overflow-y-auto">
