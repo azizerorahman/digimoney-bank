@@ -1,404 +1,74 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Search,
   User,
   Users,
   AlertTriangle,
-  XCircle,
   Edit,
   Shield,
-  Activity,
-  Eye,
-  Server,
   UserCheck,
   UserX,
-  Key,
-  Gauge,
-  UserPlus,
   Save,
+  Key,
+  Filter,
+  Eye,
 } from "lucide-react";
+import useSuperAdminData from "../../../hooks/useSuperAdminData";
+import LoadingSpinner from "../../../components/Loading";
+import AnimatedSection from "../../../components/AnimatedSection";
+import Modal from "../../../components/Modal";
 
 const UserManagement = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showSearchResults, setShowSearchResults] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [showUserDetails, setShowUserDetails] = useState(false);
-  const [showUserModal, setShowUserModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterUserType, setFilterUserType] = useState("all");
-  const [realTimeData, setRealTimeData] = useState({});
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showUserDetails, setShowUserDetails] = useState(false);
   const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
 
-  // Mock data for Super Admin Dashboard
-  const superAdminData = {
-    systemOverview: {
-      bankWideMetrics: {
-        totalDeposits: 2450000000,
-        totalLoans: 1850000000,
-        activeAccounts: 125000,
-        totalRevenue: 45000000,
-        netProfit: 12500000,
-        totalUsers: 15420,
-        activeUsers: 12850,
-        systemUptime: 99.97,
-      },
-      systemHealth: {
-        serverUptime: 99.97,
-        avgResponseTime: 145,
-        errorRate: 0.02,
-        transactionThroughput: 2450,
-        cpuUsage: 68,
-        memoryUsage: 72,
-        diskUsage: 45,
-        networkLatency: 23,
-      },
-      recentActivity: {
-        totalLogins: 8420,
-        failedLogins: 127,
-        newAccounts: 45,
-        suspiciousActivities: 8,
-        systemChanges: 12,
-      },
-    },
+  // Fetch SuperAdmin data using custom hooks
+  const {
+    data: userManagementData,
+    loading: userManagementLoading,
+    error: userManagementError,
+  } = useSuperAdminData("userManagement");
 
-    userManagement: {
-      userStats: {
-        totalEmployees: 1250,
-        activeEmployees: 1180,
-        customers: 124500,
-        activeCustomers: 118200,
-        adminUsers: 25,
-        suspendedUsers: 85,
-      },
-      userList: [
-        {
-          id: "EMP-001",
-          name: "Alexandra Chen",
-          email: "a.chen@bank.com",
-          role: "Account Manager",
-          department: "Private Banking",
-          status: "Active",
-          lastLogin: "2024-06-05 09:15",
-          loginCount: 1250,
-          permissions: [
-            "read_customer_data",
-            "create_accounts",
-            "schedule_meetings",
-          ],
-          createdDate: "2019-03-15",
-          lastActivity: "2024-06-05 14:30",
-        },
-        {
-          id: "EMP-002",
-          name: "Michael Rodriguez",
-          email: "m.rodriguez@bank.com",
-          role: "Loan Officer",
-          department: "Commercial Lending",
-          status: "Active",
-          lastLogin: "2024-06-05 08:45",
-          loginCount: 980,
-          permissions: ["read_loan_data", "approve_loans", "risk_assessment"],
-          createdDate: "2020-07-22",
-          lastActivity: "2024-06-05 13:20",
-        },
-        {
-          id: "EMP-003",
-          name: "Sarah Johnson",
-          email: "s.johnson@bank.com",
-          role: "Compliance Officer",
-          department: "Risk & Compliance",
-          status: "Active",
-          lastLogin: "2024-06-05 07:30",
-          loginCount: 1450,
-          permissions: [
-            "full_audit_access",
-            "compliance_reports",
-            "user_management",
-          ],
-          createdDate: "2018-11-08",
-          lastActivity: "2024-06-05 15:45",
-        },
-        {
-          id: "CUST-001",
-          name: "Robert Martinez",
-          email: "r.martinez@email.com",
-          role: "Customer",
-          department: "N/A",
-          status: "Active",
-          lastLogin: "2024-06-04 19:20",
-          loginCount: 245,
-          permissions: ["view_own_accounts", "transfer_funds", "pay_bills"],
-          createdDate: "2021-05-12",
-          lastActivity: "2024-06-04 19:35",
-        },
-        {
-          id: "EMP-004",
-          name: "David Kim",
-          email: "d.kim@bank.com",
-          role: "IT Administrator",
-          department: "Information Technology",
-          status: "Suspended",
-          lastLogin: "2024-06-01 16:45",
-          loginCount: 2100,
-          permissions: ["system_admin", "user_management", "security_config"],
-          createdDate: "2017-02-28",
-          lastActivity: "2024-06-01 17:30",
-        },
-      ],
-      roleDefinitions: [
-        {
-          role: "Super Admin",
-          userCount: 3,
-          permissions: [
-            "full_system_access",
-            "user_management",
-            "system_config",
-            "audit_logs",
-          ],
-          description: "Complete system access and control",
-        },
-        {
-          role: "Account Manager",
-          userCount: 45,
-          permissions: [
-            "customer_management",
-            "account_operations",
-            "reporting",
-          ],
-          description: "Customer relationship and account management",
-        },
-        {
-          role: "Loan Officer",
-          userCount: 32,
-          permissions: [
-            "loan_processing",
-            "credit_analysis",
-            "approval_workflows",
-          ],
-          description: "Loan origination and management",
-        },
-        {
-          role: "Compliance Officer",
-          userCount: 12,
-          permissions: [
-            "compliance_monitoring",
-            "audit_access",
-            "regulatory_reporting",
-          ],
-          description: "Regulatory compliance and risk monitoring",
-        },
-        {
-          role: "Customer",
-          userCount: 124500,
-          permissions: [
-            "account_access",
-            "transaction_history",
-            "bill_payment",
-          ],
-          description: "Standard customer banking access",
-        },
-      ],
-    },
+  const {
+    data: userListData,
+    loading: userListLoading,
+    error: userListError,
+  } = useSuperAdminData("userList");
 
-    complianceAndSecurity: {
-      fraudDetection: {
-        totalAlerts: 156,
-        highRiskAlerts: 23,
-        mediumRiskAlerts: 87,
-        lowRiskAlerts: 46,
-        resolvedToday: 34,
-        pendingInvestigation: 89,
-      },
-      securityMetrics: {
-        failedLoginAttempts: 127,
-        blockedIPs: 45,
-        suspiciousTransactions: 23,
-        securityIncidents: 2,
-        vulnerabilitiesFound: 8,
-        patchesApplied: 15,
-      },
-      complianceStatus: {
-        kycCompliance: 98.5,
-        amlCompliance: 99.2,
-        regulatoryReports: 12,
-        auditFindings: 3,
-        complianceScore: 96.8,
-      },
-      recentSecurityEvents: [
-        {
-          id: "SEC-001",
-          type: "Failed Login Attempt",
-          severity: "Medium",
-          description: "Multiple failed login attempts from IP 192.168.1.100",
-          timestamp: "2024-06-05 14:30",
-          status: "Investigating",
-          affectedUser: "EMP-004",
-        },
-        {
-          id: "SEC-002",
-          type: "Suspicious Transaction",
-          severity: "High",
-          description: "Large wire transfer outside normal pattern",
-          timestamp: "2024-06-05 13:45",
-          status: "Under Review",
-          affectedUser: "CUST-789",
-        },
-        {
-          id: "SEC-003",
-          type: "Permission Change",
-          severity: "Low",
-          description: "User role updated for employee",
-          timestamp: "2024-06-05 12:15",
-          status: "Completed",
-          affectedUser: "EMP-025",
-        },
-      ],
-    },
+  const {
+    data: roleDefinitionsData,
+    loading: roleDefinitionsLoading,
+    error: roleDefinitionsError,
+  } = useSuperAdminData("roleDefinitions");
 
-    financialReporting: {
-      profitLoss: {
-        totalRevenue: 45000000,
-        totalExpenses: 32500000,
-        netIncome: 12500000,
-        operatingIncome: 15200000,
-        interestIncome: 28000000,
-        feeIncome: 17000000,
-        operatingExpenses: 25000000,
-        provisionForLosses: 7500000,
-      },
-      riskManagement: {
-        creditRisk: {
-          totalExposure: 1850000000,
-          nonPerformingLoans: 92500000,
-          nplRatio: 5.0,
-          provisioning: 55500000,
-          riskWeightedAssets: 2100000000,
-        },
-        marketRisk: {
-          var95: 2500000,
-          interestRateRisk: 1200000,
-          currencyRisk: 800000,
-          equityRisk: 500000,
-        },
-        operationalRisk: {
-          riskEvents: 12,
-          totalLosses: 450000,
-          avgLossPerEvent: 37500,
-          riskCapital: 25000000,
-        },
-      },
-      capitalAdequacy: {
-        tier1Capital: 185000000,
-        tier2Capital: 95000000,
-        totalCapital: 280000000,
-        riskWeightedAssets: 2100000000,
-        capitalRatio: 13.33,
-        tier1Ratio: 8.81,
-        leverageRatio: 6.2,
-      },
-      performanceMetrics: {
-        roa: 1.25,
-        roe: 15.8,
-        nim: 3.2,
-        costToIncomeRatio: 65.5,
-        efficiencyRatio: 58.2,
-      },
-    },
+  // Loading and error states
+  const isLoading =
+    userManagementLoading || userListLoading || roleDefinitionsLoading;
+  const hasError = userManagementError || userListError || roleDefinitionsError;
 
-    systemConfiguration: {
-      systemParameters: {
-        interestRates: {
-          savingsRate: 2.5,
-          checkingRate: 0.1,
-          loanBaseRate: 5.25,
-          mortgageRate: 4.75,
-          creditCardRate: 18.99,
+  // Process data with proper fallbacks
+  const processedData = {
+    userManagement: userManagementData?.userStats
+      ? userManagementData
+      : {
+          userStats: {
+            totalEmployees: 1250,
+            activeEmployees: 1180,
+            customers: 124500,
+            activeCustomers: 118200,
+            adminUsers: 25,
+            suspendedUsers: 85,
+          },
         },
-        fees: {
-          wireTransferFee: 25,
-          overdraftFee: 35,
-          monthlyMaintenanceFee: 12,
-          atmFee: 3,
-          foreignTransactionFee: 2.5,
-        },
-        limits: {
-          dailyWithdrawalLimit: 1000,
-          dailyTransferLimit: 10000,
-          monthlyTransferLimit: 50000,
-          checkDepositLimit: 25000,
-        },
-        securitySettings: {
-          passwordExpiry: 90,
-          maxLoginAttempts: 3,
-          sessionTimeout: 30,
-          twoFactorRequired: true,
-          ipWhitelistEnabled: false,
-        },
-      },
-      backupStatus: {
-        lastFullBackup: "2024-06-05 02:00",
-        lastIncrementalBackup: "2024-06-05 14:00",
-        backupSize: "2.5 TB",
-        backupStatus: "Successful",
-        retentionPeriod: "7 years",
-        offSiteBackup: "Enabled",
-      },
-      systemMaintenance: {
-        nextScheduledMaintenance: "2024-06-08 02:00",
-        lastMaintenance: "2024-06-01 02:00",
-        maintenanceWindow: "02:00 - 06:00",
-        estimatedDowntime: "4 hours",
-        affectedServices: ["Online Banking", "Mobile App", "ATM Network"],
-      },
-    },
-
-    auditLogs: [
-      {
-        id: "AUDIT-001",
-        timestamp: "2024-06-05 14:45",
-        user: "admin@bank.com",
-        action: "User Role Updated",
-        details:
-          "Changed role from Loan Officer to Senior Loan Officer for user EMP-025",
-        ipAddress: "192.168.1.50",
-        userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-        status: "Success",
-      },
-      {
-        id: "AUDIT-002",
-        timestamp: "2024-06-05 14:30",
-        user: "s.johnson@bank.com",
-        action: "Compliance Report Generated",
-        details: "Generated monthly AML compliance report",
-        ipAddress: "192.168.1.75",
-        userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-        status: "Success",
-      },
-      {
-        id: "AUDIT-003",
-        timestamp: "2024-06-05 13:15",
-        user: "system",
-        action: "System Configuration Changed",
-        details: "Updated daily withdrawal limit from $800 to $1000",
-        ipAddress: "127.0.0.1",
-        userAgent: "System Process",
-        status: "Success",
-      },
-      {
-        id: "AUDIT-004",
-        timestamp: "2024-06-05 12:45",
-        user: "d.kim@bank.com",
-        action: "Failed Login Attempt",
-        details: "Multiple failed login attempts - account temporarily locked",
-        ipAddress: "192.168.1.100",
-        userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-        status: "Failed",
-      },
-    ],
+    userList: userListData?.users || [],
+    roleDefinitions: roleDefinitionsData?.roles || [],
   };
 
+  // Helper functions
   const formatNumber = (number) => {
     return new Intl.NumberFormat("en-US").format(number);
   };
@@ -426,6 +96,8 @@ const UserManagement = () => {
         return "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400";
       case "Compliance Officer":
         return "bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-400";
+      case "IT Administrator":
+        return "bg-indigo-100 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-400";
       case "Customer":
         return "bg-gray-100 dark:bg-gray-800 text-black dark:text-white";
       default:
@@ -433,913 +105,620 @@ const UserManagement = () => {
     }
   };
 
-  // Search functionality
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-    if (query.length > 2) {
-      const filtered = superAdminData.userManagement.userList.filter(
-        (user) =>
-          user.name.toLowerCase().includes(query.toLowerCase()) ||
-          user.email.toLowerCase().includes(query.toLowerCase()) ||
-          user.id.toLowerCase().includes(query.toLowerCase()) ||
-          user.role.toLowerCase().includes(query.toLowerCase())
-      );
-      setSearchResults(filtered);
-      setShowSearchResults(true);
-    } else {
-      setShowSearchResults(false);
-    }
-  };
-
-  const selectUser = (user) => {
-    setSelectedUser(user);
-    setShowSearchResults(false);
-    setSearchQuery("");
-    setShowUserDetails(true);
-  };
-
   const handleEditUser = (user) => {
     setEditingUser(user);
     setShowEditUserModal(true);
   };
 
-  // Real-time data simulation
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRealTimeData({
-        activeUsers: Math.floor(Math.random() * 100) + 12800,
-        transactionThroughput: Math.floor(Math.random() * 500) + 2200,
-        systemLoad: Math.floor(Math.random() * 20) + 60,
-      });
-    }, 5000);
+  const handleSelectUser = (user) => {
+    setSelectedUser(user);
+    setShowUserDetails(true);
+  };
 
-    return () => clearInterval(interval);
-  }, []);
+  // Filter users based on search and type
+  const filteredUsers = processedData.userList.filter((user) => {
+    const matchesSearch =
+      searchTerm === "" ||
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.role.toLowerCase().includes(searchTerm.toLowerCase());
 
-  const filteredUsers = superAdminData.userManagement.userList.filter(
-    (user) => {
-      const matchesSearch =
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType =
+      filterUserType === "all" ||
+      (filterUserType === "employees" && user.role !== "Customer") ||
+      (filterUserType === "customers" && user.role === "Customer") ||
+      (filterUserType === "admins" &&
+        ["Super Admin", "Admin", "IT Administrator"].includes(user.role)) ||
+      (filterUserType === "suspended" && user.status === "Suspended") ||
+      (filterUserType === "active" && user.status === "Active");
 
-      const matchesType =
-        filterUserType === "all" ||
-        (filterUserType === "employees" &&
-          [
-            "Account Manager",
-            "Loan Officer",
-            "Compliance Officer",
-            "IT Administrator",
-          ].includes(user.role)) ||
-        (filterUserType === "customers" && user.role === "Customer") ||
-        (filterUserType === "admins" &&
-          ["Super Admin", "Admin"].includes(user.role)) ||
-        (filterUserType === "suspended" && user.status === "Suspended");
+    return matchesSearch && matchesType;
+  });
 
-      return matchesSearch && matchesType;
-    }
-  );
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-black dark:text-white">
-                Super Admin Dashboard
-              </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                System-wide monitoring and administration
-              </p>
-            </div>
-
-            {/* Search Bar */}
-            <div className="relative w-96">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search users, logs, configurations..."
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-              />
-
-              {/* Search Results Dropdown */}
-              {showSearchResults && (
-                <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg mt-1 z-50">
-                  {searchResults.length > 0 ? (
-                    searchResults.map((user) => (
-                      <div
-                        key={user.id}
-                        onClick={() => selectUser(user)}
-                        className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0"
-                      >
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <div className="font-medium text-black dark:text-white">
-                              {user.name}
-                            </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
-                              {user.email}
-                            </div>
-                          </div>
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs ${getRoleColor(
-                              user.role
-                            )}`}
-                          >
-                            {user.role}
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-3 text-gray-500 dark:text-gray-400">
-                      No users found
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* System Status Bar */}
-          <div className="grid grid-cols-6 gap-6 mt-6">
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-green-600 dark:text-green-400">
-                    System Uptime
-                  </p>
-                  <p className="text-xl font-bold text-green-700 dark:text-green-300">
-                    {superAdminData.systemOverview.systemHealth.serverUptime}%
-                  </p>
-                </div>
-                <Server className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-            </div>
-
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-blue-600 dark:text-blue-400">
-                    Active Users
-                  </p>
-                  <p className="text-xl font-bold text-blue-700 dark:text-blue-300">
-                    {formatNumber(
-                      realTimeData.activeUsers ||
-                        superAdminData.systemOverview.bankWideMetrics
-                          .activeUsers
-                    )}
-                  </p>
-                </div>
-                <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
-
-            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-purple-600 dark:text-purple-400">
-                    Transactions/min
-                  </p>
-                  <p className="text-xl font-bold text-purple-700 dark:text-purple-300">
-                    {formatNumber(
-                      realTimeData.transactionThroughput ||
-                        superAdminData.systemOverview.systemHealth
-                          .transactionThroughput
-                    )}
-                  </p>
-                </div>
-                <Activity className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-              </div>
-            </div>
-
-            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-orange-600 dark:text-orange-400">
-                    Security Alerts
-                  </p>
-                  <p className="text-xl font-bold text-orange-700 dark:text-orange-300">
-                    {
-                      superAdminData.complianceAndSecurity.fraudDetection
-                        .highRiskAlerts
-                    }
-                  </p>
-                </div>
-                <Shield className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-              </div>
-            </div>
-
-            <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-red-600 dark:text-red-400">
-                    Failed Logins
-                  </p>
-                  <p className="text-xl font-bold text-red-700 dark:text-red-300">
-                    {superAdminData.systemOverview.recentActivity.failedLogins}
-                  </p>
-                </div>
-                <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
-              </div>
-            </div>
-
-            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    System Load
-                  </p>
-                  <p className="text-xl font-bold text-gray-700 dark:text-gray-300">
-                    {realTimeData.systemLoad ||
-                      superAdminData.systemOverview.systemHealth.cpuUsage}
-                    %
-                  </p>
-                </div>
-                <Gauge className="h-6 w-6 text-gray-600 dark:text-gray-400" />
-              </div>
-            </div>
-          </div>
+  if (hasError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="text-center p-6 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+          <AlertTriangle className="h-12 w-12 text-red-600 dark:text-red-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-red-800 dark:text-red-400 mb-2">
+            Error Loading User Management Data
+          </h3>
+          <p className="text-red-600 dark:text-red-400 mb-4">
+            {userManagementError || userListError || roleDefinitionsError}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Retry
+          </button>
         </div>
       </div>
+    );
+  }
 
-      {/* Main Content */}
-      <div className="py-6">
-        <div className="space-y-6">
-          {/* User Statistics */}
-          <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <div className="flex items-center justify-between">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-7xl">
+        {/* Header Section */}
+        <AnimatedSection delay={100}>
+          <div className="text-center sm:text-left mb-8 sm:mb-10 lg:mb-12">
+            <h1 className="text-2xl pb-2 sm:text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
+              User Management
+            </h1>
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-300 mt-1 sm:mt-2">
+              Comprehensive user administration and oversight
+            </p>
+          </div>
+        </AnimatedSection>
+
+        {/* User Statistics Cards */}
+        <AnimatedSection delay={200}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-6 mb-8 sm:mb-10 lg:mb-12">
+            {/* Total Employees Card */}
+            <div className="group bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 border border-blue-200 dark:border-blue-700/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-blue-200/50 dark:hover:shadow-blue-900/30">
+              <div className="flex items-center justify-between mb-2">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-xs sm:text-sm text-blue-700 dark:text-blue-300 font-medium mb-1">
                     Total Employees
                   </p>
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300">
                     {formatNumber(
-                      superAdminData.userManagement.userStats.totalEmployees
+                      processedData.userManagement?.userStats?.totalEmployees ||
+                        0
                     )}
                   </p>
                 </div>
-                <Users className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                <Users className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <div className="flex items-center justify-between">
+            {/* Active Employees Card */}
+            <div className="group bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 border border-green-200 dark:border-green-700/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-green-200/50 dark:hover:shadow-green-900/30">
+              <div className="flex items-center justify-between mb-2">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-xs sm:text-sm text-green-700 dark:text-green-300 font-medium mb-1">
                     Active Employees
                   </p>
-                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform duration-300">
                     {formatNumber(
-                      superAdminData.userManagement.userStats.activeEmployees
+                      processedData.userManagement?.userStats
+                        ?.activeEmployees || 0
                     )}
                   </p>
                 </div>
-                <UserCheck className="h-8 w-8 text-green-600 dark:text-green-400" />
+                <UserCheck className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-green-600 dark:text-green-400" />
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <div className="flex items-center justify-between">
+            {/* Customers Card */}
+            <div className="group bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20 border border-purple-200 dark:border-purple-700/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-purple-200/50 dark:hover:shadow-purple-900/30">
+              <div className="flex items-center justify-between mb-2">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Total Customers
+                  <p className="text-xs sm:text-sm text-purple-700 dark:text-purple-300 font-medium mb-1">
+                    Customers
                   </p>
-                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform duration-300">
                     {formatNumber(
-                      superAdminData.userManagement.userStats.customers
+                      processedData.userManagement?.userStats?.customers || 0
                     )}
                   </p>
                 </div>
-                <User className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                <User className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <div className="flex items-center justify-between">
+            {/* Active Customers Card */}
+            <div className="group bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/30 dark:to-teal-800/20 border border-teal-200 dark:border-teal-700/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-teal-200/50 dark:hover:shadow-teal-900/30">
+              <div className="flex items-center justify-between mb-2">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-xs sm:text-sm text-teal-700 dark:text-teal-300 font-medium mb-1">
                     Active Customers
                   </p>
-                  <p className="text-2xl font-bold text-teal-600 dark:text-teal-400">
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-teal-600 dark:text-teal-400 group-hover:scale-110 transition-transform duration-300">
                     {formatNumber(
-                      superAdminData.userManagement.userStats.activeCustomers
+                      processedData.userManagement?.userStats
+                        ?.activeCustomers || 0
                     )}
                   </p>
                 </div>
-                <UserCheck className="h-8 w-8 text-teal-600 dark:text-teal-400" />
+                <UserCheck className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-teal-600 dark:text-teal-400" />
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <div className="flex items-center justify-between">
+            {/* Admin Users Card */}
+            <div className="group bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/20 border border-orange-200 dark:border-orange-700/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-orange-200/50 dark:hover:shadow-orange-900/30">
+              <div className="flex items-center justify-between mb-2">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-xs sm:text-sm text-orange-700 dark:text-orange-300 font-medium mb-1">
                     Admin Users
                   </p>
-                  <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                    {superAdminData.userManagement.userStats.adminUsers}
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform duration-300">
+                    {formatNumber(
+                      processedData.userManagement?.userStats?.adminUsers || 0
+                    )}
                   </p>
                 </div>
-                <Shield className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+                <Shield className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-orange-600 dark:text-orange-400" />
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <div className="flex items-center justify-between">
+            {/* Suspended Users Card */}
+            <div className="group bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/20 border border-red-200 dark:border-red-700/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-red-200/50 dark:hover:shadow-red-900/30">
+              <div className="flex items-center justify-between mb-2">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Suspended
+                  <p className="text-xs sm:text-sm text-red-700 dark:text-red-300 font-medium mb-1">
+                    Suspended Users
                   </p>
-                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                    {superAdminData.userManagement.userStats.suspendedUsers}
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform duration-300">
+                    {formatNumber(
+                      processedData.userManagement?.userStats?.suspendedUsers ||
+                        0
+                    )}
                   </p>
                 </div>
-                <UserX className="h-8 w-8 text-red-600 dark:text-red-400" />
+                <UserX className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-red-600 dark:text-red-400" />
               </div>
             </div>
           </div>
+        </AnimatedSection>
 
-          {/* User List */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-black dark:text-white">
-                  User Management
-                </h3>
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    placeholder="Search users..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-black dark:text-white bg-white dark:bg-gray-700"
-                  />
-                  <select
-                    value={filterUserType}
-                    onChange={(e) => setFilterUserType(e.target.value)}
-                    className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-black dark:text-white bg-white dark:bg-gray-700"
-                  >
-                    <option value="all">All Users</option>
-                    <option value="employees">Employees</option>
-                    <option value="customers">Customers</option>
-                    <option value="admins">Admins</option>
-                    <option value="suspended">Suspended</option>
-                  </select>
-                  <button
-                    onClick={() => setShowUserModal(true)}
-                    className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 dark:hover:bg-blue-600"
-                  >
-                    <UserPlus className="h-4 w-4 inline mr-1" />
-                    Add User
-                  </button>
+        {/* User Management Table */}
+        <AnimatedSection delay={300}>
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl shadow-2xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-500">
+            {/* Table Header */}
+            <div className="p-6 sm:p-8 border-b border-gray-200/50 dark:border-gray-700/50">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                    Top System Users
+                  </h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Key personnel and high-priority users in the system
+                  </p>
                 </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                  {/* Search Input */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <input
+                      type="text"
+                      placeholder="Search users..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all duration-200 w-full sm:w-64"
+                    />
+                  </div>
+
+                  {/* Filter Dropdown */}
+                  <div className="relative">
+                    <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <select
+                      value={filterUserType}
+                      onChange={(e) => setFilterUserType(e.target.value)}
+                      className="pl-10 pr-8 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all duration-200 appearance-none cursor-pointer"
+                    >
+                      <option value="all">All Users</option>
+                      <option value="employees">Employees</option>
+                      <option value="customers">Customers</option>
+                      <option value="admins">Administrators</option>
+                      <option value="active">Active Users</option>
+                      <option value="suspended">Suspended</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Filter Summary */}
+              <div className="mt-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                <span>
+                  Showing {filteredUsers.length} top users
+                  {processedData.userList.length > 0 &&
+                    ` (${processedData.userList.length} total)`}
+                </span>
+                {searchTerm && (
+                  <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-lg">
+                    Filtered by: "{searchTerm}"
+                  </span>
+                )}
               </div>
             </div>
 
+            {/* Table Content */}
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-gray-700">
+                <thead className="bg-gray-50/50 dark:bg-gray-700/50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                       User
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Role
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                      Role & Department
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Department
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Last Login
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                      Activity
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {filteredUsers.map((user) => (
-                    <tr key={user.id}>
+                <tbody className="divide-y divide-gray-200/50 dark:divide-gray-700/50">
+                  {filteredUsers.map((user, index) => (
+                    <tr
+                      key={user.id}
+                      className="hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-all duration-200 group"
+                    >
+                      {/* User Info */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                              {user.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </span>
+                          <div className="flex-shrink-0 h-11 w-11">
+                            <div className="h-11 w-11 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                              <User className="h-6 w-6 text-white" />
+                            </div>
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-black dark:text-white">
+                            <div className="text-sm font-semibold text-gray-900 dark:text-white">
                               {user.name}
                             </div>
                             <div className="text-sm text-gray-500 dark:text-gray-400">
                               {user.email}
                             </div>
+                            <div className="text-xs text-gray-400 dark:text-gray-500">
+                              ID: {user.id}
+                            </div>
                           </div>
                         </div>
                       </td>
+
+                      {/* Role & Department */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="space-y-1">
+                          <span
+                            className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getRoleColor(
+                              user.role
+                            )}`}
+                          >
+                            {user.role}
+                          </span>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            {user.department}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Status */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          className={`px-2 py-1 rounded-full text-xs ${getRoleColor(
-                            user.role
-                          )}`}
-                        >
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {user.department}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
+                          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(
                             user.status
                           )}`}
                         >
                           {user.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {user.lastLogin}
+
+                      {/* Activity */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 dark:text-white">
+                          {user.lastLogin}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {formatNumber(user.loginCount)} logins
+                        </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
+
+                      {/* Actions */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
                           <button
-                            onClick={() => selectUser(user)}
-                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                            onClick={() => handleSelectUser(user)}
+                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200"
+                            title="View Details"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleEditUser(user)}
-                            className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300"
+                            className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 p-1.5 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200"
+                            title="Edit User"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
-                          {user.status === "Active" ? (
-                            <button className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">
-                              <UserX className="h-4 w-4" />
-                            </button>
-                          ) : (
-                            <button className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300">
-                              <UserCheck className="h-4 w-4" />
-                            </button>
-                          )}
                         </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
-          </div>
 
-          {/* Role Management */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
-              Role Management
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {superAdminData.userManagement.roleDefinitions.map(
-                (role, idx) => (
-                  <div
-                    key={idx}
-                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold text-black dark:text-white">
-                        {role.role}
-                      </h4>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {formatNumber(role.userCount)} users
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                      {role.description}
-                    </p>
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                        Permissions:
-                      </p>
-                      {role.permissions
-                        .slice(0, 3)
-                        .map((permission, permIdx) => (
-                          <div
-                            key={permIdx}
-                            className="text-xs text-gray-500 dark:text-gray-400"
-                          >
-                            •{" "}
-                            {permission
-                              .replace(/_/g, " ")
-                              .replace(/\b\w/g, (l) => l.toUpperCase())}
-                          </div>
-                        ))}
-                      {role.permissions.length > 3 && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          +{role.permissions.length - 3} more permissions
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )
+              {/* Empty State */}
+              {filteredUsers.length === 0 && (
+                <div className="text-center py-12">
+                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    No top users found
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {searchTerm
+                      ? "Try adjusting your search criteria to find top users"
+                      : "No top users match the selected filter"}
+                  </p>
+                </div>
               )}
             </div>
           </div>
-        </div>
+        </AnimatedSection>
       </div>
 
       {/* User Details Modal */}
-      {showUserDetails && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl mx-4">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-black dark:text-white">
-                  User Details
-                </h3>
-                <button
-                  onClick={() => setShowUserDetails(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+      <Modal
+        isOpen={showUserDetails && selectedUser}
+        onClose={() => setShowUserDetails(false)}
+        title="User Details"
+        size="lg"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Basic Information Section */}
+          <div className="bg-gray-50/80 dark:bg-gray-700/50 rounded-xl p-6 border border-gray-200/50 dark:border-gray-600/50">
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-4 text-lg flex items-center gap-2">
+              <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              Basic Information
+            </h4>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Name:
+                </span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {selectedUser?.name}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Email:
+                </span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {selectedUser?.email}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  User ID:
+                </span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {selectedUser?.id}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Role:
+                </span>
+                <span
+                  className={`text-sm px-2 py-1 rounded-lg font-medium ${getRoleColor(
+                    selectedUser?.role
+                  )}`}
                 >
-                  <XCircle className="h-6 w-6" />
-                </button>
+                  {selectedUser?.role}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Department:
+                </span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {selectedUser?.department}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Status:
+                </span>
+                <span
+                  className={`text-sm px-2 py-1 rounded-lg font-medium ${getStatusColor(
+                    selectedUser?.status
+                  )}`}
+                >
+                  {selectedUser?.status}
+                </span>
               </div>
             </div>
+          </div>
 
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-medium text-black dark:text-white mb-3">
-                    Basic Information
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Name:
-                      </span>
-                      <span className="text-sm font-medium text-black dark:text-white">
-                        {selectedUser.name}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Email:
-                      </span>
-                      <span className="text-sm font-medium text-black dark:text-white">
-                        {selectedUser.email}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        User ID:
-                      </span>
-                      <span className="text-sm font-medium text-black dark:text-white">
-                        {selectedUser.id}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Role:
-                      </span>
-                      <span
-                        className={`text-sm px-2 py-1 rounded ${getRoleColor(
-                          selectedUser.role
-                        )}`}
-                      >
-                        {selectedUser.role}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Department:
-                      </span>
-                      <span className="text-sm font-medium text-black dark:text-white">
-                        {selectedUser.department}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Status:
-                      </span>
-                      <span
-                        className={`text-sm px-2 py-1 rounded ${getStatusColor(
-                          selectedUser.status
-                        )}`}
-                      >
-                        {selectedUser.status}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-medium text-black dark:text-white mb-3">
-                    Activity Information
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Created:
-                      </span>
-                      <span className="text-sm font-medium text-black dark:text-white">
-                        {selectedUser.createdDate}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Last Login:
-                      </span>
-                      <span className="text-sm font-medium text-black dark:text-white">
-                        {selectedUser.lastLogin}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Login Count:
-                      </span>
-                      <span className="text-sm font-medium text-black dark:text-white">
-                        {formatNumber(selectedUser.loginCount)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Last Activity:
-                      </span>
-                      <span className="text-sm font-medium text-black dark:text-white">
-                        {selectedUser.lastActivity}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+          {/* Activity Information Section */}
+          <div className="bg-gray-50/80 dark:bg-gray-700/50 rounded-xl p-6 border border-gray-200/50 dark:border-gray-600/50">
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-4 text-lg flex items-center gap-2">
+              <UserCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
+              Activity Information
+            </h4>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Created:
+                </span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {selectedUser?.createdDate}
+                </span>
               </div>
-
-              <div className="mt-6">
-                <h4 className="font-medium text-black dark:text-white mb-3">
-                  Permissions
-                </h4>
-                <div className="grid grid-cols-2 gap-2">
-                  {selectedUser.permissions.map((permission, idx) => (
-                    <div
-                      key={idx}
-                      className="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded"
-                    >
-                      {permission
-                        .replace(/_/g, " ")
-                        .replace(/\b\w/g, (l) => l.toUpperCase())}
-                    </div>
-                  ))}
-                </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Last Login:
+                </span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {selectedUser?.lastLogin}
+                </span>
               </div>
-
-              <div className="mt-6 flex space-x-3">
-                <button
-                  onClick={() => handleEditUser(User)}
-                  className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 dark:hover:bg-blue-600"
-                >
-                  <Edit className="h-4 w-4 inline mr-1" />
-                  Edit User
-                </button>
-                <button className="bg-green-600 dark:bg-green-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 dark:hover:bg-green-600">
-                  <Key className="h-4 w-4 inline mr-1" />
-                  Reset Password
-                </button>
-                {selectedUser.status === "Active" ? (
-                  <button className="bg-red-600 dark:bg-red-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 dark:hover:bg-red-600">
-                    <UserX className="h-4 w-4 inline mr-1" />
-                    Suspend User
-                  </button>
-                ) : (
-                  <button className="bg-green-600 dark:bg-green-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 dark:hover:bg-green-600">
-                    <UserCheck className="h-4 w-4 inline mr-1" />
-                    Activate User
-                  </button>
-                )}
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Login Count:
+                </span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {selectedUser ? formatNumber(selectedUser.loginCount) : ""}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Last Activity:
+                </span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {selectedUser?.lastActivity}
+                </span>
               </div>
             </div>
           </div>
         </div>
-      )}
+
+        {/* Action Buttons */}
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            onClick={() => handleEditUser(selectedUser)}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:scale-105"
+          >
+            <Edit className="h-4 w-4" />
+            Edit User
+          </button>
+          <button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:scale-105">
+            <Key className="h-4 w-4" />
+            Reset Password
+          </button>
+          {selectedUser?.status === "Active" ? (
+            <button className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:scale-105">
+              <UserX className="h-4 w-4" />
+              Suspend User
+            </button>
+          ) : (
+            <button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:scale-105">
+              <UserCheck className="h-4 w-4" />
+              Activate User
+            </button>
+          )}
+        </div>
+      </Modal>
 
       {/* Edit User Modal */}
-      {showEditUserModal && editingUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-black dark:text-white">
-                  Edit User
-                </h3>
-                <button
-                  onClick={() => setShowEditUserModal(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <XCircle className="h-6 w-6" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6">
-              <form className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    defaultValue={editingUser.name}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    defaultValue={editingUser.email}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Role
-                  </label>
-                  <select
-                    defaultValue={editingUser.role}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                  >
-                    <option>Account Manager</option>
-                    <option>Loan Officer</option>
-                    <option>Compliance Officer</option>
-                    <option>IT Administrator</option>
-                    <option>Super Admin</option>
-                    <option>Customer</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Department
-                  </label>
-                  <select
-                    defaultValue={editingUser.department}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                  >
-                    <option>Private Banking</option>
-                    <option>Commercial Lending</option>
-                    <option>Risk & Compliance</option>
-                    <option>Information Technology</option>
-                    <option>N/A</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Status
-                  </label>
-                  <select
-                    defaultValue={editingUser.status}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                  >
-                    <option>Active</option>
-                    <option>Suspended</option>
-                    <option>Pending</option>
-                  </select>
-                </div>
-
-                <div className="flex space-x-3 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setShowEditUserModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600"
-                  >
-                    <Save className="h-4 w-4 inline mr-1" />
-                    Save Changes
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add User Modal */}
-      {showUserModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-black dark:text-white">
-                  Add New User
-                </h3>
-                <button
-                  onClick={() => setShowUserModal(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <XCircle className="h-6 w-6" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6">
-              <form className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Role
-                  </label>
-                  <select className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700">
-                    <option>Select Role</option>
-                    <option>Account Manager</option>
-                    <option>Loan Officer</option>
-                    <option>Compliance Officer</option>
-                    <option>IT Administrator</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                    Department
-                  </label>
-                  <select className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700">
-                    <option>Select Department</option>
-                    <option>Private Banking</option>
-                    <option>Commercial Lending</option>
-                    <option>Risk & Compliance</option>
-                    <option>Information Technology</option>
-                  </select>
-                </div>
-
-                <div className="flex space-x-3 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setShowUserModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600"
-                  >
-                    Create User
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Footer */}
-      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-4 mt-8">
-        <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
+      <Modal
+        isOpen={showEditUserModal && editingUser}
+        onClose={() => setShowEditUserModal(false)}
+        title="Edit User"
+        size="md"
+      >
+        <form className="space-y-4">
           <div>
-            <span>© 2024 Bank Management System - Super Admin Dashboard</span>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Full Name
+            </label>
+            <input
+              type="text"
+              defaultValue={editingUser?.name}
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            />
           </div>
-          <div className="flex space-x-4">
-            <span>Version 2.1.0</span>
-            <span>•</span>
-            <span>Last Updated: June 5, 2024</span>
-            <span>•</span>
-            <span className="flex items-center">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-              All Systems Operational
-            </span>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Email
+            </label>
+            <input
+              type="email"
+              defaultValue={editingUser?.email}
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            />
           </div>
-        </div>
-      </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Role
+            </label>
+            <select
+              defaultValue={editingUser?.role}
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            >
+              <option>Account Manager</option>
+              <option>Loan Officer</option>
+              <option>Compliance Officer</option>
+              <option>IT Administrator</option>
+              <option>Super Admin</option>
+              <option>Customer</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Department
+            </label>
+            <select
+              defaultValue={editingUser?.department}
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            >
+              <option>Private Banking</option>
+              <option>Commercial Lending</option>
+              <option>Risk & Compliance</option>
+              <option>Information Technology</option>
+              <option>N/A</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Status
+            </label>
+            <select
+              defaultValue={editingUser?.status}
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            >
+              <option>Active</option>
+              <option>Suspended</option>
+              <option>Pending</option>
+            </select>
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <button
+              type="button"
+              onClick={() => setShowEditUserModal(false)}
+              className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-all duration-200 hover:scale-105"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 hover:scale-105"
+            >
+              <Save className="h-4 w-4" />
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

@@ -8,7 +8,7 @@ import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import Footer from "./components/Footer";
 import Dashboard from "./pages/Dashboard/Dashboard";
-import LandingPage from "./pages/Dashboard/LandingPage";
+import LoadingSpinner from "./components/Loading";
 import ProtectedRoute from "./pages/Auth/ProtectedRoute";
 
 // User components
@@ -16,12 +16,13 @@ import User from "./pages/Dashboard/User/";
 import UserDashboard from "./pages/Dashboard/User/UserDashboard";
 import AlertsAndNotifications from "./pages/Dashboard/User/AlertsAndNotifications";
 import BudgetManagement from "./pages/Dashboard/User/BudgetManagement";
-import ComparisonAndRecommendations from "./pages/Dashboard/User/ComparisonAndRecommendations";
-import CreditScoreAndReports from "./pages/Dashboard/User/CreditScoreAndReports";
+import Recommendations from "./pages/Dashboard/User/Recommendations";
 import InsuranceCoverage from "./pages/Dashboard/User/InsuranceCoverage";
 import InvestmentPortfolio from "./pages/Dashboard/User/InvestmentPortfolio";
 import LoanAndMortgageManagement from "./pages/Dashboard/User/LoanAndMortgageManagement";
 import TransactionHistory from "./pages/Dashboard/User/TransactionHistory";
+import Profile from "./pages/Dashboard/Profile";
+import MoneyTransfer from "./pages/Dashboard/User/MoneyTransfer";
 
 // Super Admin components
 import SuperAdmin from "./pages/Dashboard/SuperAdmin";
@@ -34,8 +35,8 @@ import SecurityAndCompliance from "./pages/Dashboard/SuperAdmin/SecurityAndCompl
 
 // Account Manager components
 import AccountManager from "./pages/Dashboard/AccountManager";
-import CalendarMeetings from "./pages/Dashboard/AccountManager/CalendarMeetings";
-import AMCommunications from "./pages/Dashboard/AccountManager/AMCommunications";
+import AccountManagerDashboard from "./pages/Dashboard/AccountManager/AccountManagerDashboard";
+import Meetings from "./pages/Dashboard/AccountManager/Meetings";
 import AMCustomerPortfolio from "./pages/Dashboard/AccountManager/AMCustomerPortfolio";
 import InvestmentPerformance from "./pages/Dashboard/AccountManager/InvestmentPerformance";
 import RevenueAnalytics from "./pages/Dashboard/AccountManager/RevenueAnalytics";
@@ -59,6 +60,8 @@ import Transactions from "./pages/Dashboard/CSR/Transactions";
 import "./App.css";
 import "react-toastify/dist/ReactToastify.css";
 import useUserInfo from "./hooks/useUserInfo";
+import { useAuthState } from "react-firebase-hooks/auth";
+import auth from "./firebase.init";
 
 function App() {
   // Use React Router's location
@@ -66,6 +69,7 @@ function App() {
   const hideNFPaths = ["/login", "/register", "/dashboard"];
   const showNF = !hideNFPaths.some((path) => location.pathname.includes(path));
 
+  const [user] = useAuthState(auth);
   const uId = localStorage.getItem("userId");
   const { userInfo, isLoading } = useUserInfo(uId);
 
@@ -85,9 +89,34 @@ function App() {
 
   // Function to redirect users to their appropriate dashboard based on role
   const getDashboardRedirect = () => {
-    if (!userInfo || isLoading) return null;
+    // If still loading user info, show a loading state
+    if (isLoading) {
+      return <LoadingSpinner fullscreen overlay />;
+    }
 
-    switch (userInfo.role) {
+    // If no user info or no user is logged in, redirect to login
+    if (!user || !userInfo) {
+      return <Navigate to="/login" replace />;
+    }
+
+    // If user has no roles, redirect to login (should not happen, but just in case)
+    if (
+      !userInfo.role ||
+      (Array.isArray(userInfo.role) && userInfo.role.length === 0)
+    ) {
+      return <Navigate to="/login" replace />;
+    }
+
+    // Get the active role (either from localStorage or first available role)
+    const roles = Array.isArray(userInfo.role)
+      ? userInfo.role
+      : [userInfo.role];
+    const savedRole = localStorage.getItem("activeRole");
+    const activeRole =
+      savedRole && roles.includes(savedRole) ? savedRole : roles[0];
+
+    // Redirect based on active role
+    switch (activeRole) {
       case "user":
         return <Navigate to="/dashboard/user" replace />;
       case "super-admin":
@@ -99,7 +128,8 @@ function App() {
       case "csr":
         return <Navigate to="/dashboard/csr" replace />;
       default:
-        return <LandingPage />;
+        // If somehow we get an unknown role, default to user dashboard
+        return <Navigate to="/dashboard/user" replace />;
     }
   };
 
@@ -113,7 +143,10 @@ function App() {
 
         <Route path="/dashboard" element={<Dashboard />}>
           {/* Default dashboard route redirects based on role */}
-          <Route index element={getDashboardRedirect()} />
+          <Route
+            index
+            element={<ProtectedRoute>{getDashboardRedirect()}</ProtectedRoute>}
+          />
 
           {/* User routes */}
           <Route
@@ -125,19 +158,14 @@ function App() {
             }
           >
             <Route index element={<UserDashboard userInfo={userInfo} />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="money-transfer" element={<MoneyTransfer />} />
             <Route
               path="alerts-and-notifications"
               element={<AlertsAndNotifications />}
             />
             <Route path="budget-management" element={<BudgetManagement />} />
-            <Route
-              path="comparison-and-recommendation"
-              element={<ComparisonAndRecommendations />}
-            />
-            <Route
-              path="credit-score-and-reports"
-              element={<CreditScoreAndReports />}
-            />
+            <Route path="recommendation" element={<Recommendations />} />
             <Route path="insurance-coverage" element={<InsuranceCoverage />} />
             <Route
               path="investment-portfolio"
@@ -182,12 +210,8 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route
-              index
-              element={<Navigate to="customer-portfolio" replace />}
-            />
-            <Route path="calendar-meetings" element={<CalendarMeetings />} />
-            <Route path="communications" element={<AMCommunications />} />
+            <Route index element={<AccountManagerDashboard />} />
+            <Route path="meetings" element={<Meetings />} />
             <Route
               path="customer-portfolio"
               element={<AMCustomerPortfolio />}
@@ -231,9 +255,9 @@ function App() {
           >
             <Route
               index
-              element={<Navigate to="customer-portfolio" replace />}
+              element={<Navigate to="customer-profile" replace />}
             />
-            <Route path="customer-portfolio" element={<CSRCustomerProfile />} />
+            <Route path="customer-profile" element={<CSRCustomerProfile />} />
             <Route path="quick-actions" element={<QuickActions />} />
             <Route path="service-requests" element={<ServiceRequests />} />
             <Route path="transactions" element={<Transactions />} />

@@ -1,256 +1,7 @@
-import { useState } from 'react';
-import { 
-  Search, 
-  XCircle
-  } from 'lucide-react';
+import AnimatedSection from "../../../components/AnimatedSection";
+import { useState } from "react";
 
 export const csrDashboardData = {
-  // Current CSR session info
-  csrInfo: {
-    name: "Sarah Johnson",
-    id: "CSR-2847",
-    department: "Customer Service",
-    shift: "Morning (8:00 AM - 4:00 PM)",
-    status: "Available",
-    currentCalls: 2,
-    todayStats: {
-      callsHandled: 23,
-      avgCallTime: "4:32",
-      resolutionRate: 87,
-      customerSatisfaction: 4.6
-    }
-  },
-
-  // Active customer (currently being helped)
-  activeCustomer: {
-    basicInfo: {
-      name: "Michael Rodriguez",
-      customerId: "CUST-789456",
-      accountNumber: "****-****-****-3847", // Masked for security
-      memberSince: "2019-03-15",
-      preferredName: "Mike",
-      contactMethod: "Phone",
-      language: "English"
-    },
-    contactInfo: {
-      phone: "(555) 234-5678",
-      email: "m.rodriguez@email.com",
-      address: {
-        street: "1234 Oak Street",
-        city: "Springfield",
-        state: "IL",
-        zip: "62701"
-      },
-      emergencyContact: {
-        name: "Maria Rodriguez",
-        relationship: "Spouse",
-        phone: "(555) 234-5679"
-      }
-    },
-    accountSummary: {
-      accounts: [
-        {
-          type: "Checking",
-          accountNumber: "****3847",
-          balance: 2847.32,
-          status: "Active",
-          lastActivity: "2024-06-02"
-        },
-        {
-          type: "Savings",
-          accountNumber: "****7291",
-          balance: 15420.88,
-          status: "Active",
-          lastActivity: "2024-05-28"
-        },
-        {
-          type: "Credit Card",
-          accountNumber: "****9156",
-          balance: -1247.65,
-          creditLimit: 5000,
-          status: "Active",
-          paymentDue: "2024-06-15"
-        }
-      ],
-      totalRelationship: 17020.55,
-      creditScore: "Good (720-750)", // Range for privacy
-      riskLevel: "Low"
-    },
-    alerts: [
-      {
-        type: "info",
-        message: "Customer called 3 times this month",
-        priority: "Medium",
-        date: "2024-06-03"
-      },
-      {
-        type: "warning", 
-        message: "Credit card payment due in 12 days",
-        priority: "Low",
-        date: "2024-06-03"
-      },
-      {
-        type: "overdraft",
-        message: "Account overdraft: -$150.00 (Fee: $35.00)",
-        priority: "High", 
-        date: "2024-06-03",
-        amount: -150,
-        fee: 35
-      },
-      {
-        type: "hold",
-        message: "Temporary hold: $500.00 - Check verification pending",
-        priority: "Medium",
-        date: "2024-06-03",
-        amount: 500,
-        reason: "Check verification"
-      },
-      {
-        type: "suspicious",
-        message: "Suspicious activity: ATM withdrawal $800 - unusual location",
-        priority: "High",
-        date: "2024-06-03",
-        transaction: "ATM withdrawal $800 - unusual location"
-      }
-    ]
-  },
-
-  // Recent transactions (last 10)
-  recentTransactions: [
-    {
-      id: "TXN-2024060301",
-      date: "2024-06-02",
-      time: "14:23",
-      type: "Debit Card Purchase",
-      merchant: "Grocery Store Plus",
-      amount: -87.45,
-      account: "****3847",
-      status: "Posted",
-      category: "Groceries"
-    },
-    {
-      id: "TXN-2024060201",
-      date: "2024-06-01",
-      time: "09:15",
-      type: "Direct Deposit",
-      merchant: "ABC Company Payroll",
-      amount: 2847.33,
-      account: "****3847",
-      status: "Posted",
-      category: "Income"
-    },
-    {
-      id: "TXN-2024053101",
-      date: "2024-05-31",
-      time: "16:45",
-      type: "Online Transfer",
-      merchant: "Transfer to Savings",
-      amount: -500.00,
-      account: "****3847",
-      status: "Posted",
-      category: "Transfer"
-    },
-    {
-      id: "TXN-2024053001",
-      date: "2024-05-30",
-      time: "12:30",
-      type: "ATM Withdrawal",
-      merchant: "First National ATM #4521",
-      amount: -80.00,
-      account: "****3847",
-      status: "Posted",
-      category: "Cash"
-    },
-    {
-      id: "TXN-2024052901",
-      date: "2024-05-29",
-      time: "19:22",
-      type: "Credit Card Payment",
-      merchant: "Online Payment",
-      amount: -200.00,
-      account: "****3847",
-      status: "Posted",
-      category: "Payment"
-    }
-  ],
-
-  // Current service requests/tickets
-  activeTickets: [
-    {
-      ticketId: "REQ-2024-5847",
-      customerId: "CUST-789456",
-      customerName: "Michael Rodriguez",
-      issue: "Request to increase credit limit",
-      priority: "Medium",
-      status: "In Progress",
-      createdDate: "2024-06-03",
-      createdTime: "10:30 AM",
-      slaDeadline: "2024-06-04 10:30 AM",
-      timeRemaining: "23h 36m",
-      category: "Credit Services",
-      description: "Customer requesting credit limit increase from $5,000 to $8,000. Employment verification needed.",
-      assignedTo: "Sarah Johnson",
-      escalationRequired: true,
-      escalateTo: "Credit Department",
-      updates: [
-        {
-          timestamp: "2024-06-03 10:35 AM",
-          action: "Ticket Created",
-          note: "Initial request logged"
-        }
-      ]
-    }
-  ],
-
-  // My ticket queue
-  myTicketQueue: [
-    {
-      ticketId: "REQ-2024-5847",
-      customerId: "CUST-789456",
-      customerName: "Michael Rodriguez",
-      issue: "Credit limit increase request",
-      priority: "Medium",
-      status: "In Progress",
-      slaDeadline: "2024-06-04 10:30 AM",
-      timeRemaining: "23h 36m",
-      category: "Credit Services"
-    },
-    {
-      ticketId: "REQ-2024-5846",
-      customerId: "CUST-445789",
-      customerName: "Jennifer Chen",
-      issue: "Dispute unauthorized charge",
-      priority: "High",
-      status: "New",
-      slaDeadline: "2024-06-03 16:00 PM",
-      timeRemaining: "5h 6m",
-      category: "Fraud/Disputes"
-    },
-    {
-      ticketId: "REQ-2024-5845",
-      customerId: "CUST-223456",
-      customerName: "Robert Thompson",
-      issue: "Update contact information",
-      priority: "Low",
-      status: "Pending Approval",
-      slaDeadline: "2024-06-05 12:00 PM",
-      timeRemaining: "2d 1h 6m",
-      category: "Account Updates"
-    },
-    {
-      ticketId: "REQ-2024-5844",
-      customerId: "CUST-667890",
-      customerName: "Lisa Martinez",
-      issue: "Account locked - password reset",
-      priority: "High",
-      status: "New",
-      slaDeadline: "2024-06-03 14:00 PM",
-      timeRemaining: "3h 6m",
-      category: "Account Access"
-    }
-  ],
-
-  // Quick actions available to CSR
   quickActions: [
     {
       id: "update-contact",
@@ -258,7 +9,7 @@ export const csrDashboardData = {
       description: "Change phone, email, or address",
       icon: "contact",
       permission: "direct",
-      category: "Account Updates"
+      category: "Account Updates",
     },
     {
       id: "account-preferences",
@@ -266,7 +17,7 @@ export const csrDashboardData = {
       description: "Update notifications, statements",
       icon: "settings",
       permission: "direct",
-      category: "Account Updates"
+      category: "Account Updates",
     },
     {
       id: "temporary-hold",
@@ -274,7 +25,7 @@ export const csrDashboardData = {
       description: "Place temporary hold on account",
       icon: "lock",
       permission: "direct",
-      category: "Security"
+      category: "Security",
     },
     {
       id: "process-payment",
@@ -282,7 +33,7 @@ export const csrDashboardData = {
       description: "Process loan or credit card payment",
       icon: "payment",
       permission: "direct",
-      category: "Transactions"
+      category: "Transactions",
     },
     {
       id: "transfer-funds",
@@ -290,7 +41,7 @@ export const csrDashboardData = {
       description: "Transfer between customer accounts",
       icon: "transfer",
       permission: "direct",
-      category: "Transactions"
+      category: "Transactions",
     },
     {
       id: "credit-limit",
@@ -298,7 +49,7 @@ export const csrDashboardData = {
       description: "Request credit limit adjustment",
       icon: "credit",
       permission: "approval",
-      category: "Credit Services"
+      category: "Credit Services",
     },
     {
       id: "account-closure",
@@ -306,7 +57,7 @@ export const csrDashboardData = {
       description: "Initiate account closure process",
       icon: "close",
       permission: "approval",
-      category: "Account Management"
+      category: "Account Management",
     },
     {
       id: "fraud-report",
@@ -314,11 +65,9 @@ export const csrDashboardData = {
       description: "Report suspicious activity",
       icon: "alert",
       permission: "escalation",
-      category: "Security"
-    }
+      category: "Security",
+    },
   ],
-
-  // Escalation departments
   escalationDepartments: [
     {
       id: "credit",
@@ -327,7 +76,7 @@ export const csrDashboardData = {
       email: "credit@bank.com",
       availableHours: "8:00 AM - 6:00 PM",
       avgResponseTime: "2 hours",
-      specialties: ["Credit limits", "Loan applications", "Credit disputes"]
+      specialties: ["Credit limits", "Loan applications", "Credit disputes"],
     },
     {
       id: "fraud",
@@ -336,7 +85,7 @@ export const csrDashboardData = {
       email: "fraud@bank.com",
       availableHours: "24/7",
       avgResponseTime: "15 minutes",
-      specialties: ["Suspicious activity", "Identity theft", "Card disputes"]
+      specialties: ["Suspicious activity", "Identity theft", "Card disputes"],
     },
     {
       id: "loans",
@@ -345,7 +94,7 @@ export const csrDashboardData = {
       email: "loans@bank.com",
       availableHours: "9:00 AM - 5:00 PM",
       avgResponseTime: "4 hours",
-      specialties: ["Mortgage", "Personal loans", "Business loans"]
+      specialties: ["Mortgage", "Personal loans", "Business loans"],
     },
     {
       id: "technical",
@@ -354,11 +103,9 @@ export const csrDashboardData = {
       email: "techsupport@bank.com",
       availableHours: "7:00 AM - 11:00 PM",
       avgResponseTime: "30 minutes",
-      specialties: ["Online banking", "Mobile app", "System issues"]
-    }
+      specialties: ["Online banking", "Mobile app", "System issues"],
+    },
   ],
-
-  // FAQ and scripts for common issues
   supportResources: {
     commonIssues: [
       {
@@ -366,854 +113,314 @@ export const csrDashboardData = {
         issues: [
           {
             title: "Forgot Password",
-            script: "I can help you reset your password. For security, I'll need to verify your identity with your date of birth and the last 4 digits of your SSN.",
+            script:
+              "I can help you reset your password. For security, I'll need to verify your identity with your date of birth and the last 4 digits of your SSN.",
             steps: [
               "Verify customer identity",
               "Generate temporary password",
               "Email reset link to registered email",
-              "Advise customer to change password on first login"
-            ]
+              "Advise customer to change password on first login",
+            ],
           },
           {
             title: "Account Locked",
-            script: "I see your account has been temporarily locked for security. Let me verify your identity and unlock it for you.",
+            script:
+              "I see your account has been temporarily locked for security. Let me verify your identity and unlock it for you.",
             steps: [
               "Verify customer identity",
               "Check reason for lock",
               "Remove security hold if appropriate",
-              "Advise customer on security best practices"
-            ]
-          }
-        ]
+              "Advise customer on security best practices",
+            ],
+          },
+        ],
       },
       {
         category: "Transactions",
         issues: [
           {
             title: "Disputed Charge",
-            script: "I understand you're questioning a charge on your account. Let me pull up your recent transactions and we can review this together.",
+            script:
+              "I understand you're questioning a charge on your account. Let me pull up your recent transactions and we can review this together.",
             steps: [
               "Locate the disputed transaction",
               "Gather details about the dispute",
               "Determine if merchant contact is needed",
               "Initiate formal dispute if necessary",
-              "Provide dispute timeline to customer"
-            ]
+              "Provide dispute timeline to customer",
+            ],
           },
           {
             title: "Missing Deposit",
-            script: "Let me check your account for any pending deposits. Sometimes deposits can take 1-2 business days to appear.",
+            script:
+              "Let me check your account for any pending deposits. Sometimes deposits can take 1-2 business days to appear.",
             steps: [
               "Check for pending deposits",
               "Verify deposit method and timing",
               "Check with originating bank if needed",
-              "Provide expected posting timeline"
-            ]
-          }
-        ]
-      }
+              "Provide expected posting timeline",
+            ],
+          },
+        ],
+      },
     ],
     quickResponses: [
       {
         trigger: "hours",
-        response: "Our customer service is available Monday-Friday 8:00 AM to 8:00 PM, and Saturday 9:00 AM to 5:00 PM."
+        response:
+          "Our customer service is available Monday-Friday 8:00 AM to 8:00 PM, and Saturday 9:00 AM to 5:00 PM.",
       },
       {
         trigger: "routing",
-        response: "Your routing number is 123456789. You can also find this on your checks or in online banking."
+        response:
+          "Your routing number is 123456789. You can also find this on your checks or in online banking.",
       },
       {
         trigger: "fees",
-        response: "Let me pull up your fee schedule. I can also email you a complete list of current fees and charges."
-      }
-    ]
+        response:
+          "Let me pull up your fee schedule. I can also email you a complete list of current fees and charges.",
+      },
+    ],
   },
-
-  // Performance metrics for the CSR
-  performanceMetrics: {
-    today: {
-      callsHandled: 23,
-      avgCallTime: "4:32",
-      resolutionRate: 87,
-      customerSatisfaction: 4.6,
-      ticketsResolved: 8,
-      escalationRate: 12
-    },
-    thisWeek: {
-      callsHandled: 127,
-      avgCallTime: "4:45",
-      resolutionRate: 89,
-      customerSatisfaction: 4.5,
-      ticketsResolved: 45,
-      escalationRate: 15
-    },
-    thisMonth: {
-      callsHandled: 534,
-      avgCallTime: "4:38",
-      resolutionRate: 91,
-      customerSatisfaction: 4.7,
-      ticketsResolved: 198,
-      escalationRate: 13
-    }
-  }
 };
 
-// Customer search results (when CSR searches for customers)
-export const customerSearchResults = [
-  {
-    customerId: "CUST-789456",
-    name: "Michael Rodriguez",
-    accountNumber: "****3847",
-    phone: "(555) 234-5678",
-    status: "Active",
-    lastContact: "2024-06-01",
-    riskLevel: "Low"
-  },
-  {
-    customerId: "CUST-445789",
-    name: "Jennifer Chen",
-    accountNumber: "****7291",
-    phone: "(555) 345-6789",
-    status: "Active",
-    lastContact: "2024-05-28",
-    riskLevel: "Low"
-  },
-  {
-    customerId: "CUST-223456",
-    name: "Robert Thompson",
-    accountNumber: "****9156",
-    phone: "(555) 456-7890",
-    status: "Active",
-    lastContact: "2024-05-25",
-    riskLevel: "Medium"
-  }
-];
-
 const QuickActions = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [selectedCustomer, setSelectedCustomer] = useState(csrDashboardData.activeCustomer);
-  const [showSearchResults, setShowSearchResults] = useState(false);
-  
-  // NEW STATE VARIABLES FOR ADDED FEATURES
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [showCreateTicket, setShowCreateTicket] = useState(false);
-  const [showTicketDetails, setShowTicketDetails] = useState(false);
-  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [copiedIndex, setCopiedIndex] = useState(null);
 
-  // Search functionality
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-    if (query.length > 2) {
-      const filtered = customerSearchResults.filter(customer => 
-        customer.name.toLowerCase().includes(query.toLowerCase()) ||
-        customer.phone.includes(query) ||
-        customer.accountNumber.includes(query)
-      );
-      setSearchResults(filtered);
-      setShowSearchResults(true);
-    } else {
-      setShowSearchResults(false);
+  // Copy to clipboard function
+  const copyToClipboard = async (text, index) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000); // Reset after 2 seconds
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
     }
   };
-
-  const selectCustomer = () => {
-    setSelectedCustomer(csrDashboardData.activeCustomer);
-    setShowSearchResults(false);
-    setSearchQuery('');
-  };
-
-  // NEW HANDLER FUNCTIONS FOR ADDED FEATURES
-  const handleCustomerUpdate = (updatedData) => {
-    // Update customer information
-    setSelectedCustomer(prev => ({
-      ...prev,
-      contactInfo: {
-        ...prev.contactInfo,
-        phone: updatedData.phone || prev.contactInfo.phone,
-        email: updatedData.email || prev.contactInfo.email,
-        address: {
-          ...prev.contactInfo.address,
-          street: updatedData.street || prev.contactInfo.address.street,
-          city: updatedData.city || prev.contactInfo.address.city,
-          state: updatedData.state || prev.contactInfo.address.state,
-          zip: updatedData.zip || prev.contactInfo.address.zip
-        }
-      }
-    }));
-    setShowUpdateModal(false);
-  };
-
-  const handleCreateTicket = (ticketData) => {
-    const newTicket = {
-      ticketId: `REQ-2024-${Date.now()}`,
-      customerId: selectedCustomer.basicInfo.customerId,
-      customerName: selectedCustomer.basicInfo.name,
-      issue: ticketData.issue,
-      priority: ticketData.priority,
-      status: 'New',
-      createdDate: new Date().toISOString().split('T')[0],
-      createdTime: new Date().toLocaleTimeString(),
-      slaDeadline: ticketData.slaDeadline,
-      timeRemaining: '24h 0m',
-      category: ticketData.category,
-      description: ticketData.description,
-      assignedTo: csrDashboardData.csrInfo.name,
-      escalationRequired: false,
-      updates: [{
-        timestamp: new Date().toLocaleString(),
-        action: 'Ticket Created',
-        note: 'Initial request logged'
-      }]
-    };
-    
-    // Add to active tickets and queue
-    csrDashboardData.activeTickets.push(newTicket);
-    csrDashboardData.myTicketQueue.unshift(newTicket);
-    setShowCreateTicket(false);
-  };
-
-  const handleTicketUpdate = (ticketId, updates) => {
-    // Update ticket in both activeTickets and myTicketQueue
-    const updateTicket = (tickets) => 
-      tickets.map(ticket => 
-        ticket.ticketId === ticketId 
-          ? { ...ticket, ...updates, 
-              updates: [...ticket.updates, {
-                timestamp: new Date().toLocaleString(),
-                action: 'Status Updated',
-                note: updates.note || 'Ticket updated'
-              }]
-            }
-          : ticket
-      );
-    
-    csrDashboardData.activeTickets = updateTicket(csrDashboardData.activeTickets);
-    csrDashboardData.myTicketQueue = updateTicket(csrDashboardData.myTicketQueue);
-  };
-
-  const handleAddNote = (ticketId, note) => {
-    handleTicketUpdate(ticketId, {
-      updates: [...(selectedTicket?.updates || []), {
-        timestamp: new Date().toLocaleString(),
-        action: 'Note Added',
-        note: note
-      }]
-    });
-  };
-
-  const getPriorityColor = (priority) => {
-    switch(priority) {
-      case 'High': return 'text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400';
-      case 'Medium': return 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 dark:text-yellow-400';
-      case 'Low': return 'text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400';
-      default: return 'text-black dark:text-white bg-gray-50 dark:bg-gray-800';
-    }
-  };
-
-  // NEW MODAL COMPONENTS
-  const CustomerUpdateModal = ({ isOpen, onClose, customer, onUpdate }) => {
-    const [formData, setFormData] = useState({
-      phone: customer?.contactInfo?.phone || '',
-      email: customer?.contactInfo?.email || '',
-      street: customer?.contactInfo?.address?.street || '',
-      city: customer?.contactInfo?.address?.city || '',
-      state: customer?.contactInfo?.address?.state || '',
-      zip: customer?.contactInfo?.address?.zip || ''
-    });
-
-    if (!isOpen) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-          <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Update Customer Information</h3>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">Phone</label>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">Email</label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">Street Address</label>
-              <input
-                type="text"
-                value={formData.street}
-                onChange={(e) => setFormData({...formData, street: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-black dark:text-white mb-1">City</label>
-                <input
-                  type="text"
-                  value={formData.city}
-                  onChange={(e) => setFormData({...formData, city: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-black dark:text-white mb-1">State</label>
-                <input
-                  type="text"
-                  value={formData.state}
-                  onChange={(e) => setFormData({...formData, state: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">ZIP Code</label>
-              <input
-                type="text"
-                value={formData.zip}
-                onChange={(e) => setFormData({...formData, zip: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-              />
-            </div>
-          </div>
-          
-          <div className="flex space-x-3 mt-6">
-            <button
-              onClick={() => onUpdate(formData)}
-              className="flex-1 bg-blue-600 dark:bg-blue-700 text-white py-2 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600"
-            >
-              Update Information
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 bg-gray-300 dark:bg-gray-600 text-black dark:text-white py-2 px-4 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const CreateTicketModal = ({ isOpen, onClose, onSubmit }) => {
-    const [formData, setFormData] = useState({
-      issue: '',
-      category: 'Account Updates',
-      priority: 'Medium',
-      description: '',
-      slaDeadline: ''
-    });
-
-    if (!isOpen) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-lg">
-          <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Create Service Request</h3>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">Issue Title</label>
-              <input
-                type="text"
-                value={formData.issue}
-                onChange={(e) => setFormData({...formData, issue: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                placeholder="Brief description of the issue"
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-black dark:text-white mb-1">Category</label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({...formData, category: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                >
-                  <option value="Account Updates">Account Updates</option>
-                  <option value="Credit Services">Credit Services</option>
-                  <option value="Fraud/Disputes">Fraud/Disputes</option>
-                  <option value="Account Access">Account Access</option>
-                  <option value="Transactions">Transactions</option>
-                  <option value="Security">Security</option>
-                </select>
-              </div>
-              <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">Priority</label>
-                <select
-                  value={formData.priority}
-                  onChange={(e) => setFormData({...formData, priority: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                >
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                </select>
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">Description</label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                placeholder="Detailed description of the request"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">SLA Deadline</label>
-              <input
-                type="datetime-local"
-                value={formData.slaDeadline}
-                onChange={(e) => setFormData({...formData, slaDeadline: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-              />
-            </div>
-          </div>
-          
-          <div className="flex space-x-3 mt-6">
-            <button
-              onClick={() => onSubmit(formData)}
-              className="flex-1 bg-blue-600 dark:bg-blue-700 text-white py-2 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600"
-            >
-              Create Request
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 bg-gray-300 dark:bg-gray-600 text-black dark:text-white py-2 px-4 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const TicketDetailsModal = ({ isOpen, onClose, ticket, onUpdate, onAddNote }) => {
-    const [note, setNote] = useState('');
-    const [status, setStatus] = useState(ticket?.status || 'New');
-
-    if (!isOpen || !ticket) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-          <div className="flex justify-between items-start mb-4">
-            <h3 className="text-lg font-semibold text-black dark:text-white">Ticket Details</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-              <XCircle className="h-5 w-5" />
-            </button>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <span className="text-sm text-black dark:text-white">Ticket ID:</span>
-                <div className="font-medium text-black dark:text-white">{ticket.ticketId}</div>
-              </div>
-              <div>
-                <span className="text-sm text-black dark:text-white">Customer:</span>
-                <div className="font-medium text-black dark:text-white">{ticket.customerName}</div>
-              </div>
-              <div>
-                <span className="text-sm text-black dark:text-white">Priority:</span>
-                <span className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(ticket.priority)}`}>
-                  {ticket.priority}
-                </span>
-              </div>
-              <div>
-                <span className="text-sm text-black dark:text-white">Status:</span>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  className="ml-2 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded text-black dark:text-white bg-white dark:bg-gray-700"
-                >
-                  <option value="New">New</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Pending Approval">Pending Approval</option>
-                  <option value="Resolved">Resolved</option>
-                  <option value="Closed">Closed</option>
-                </select>
-              </div>
-            </div>
-            
-            <div>
-              <span className="text-sm text-black dark:text-white">Issue:</span>
-              <div className="font-medium text-black dark:text-white">{ticket.issue}</div>
-            </div>
-            
-            <div>
-              <span className="text-sm text-black dark:text-white">Description:</span>
-              <div className="text-black dark:text-white mt-1">{ticket.description}</div>
-            </div>
-            
-            {/* Ticket History */}
-            <div>
-              <span className="text-sm font-medium text-black dark:text-white">Ticket History:</span>
-              <div className="mt-2 space-y-2 max-h-40 overflow-y-auto">
-                {ticket.updates?.map((update, index) => (
-                  <div key={index} className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-                    <div className="flex justify-between items-start">
-                      <span className="text-sm font-medium text-black dark:text-white">{update.action}</span>
-                      <span className="text-xs text-black dark:text-white">{update.timestamp}</span>
-                    </div>
-                    <div className="text-sm text-black dark:text-white mt-1">{update.note}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Add Note */}
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-1">Add Note:</label>
-              <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white bg-white dark:bg-gray-700"
-                placeholder="Add internal note or customer communication..."
-              />
-            </div>
-          </div>
-          
-          <div className="flex space-x-3 mt-6">
-            <button
-              onClick={() => {
-                onUpdate(ticket.ticketId, { status, note });
-                if (note) onAddNote(ticket.ticketId, note);
-                onClose();
-              }}
-              className="bg-blue-600 dark:bg-blue-700 text-white py-2 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600"
-            >
-              Update Ticket
-            </button>
-            <button
-              onClick={() => {
-                if (note) {
-                  onAddNote(ticket.ticketId, note);
-                  setNote('');
-                }
-              }}
-              className="bg-green-600 dark:bg-green-700 text-white py-2 px-4 rounded-lg hover:bg-green-700 dark:hover:bg-green-600"
-            >
-              Add Note
-            </button>
-            <button
-              onClick={onClose}
-              className="bg-gray-300 dark:bg-gray-600 text-black dark:text-white py-2 px-4 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-black dark:text-white">CSR Dashboard</h1>
-              <div className="flex items-center space-x-2 text-sm text-black dark:text-white">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>{csrDashboardData.csrInfo.status}</span>
-              </div>
-            </div>
-            <div className="flex items-center space-x-6">
-              <div className="text-right">
-                <div className="text-sm font-medium text-black dark:text-white">
-                  {csrDashboardData.csrInfo.name}
-                </div>
-                <div className="text-xs text-black dark:text-white">
-                  {csrDashboardData.csrInfo.id} • {csrDashboardData.csrInfo.shift}
-                </div>
-              </div>
-              <div className="flex space-x-4 text-sm">
-                <div className="text-center">
-                  <div className="font-semibold text-blue-600 dark:text-blue-400">
-                    {csrDashboardData.csrInfo.todayStats.callsHandled}
-                  </div>
-                  <div className="text-black dark:text-white">Calls Today</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-semibold text-green-600 dark:text-green-400">
-                    {csrDashboardData.csrInfo.todayStats.resolutionRate}%
-                  </div>
-                  <div className="text-black dark:text-white">Resolution</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-semibold text-purple-600 dark:text-purple-400">
-                    {csrDashboardData.csrInfo.todayStats.customerSatisfaction}
-                  </div>
-                  <div className="text-black dark:text-white">Satisfaction</div>
-                </div>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-7xl">
+        {/* Header Section */}
+        <AnimatedSection delay={100}>
+          <div className="text-center sm:text-left mb-8 sm:mb-10 lg:mb-12">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
+              Quick Actions
+            </h1>
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-300 mt-2 sm:mt-3">
+              Streamlined customer service tools and resources
+            </p>
           </div>
-        </div>
-      </div>
+        </AnimatedSection>
 
-      {/* Customer Search */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
-            <input
-              type="text"
-              placeholder="Search customers by name, phone, or account number..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black dark:text-white bg-white dark:bg-gray-700"
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-            />
-            
-            {/* Search Results Dropdown */}
-            {showSearchResults && (
-              <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg mt-1 z-10">
-                {searchResults.length > 0 ? (
-                  searchResults.map((customer) => (
+        {/* Quick Actions Grid */}
+        <AnimatedSection delay={200}>
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl shadow-2xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 p-6 sm:p-8 lg:p-10 mb-8 sm:mb-10 lg:mb-12 transition-all duration-500">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white mb-6 sm:mb-8">
+              Available Actions
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+              {csrDashboardData.quickActions.map((action, index) => (
+                <div
+                  key={action.id}
+                  className="group bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-gray-200/30 dark:border-gray-700/30 hover:shadow-xl hover:shadow-blue-500/20 dark:hover:shadow-blue-400/20 transition-all duration-500 hover:scale-105 cursor-pointer"
+                >
+                  <div className="flex items-start justify-between mb-3 sm:mb-4">
+                    <div className="flex-1">
+                      <h4 className="font-bold text-base sm:text-lg text-gray-900 dark:text-white mb-1 sm:mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                        {action.title}
+                      </h4>
+                      <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                        {action.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-5">
                     <div
-                      key={customer.customerId}
-                      className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0"
-                      onClick={() => selectCustomer(customer)}
+                      className={`inline-flex px-3 py-1 text-xs sm:text-sm font-bold rounded-full border transition-all duration-300 ${
+                        action.permission === "direct"
+                          ? "bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-600"
+                          : action.permission === "approval"
+                          ? "bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/30 dark:to-yellow-800/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-600"
+                          : "bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-600"
+                      }`}
                     >
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <div className="font-medium text-black dark:text-white">{customer.name}</div>
-                          <div className="text-sm text-black dark:text-white">
-                            {customer.phone} • Account: {customer.accountNumber}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className={`text-xs px-2 py-1 rounded-full ${
-                            customer.riskLevel === 'Low' ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' :
-                            customer.riskLevel === 'Medium' ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400' :
-                            'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
-                          }`}>
-                            {customer.riskLevel} Risk
-                          </div>
-                          <div className="text-xs text-black dark:text-white mt-1">
-                            Last contact: {customer.lastContact}
-                          </div>
-                        </div>
-                      </div>
+                      {action.permission === "direct"
+                        ? "✓ Direct"
+                        : action.permission === "approval"
+                        ? "⏳ Approval Required"
+                        : "⚠️ Escalation Required"}
                     </div>
-                  ))
-                ) : (
-                  <div className="p-3 text-black dark:text-white text-center">No customers found</div>
-                )}
-              </div>
-            )}
+                    <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                      {action.category}
+                    </div>
+                  </div>
+
+                  <button className="w-full py-2 sm:py-3 px-4 sm:px-6 rounded-lg sm:rounded-xl text-sm sm:text-base font-bold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white hover:from-blue-600 hover:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 hover:shadow-blue-500/30">
+                    {action.permission === "direct"
+                      ? "Execute Action"
+                      : action.permission === "approval"
+                      ? "Request Approval"
+                      : "Escalate to Department"}
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </AnimatedSection>
 
-        {/* Navigation Tabs */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-6">
-          {/* Tab Content */}
-          <div className="p-6">
-            {/* Quick Actions Tab */}
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {csrDashboardData.quickActions.map((action) => (
-                    <div key={action.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-black dark:text-white mb-1">{action.title}</h4>
-                          <p className="text-sm text-black dark:text-white">{action.description}</p>
-                        </div>
-                        <div className={`ml-3 px-2 py-1 text-xs font-semibold rounded-full ${
-                          action.permission === 'direct' ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' :
-                          action.permission === 'approval' ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400' :
-                          'bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-400'
-                        }`}>
-                          {action.permission === 'direct' ? 'Direct' :
-                           action.permission === 'approval' ? 'Approval' : 'Escalation'}
-                        </div>
-                      </div>
-                      <div className="text-xs text-black dark:text-white mb-3">
-                        Category: {action.category}
-                      </div>
-                      <button className="w-full bg-blue-600 dark:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm hover:bg-blue-700 dark:hover:bg-blue-600">
-                        {action.permission === 'direct' ? 'Execute' :
-                         action.permission === 'approval' ? 'Request Approval' : 'Escalate'}
-                      </button>
+        {/* Escalation Departments */}
+        <AnimatedSection delay={300}>
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl shadow-2xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 p-6 sm:p-8 lg:p-10 mb-8 sm:mb-10 lg:mb-12 transition-all duration-500">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white mb-6 sm:mb-8">
+              Escalation Departments
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+              {csrDashboardData.escalationDepartments.map((dept, index) => (
+                <div
+                  key={dept.id}
+                  className="group bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-gray-200/30 dark:border-gray-700/30 hover:shadow-xl hover:shadow-blue-500/20 dark:hover:shadow-blue-400/20 transition-all duration-500 hover:scale-105"
+                >
+                  <div className="flex justify-between items-start mb-3 sm:mb-4">
+                    <h4 className="font-bold text-base sm:text-lg text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                      {dept.name}
+                    </h4>
+                    <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 text-green-700 dark:text-green-400 text-xs sm:text-sm font-bold px-3 py-1 rounded-full border border-green-200 dark:border-green-600">
+                      Avg: {dept.avgResponseTime}
                     </div>
-                  ))}
-                </div>
-
-                {/* Escalation Departments */}
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Escalation Departments</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {csrDashboardData.escalationDepartments.map((dept) => (
-                      <div key={dept.id} className="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-medium text-black dark:text-white">{dept.name}</h4>
-                          <div className="text-sm text-green-600 dark:text-green-400 font-medium">
-                            Avg: {dept.avgResponseTime}
-                          </div>
-                        </div>
-                        <div className="text-sm text-black dark:text-white space-y-1">
-                          <div>📞 {dept.phone}</div>
-                          <div>📧 {dept.email}</div>
-                          <div>🕐 {dept.availableHours}</div>
-                        </div>
-                        <div className="mt-3">
-                          <div className="text-xs text-black dark:text-white mb-1">Specialties:</div>
-                          <div className="flex flex-wrap gap-1">
-                            {dept.specialties.map((specialty, index) => (
-                              <span key={index} className="text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 px-2 py-1 rounded-full">
-                                {specialty}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        <button className="mt-3 w-full bg-orange-600 dark:bg-orange-700 text-white py-1 px-3 rounded text-sm hover:bg-orange-700 dark:hover:bg-orange-600">
-                          Contact Department
-                        </button>
-                      </div>
-                    ))}
                   </div>
-                </div>
 
-                {/* Support Resources */}
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Support Resources</h3>
-                  
-                  {/* Common Issues */}
-                  <div className="space-y-4">
-                    {csrDashboardData.supportResources.commonIssues.map((category, categoryIndex) => (
-                      <div key={categoryIndex} className="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                        <h4 className="font-medium text-black dark:text-white mb-3">{category.category}</h4>
-                        <div className="space-y-3">
-                          {category.issues.map((issue, issueIndex) => (
-                            <div key={issueIndex} className="border-l-4 border-blue-400 dark:border-blue-500 pl-4">
-                              <div className="font-medium text-sm text-black dark:text-white mb-1">{issue.title}</div>
-                              <div className="text-sm text-black dark:text-white mb-2 italic">"{issue.script}"</div>
-                              <div className="text-xs text-black dark:text-white">
-                                <div className="font-medium mb-1">Steps:</div>
-                                <ol className="list-decimal list-inside space-y-1">
-                                  {issue.steps.map((step, stepIndex) => (
-                                    <li key={stepIndex} className="text-black dark:text-white">{step}</li>
-                                  ))}
-                                </ol>
-                              </div>
+                  <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-5 text-sm sm:text-base text-gray-700 dark:text-gray-300">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <span className="text-lg">📞</span>
+                      <span className="font-medium">{dept.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <span className="text-lg">📧</span>
+                      <span className="font-mono text-sm">{dept.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <span className="text-lg">🕐</span>
+                      <span className="font-medium">{dept.availableHours}</span>
+                    </div>
+                  </div>
+
+                  <div className="mb-4 sm:mb-6">
+                    <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-bold mb-2">
+                      Specialties:
+                    </div>
+                    <div className="flex flex-wrap gap-1 sm:gap-2">
+                      {dept.specialties.map((specialty, index) => (
+                        <span
+                          key={index}
+                          className="text-xs sm:text-sm bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 text-blue-700 dark:text-blue-400 px-2 sm:px-3 py-1 rounded-full border border-blue-200 dark:border-blue-600 font-medium"
+                        >
+                          {specialty}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button className="w-full bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white py-2 sm:py-3 px-4 sm:px-6 rounded-lg sm:rounded-xl text-sm sm:text-base font-bold hover:from-blue-600 hover:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl hover:shadow-blue-500/30">
+                    Contact Department
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </AnimatedSection>
+
+        {/* Support Resources */}
+        <AnimatedSection delay={400}>
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl shadow-2xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 p-6 sm:p-8 lg:p-10 transition-all duration-500">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white mb-6 sm:mb-8">
+              Support Resources
+            </h2>
+
+            {/* Common Issues */}
+            <div className="space-y-6 sm:space-y-8 mb-8 sm:mb-10">
+              {csrDashboardData.supportResources.commonIssues.map(
+                (category, categoryIndex) => (
+                  <div
+                    key={categoryIndex}
+                    className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-gray-200/30 dark:border-gray-700/30"
+                  >
+                    <h4 className="font-bold text-lg sm:text-xl text-gray-900 dark:text-white mb-4 sm:mb-5 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></span>
+                      {category.category}
+                    </h4>
+                    <div className="space-y-4 sm:space-y-5">
+                      {category.issues.map((issue, issueIndex) => (
+                        <div
+                          key={issueIndex}
+                          className="border-l-4 border-blue-400 pl-4 sm:pl-6 bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-r-lg p-3 sm:p-4"
+                        >
+                          <div className="font-bold text-sm sm:text-base text-gray-900 dark:text-white mb-2">
+                            {issue.title}
+                          </div>
+                          <div className="text-sm sm:text-base text-gray-700 dark:text-gray-300 mb-3 sm:mb-4 italic font-medium bg-gray-100/50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-200/50 dark:border-gray-700/50">
+                            "{issue.script}"
+                          </div>
+                          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                            <div className="font-bold mb-2 text-gray-800 dark:text-gray-200">
+                              Action Steps:
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Quick Responses */}
-                  <div className="mt-6 bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                    <h4 className="font-medium text-black dark:text-white mb-3">Quick Responses</h4>
-                    <div className="space-y-2">
-                      {csrDashboardData.supportResources.quickResponses.map((response, index) => (
-                        <div key={index} className="flex justify-between items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-600 rounded">
-                          <div>
-                            <span className="text-sm font-medium text-blue-600 dark:text-blue-400">#{response.trigger}</span>
-                            <span className="text-sm text-black dark:text-white ml-2">{response.response}</span>
+                            <ol className="list-decimal list-inside space-y-1 sm:space-y-2">
+                              {issue.steps.map((step, stepIndex) => (
+                                <li
+                                  key={stepIndex}
+                                  className="text-gray-700 dark:text-gray-300 leading-relaxed"
+                                >
+                                  {step}
+                                </li>
+                              ))}
+                            </ol>
                           </div>
-                          <button className="text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 px-2 py-1 rounded hover:bg-blue-200 dark:hover:bg-blue-800/30">
-                            Copy
-                          </button>
                         </div>
                       ))}
                     </div>
                   </div>
-                </div>
-              </div>
-          </div>
-        </div>
+                )
+              )}
+            </div>
 
-        {/* Performance Summary */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Performance Summary</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {['today', 'thisWeek', 'thisMonth'].map((period) => (
-              <div key={period} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h4 className="font-medium text-black dark:text-white mb-3 capitalize">
-                  {period === 'thisWeek' ? 'This Week' : period === 'thisMonth' ? 'This Month' : 'Today'}
-                </h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-black dark:text-white">Calls Handled:</span>
-                    <span className="font-medium text-black dark:text-white">{csrDashboardData.performanceMetrics[period].callsHandled}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-black dark:text-white">Avg Call Time:</span>
-                    <span className="font-medium text-black dark:text-white">{csrDashboardData.performanceMetrics[period].avgCallTime}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-black dark:text-white">Resolution Rate:</span>
-                    <span className="font-medium text-green-600 dark:text-green-400">{csrDashboardData.performanceMetrics[period].resolutionRate}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-black dark:text-white">Satisfaction:</span>
-                    <span className="font-medium text-blue-600 dark:text-blue-400">{csrDashboardData.performanceMetrics[period].customerSatisfaction}/5.0</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-black dark:text-white">Tickets Resolved:</span>
-                    <span className="font-medium text-black dark:text-white">{csrDashboardData.performanceMetrics[period].ticketsResolved}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-black dark:text-white">Escalation Rate:</span>
-                    <span className="font-medium text-orange-600 dark:text-orange-400">{csrDashboardData.performanceMetrics[period].escalationRate}%</span>
-                  </div>
-                </div>
+            {/* Quick Responses */}
+            <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-gray-200/30 dark:border-gray-700/30">
+              <h4 className="font-bold text-lg sm:text-xl text-gray-900 dark:text-white mb-4 sm:mb-5 flex items-center gap-2">
+                <span className="w-2 h-2 bg-gradient-to-r from-green-500 to-blue-500 rounded-full"></span>
+                Quick Responses
+              </h4>
+              <div className="space-y-2 sm:space-y-3">
+                {csrDashboardData.supportResources.quickResponses.map(
+                  (response, index) => (
+                    <div
+                      key={index}
+                      className="group flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-3 sm:p-4 hover:bg-white/60 dark:hover:bg-gray-800/60 rounded-lg sm:rounded-xl transition-all duration-300 border border-transparent hover:border-blue-200 dark:hover:border-blue-700"
+                    >
+                      <div className="flex-1">
+                        <span className="inline-block text-sm sm:text-base font-bold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-2 sm:px-3 py-1 rounded-lg border border-blue-200 dark:border-blue-700">
+                          #{response.trigger}
+                        </span>
+                        <span className="text-sm sm:text-base text-gray-700 dark:text-gray-300 ml-3 sm:ml-4 leading-relaxed">
+                          {response.response}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() =>
+                          copyToClipboard(response.response, index)
+                        }
+                        className="self-start sm:self-center bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-bold hover:from-blue-600 hover:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-blue-500/30 opacity-0 group-hover:opacity-100"
+                      >
+                        {copiedIndex === index ? "✓ Copied!" : "Copy Response"}
+                      </button>
+                    </div>
+                  )
+                )}
               </div>
-            ))}
+            </div>
           </div>
-        </div>
+        </AnimatedSection>
       </div>
-
-      {/* NEW MODALS */}
-      <CustomerUpdateModal
-        isOpen={showUpdateModal}
-        onClose={() => setShowUpdateModal(false)}
-        customer={selectedCustomer}
-        onUpdate={handleCustomerUpdate}
-      />
-
-      <CreateTicketModal
-        isOpen={showCreateTicket}
-        onClose={() => setShowCreateTicket(false)}
-        customer={selectedCustomer}
-        onSubmit={handleCreateTicket}
-      />
-
-      <TicketDetailsModal
-        isOpen={showTicketDetails}
-        onClose={() => setShowTicketDetails(false)}
-        ticket={selectedTicket}
-        onUpdate={handleTicketUpdate}
-        onAddNote={handleAddNote}
-      />
     </div>
   );
 };

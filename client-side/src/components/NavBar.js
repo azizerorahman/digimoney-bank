@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { signOut } from "firebase/auth";
@@ -9,6 +9,10 @@ const NavBar = ({ setDarkMode, darkMode }) => {
   const [user] = useAuthState(auth);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
+  const [navVisible, setNavVisible] = useState(false);
+  const navRef = useRef(null);
+  const dropdownRef = useRef(null);
   const location = useLocation();
 
   // Handle scroll effect for header background
@@ -16,9 +20,48 @@ const NavBar = ({ setDarkMode, darkMode }) => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 5);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Animate NavBar in sync with Header (fade in, slide down)
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    nav.style.opacity = "0";
+    nav.style.transform = "translateY(-24px)";
+    // Use IntersectionObserver to trigger animation when in viewport
+    const observer = new window.IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setTimeout(() => {
+            nav.style.transition =
+              "opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)";
+            nav.style.opacity = "1";
+            nav.style.transform = "translateY(0)";
+            setNavVisible(true);
+          }, 100);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(nav);
+    return () => observer.disconnect();
+  }, []);
+
+  // Handle click outside for avatar dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setAvatarDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   // Handle dark mode toggle
@@ -41,13 +84,18 @@ const NavBar = ({ setDarkMode, darkMode }) => {
 
   return (
     <header
+      ref={navRef}
       className={`fixed top-0 w-full z-50 transition-all duration-300 dark:text-white/90 ${
         scrolled
           ? "bg-white/90 dark:bg-gray-900/90 backdrop-blur-md text-gray-800 dark:text-white shadow-md"
-          : "bg-gradient-to-r from-indigo-900 to-blue-900 text-white"
+          : "bg-primary dark:from-gray-900 dark:via-primary dark:to-gray-800 text-white"
       }`}
+      style={{
+        opacity: navVisible ? 1 : 0,
+        transform: navVisible ? "translateY(0)" : "translateY(-24px)",
+      }}
     >
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo and Brand */}
           <Link
@@ -278,27 +326,46 @@ const NavBar = ({ setDarkMode, darkMode }) => {
             </label>
 
             {user ? (
-              <div className="dropdown dropdown-end">
-                <label
-                  tabIndex="0"
-                  className="btn btn-circle avatar border-2 border-emerald-400 hover:border-emerald-500 transition-colors shadow-sm hover:shadow-glow"
+              <div className="relative" ref={dropdownRef}>
+                <div
+                  onClick={() => setAvatarDropdownOpen(!avatarDropdownOpen)}
+                  className="btn btn-circle avatar border-2 border-emerald-400 hover:border-emerald-500 transition-colors shadow-sm hover:shadow-glow cursor-pointer"
                 >
-                  <div className="w-10 rounded-full">
-                    <img
-                      src={
-                        user.photoURL ||
-                        "https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg"
-                      }
-                      alt={user.displayName || "User"}
-                    />
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center">
+                    {user.photoURL ? (
+                      <img
+                        src={user.photoURL}
+                        alt={user.displayName || "User"}
+                        className="rounded-full object-cover w-full h-full"
+                        onError={(e) => {
+                          e.target.style.display = "none";
+                          e.target.nextSibling.style.display = "flex";
+                        }}
+                      />
+                    ) : null}
+                    <div
+                      className={`w-full h-full rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-bold text-lg ${
+                        user.photoURL ? "hidden" : "flex"
+                      }`}
+                      style={{ display: user.photoURL ? "none" : "flex" }}
+                    >
+                      {(user.displayName || user.email || "U")
+                        .charAt(0)
+                        .toUpperCase()}
+                    </div>
                   </div>
-                </label>
+                </div>
+
+                {/* Dropdown Menu */}
                 <ul
-                  tabIndex="0"
-                  className={`mt-3 z-[1] p-2 shadow-lg menu menu-sm dropdown-content rounded-xl w-64 backdrop-blur-md animate-fadeIn border ${
+                  className={`absolute right-0 mt-3 z-[50] p-2 shadow-xl menu menu-sm rounded-xl w-64 backdrop-blur-md border-2 transition-all duration-200 ${
+                    avatarDropdownOpen
+                      ? "opacity-100 visible transform translate-y-0"
+                      : "opacity-0 invisible transform -translate-y-2"
+                  } ${
                     scrolled
-                      ? "bg-white/90 text-gray-800 border-gray-100 dark:bg-gray-800/90 dark:text-white dark:border-gray-700"
-                      : "bg-indigo-900/90 text-white border-indigo-800"
+                      ? "bg-white/95 text-gray-800 border-gray-200 dark:bg-gray-800/95 dark:text-white dark:border-gray-600"
+                      : "bg-indigo-900/95 text-white border-indigo-700"
                   }`}
                 >
                   <li className="mb-2">
@@ -311,35 +378,60 @@ const NavBar = ({ setDarkMode, darkMode }) => {
                   </li>
                   <div className="divider my-0"></div>
                   <li>
-                    <Link to="/accounts" className="justify-between rounded-lg">
-                      My Accounts
-                      <span className="badge badge-sm bg-emerald-500 text-white">
-                        3
-                      </span>
+                    <Link
+                      to="/dashboard"
+                      className="justify-between rounded-lg hover:bg-white/10 transition-colors"
+                      onClick={() => setAvatarDropdownOpen(false)}
+                    >
+                      Dashboard
                     </Link>
                   </li>
                   <li>
-                    <Link to="/transfers" className="rounded-lg">
-                      Transfers
+                    <Link
+                      to="/dashboard/user"
+                      className="rounded-lg hover:bg-white/10 transition-colors"
+                      onClick={() => setAvatarDropdownOpen(false)}
+                    >
+                      Account Overview
                     </Link>
                   </li>
                   <li>
-                    <Link to="/payments" className="rounded-lg">
-                      Bill Payments
+                    <Link
+                      to="/dashboard/user/money-transfer"
+                      className="rounded-lg hover:bg-white/10 transition-colors"
+                      onClick={() => setAvatarDropdownOpen(false)}
+                    >
+                      Money Transfer
                     </Link>
                   </li>
                   <li>
-                    <Link to="/settings" className="rounded-lg">
-                      Account Settings
+                    <Link
+                      to="/dashboard/user/transaction-history"
+                      className="rounded-lg hover:bg-white/10 transition-colors"
+                      onClick={() => setAvatarDropdownOpen(false)}
+                    >
+                      Transaction History
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/dashboard/user/profile"
+                      className="rounded-lg hover:bg-white/10 transition-colors"
+                      onClick={() => setAvatarDropdownOpen(false)}
+                    >
+                      Profile Settings
                     </Link>
                   </li>
                   <div className="divider my-0"></div>
                   <li>
                     <button
-                      onClick={logout}
-                      className="text-red-400 rounded-lg"
+                      onClick={() => {
+                        logout();
+                        setAvatarDropdownOpen(false);
+                      }}
+                      className="text-red-400 rounded-lg hover:bg-red-500/10 transition-colors"
                     >
-                      Sign Out
+                      Logout
                     </button>
                   </li>
                 </ul>
