@@ -4,7 +4,6 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import auth from "../../firebase.init";
 import LoadingSpinner from "../../components/Loading";
 import useUserInfo from "../../hooks/useUserInfo";
-import Logout from "./Logout";
 
 const ProtectedRoute = ({ children, role }) => {
   const [user, loading] = useAuthState(auth);
@@ -44,7 +43,11 @@ const ProtectedRoute = ({ children, role }) => {
       error,
     });
 
-    Logout();
+    // Manual logout - clear all localStorage data
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("activeRole");
+
     toast.error("Session expired. Please log in again.");
     return <Navigate to={"/login"} state={{ from: location }} replace />;
   }

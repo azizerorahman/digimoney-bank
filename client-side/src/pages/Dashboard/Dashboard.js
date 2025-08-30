@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
 import { BsArrowLeftCircle } from "react-icons/bs";
 import { RiBarChartHorizontalLine } from "react-icons/ri";
 import { FiLogOut } from "react-icons/fi";
@@ -8,9 +7,7 @@ import { toast } from "react-toastify";
 import { useAuthState } from "react-firebase-hooks/auth";
 import auth from "../../firebase.init";
 import useUserInfo from "../../hooks/useUserInfo";
-import AccountUnderVerification from "./AccountUnderVerification";
 import LoadingSpinner from "../../components/Loading";
-import Logout from "../Auth/Logout";
 import {
   FaMoneyCheck,
   FaMoneyBill,
@@ -34,7 +31,6 @@ const Dashboard = () => {
   const [open, setOpen] = useState(() => window.innerWidth >= 1024);
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const check = useSelector((state) => state.checkUser);
   const uId = localStorage.getItem("userId");
   const { userInfo, isLoading } = useUserInfo(uId);
   const [darkMode, setDarkMode] = useState(
@@ -77,9 +73,6 @@ const Dashboard = () => {
 
   const userDisplayInfo = getUserDisplayInfo();
   const color = "bg-primary";
-
-  // Get user verification status
-  const { verified, loading } = check;
 
   // Handle direct navigation to /dashboard
   useEffect(() => {
@@ -187,12 +180,19 @@ const Dashboard = () => {
 
   // Handle logout with toast notification
   const handleLogout = () => {
-    Logout();
+    // Manual logout - clear all localStorage data
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("activeRole");
+
     toast.info("You have been logged out", {
       position: "top-right",
       autoClose: 3000,
       hideProgressBar: false,
     });
+
+    // Navigate to login page
+    navigate("/login");
   };
 
   // Define menu items for different roles
@@ -410,7 +410,7 @@ const Dashboard = () => {
   };
 
   // Show loading spinner while direct navigation is being processed
-  if (pathname === "/dashboard" && (isLoading || loading)) {
+  if (pathname === "/dashboard" && isLoading) {
     return <LoadingSpinner overlay />;
   }
 
@@ -418,241 +418,229 @@ const Dashboard = () => {
   const currentMenu = menuItems[activeRole] || menuItems.user;
 
   return (
-    <>
-      {verified ? (
-        <div
-          className={`${darkMode ? "dark" : ""} transition-colors duration-300`}
-        >
-          <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-            {/* Sidebar */}
-            <aside
-              className={`
+    <div className={`${darkMode ? "dark" : ""} transition-colors duration-300`}>
+      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+        {/* Sidebar */}
+        <aside
+          className={`
                 ${open ? "w-64" : "w-20"}
                 transition-all duration-300 ease-in-out
                 bg-gradient-to-br from-indigo-950 via-primary to-indigo-900 dark:from-gray-900 dark:via-primary dark:to-gray-800 shadow-xl
                 flex flex-col
                 relative
               `}
+        >
+          {/* Toggle button (always visible on mobile, sticky on desktop) */}
+          <button
+            onClick={() => setOpen(!open)}
+            className="absolute -right-3 top-16 w-7 h-7 rounded-full bg-white dark:bg-gray-800 shadow-md flex items-center justify-center text-primary dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 focus:outline-none"
+            aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
+          >
+            <BsArrowLeftCircle
+              className={`w-5 h-5 transition-transform duration-300 ${
+                !open ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+
+          {/* Logo */}
+          <div
+            className={`flex items-center gap-x-3 px-6 py-5 ${
+              !open ? "justify-center" : ""
+            }`}
+          >
+            <div className="relative">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-8 h-8 text-white"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M16 8h-6a2 2 0 100 4h4a2 2 0 110 4H8"></path>
+                <path d="M12 6v2m0 8v2"></path>
+              </svg>
+            </div>
+            {open && (
+              <h1 className="text-xl font-bold text-white">DigiMoney Bank</h1>
+            )}
+          </div>
+
+          {/* User info */}
+          <div
+            className={`flex flex-col items-center mt-6 ${
+              !open ? "px-2" : "px-4 w-full"
+            }`}
+          >
+            {/* User avatar */}
+            <div
+              className={`${color} w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-semibold uppercase`}
             >
-              {/* Toggle button (always visible on mobile, sticky on desktop) */}
-              <button
-                onClick={() => setOpen(!open)}
-                className="absolute -right-3 top-16 w-7 h-7 rounded-full bg-white dark:bg-gray-800 shadow-md flex items-center justify-center text-primary dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 focus:outline-none"
-                aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
-              >
-                <BsArrowLeftCircle
-                  className={`w-5 h-5 transition-transform duration-300 ${
-                    !open ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
+              {userDisplayInfo.initial}
+            </div>
 
-              {/* Logo */}
-              <div
-                className={`flex items-center gap-x-3 px-6 py-5 ${
-                  !open ? "justify-center" : ""
-                }`}
-              >
-                <div className="relative">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="w-8 h-8 text-white"
-                  >
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <path d="M16 8h-6a2 2 0 100 4h4a2 2 0 110 4H8"></path>
-                    <path d="M12 6v2m0 8v2"></path>
-                  </svg>
-                </div>
-                {open && (
-                  <h1 className="text-xl font-bold text-white">
-                    DigiMoney Bank
-                  </h1>
-                )}
-              </div>
+            {/* User details - shown when sidebar is open */}
+            {open && (
+              <div className="mt-3 text-center w-full space-y-3">
+                <h4 className="text-sm font-medium text-white truncate">
+                  {userDisplayInfo.displayName}
+                </h4>
 
-              {/* User info */}
-              <div
-                className={`flex flex-col items-center mt-6 ${
-                  !open ? "px-2" : "px-4 w-full"
-                }`}
-              >
-                {/* User avatar */}
-                <div
-                  className={`${color} w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-semibold uppercase`}
-                >
-                  {userDisplayInfo.initial}
-                </div>
-
-                {/* User details - shown when sidebar is open */}
-                {open && (
-                  <div className="mt-3 text-center w-full space-y-3">
-                    <h4 className="text-sm font-medium text-white truncate">
-                      {userDisplayInfo.displayName}
-                    </h4>
-
-                    {/* Role display/selector */}
-                    {userInfo?.role && (
-                      <div className="w-full">
-                        {/* Role selector dropdown - for multiple roles */}
-                        {Array.isArray(userInfo.role) &&
-                        userInfo.role.length > 1 ? (
-                          <select
-                            value={activeRole}
-                            onChange={(e) => handleRoleChange(e.target.value)}
-                            className="w-full text-xs bg-indigo-800 dark:bg-gray-700 text-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-10 appearance-none cursor-pointer transition-all duration-200"
+                {/* Role display/selector */}
+                {userInfo?.role && (
+                  <div className="w-full">
+                    {/* Role selector dropdown - for multiple roles */}
+                    {Array.isArray(userInfo.role) &&
+                    userInfo.role.length > 1 ? (
+                      <select
+                        value={activeRole}
+                        onChange={(e) => handleRoleChange(e.target.value)}
+                        className="w-full text-xs bg-indigo-800 dark:bg-gray-700 text-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-10 appearance-none cursor-pointer transition-all duration-200"
+                      >
+                        {userInfo.role.map((r) => (
+                          <option
+                            key={r}
+                            value={r}
+                            className="bg-indigo-800 dark:bg-gray-700 text-white"
                           >
-                            {userInfo.role.map((r) => (
-                              <option
-                                key={r}
-                                value={r}
-                                className="bg-indigo-800 dark:bg-gray-700 text-white"
-                              >
-                                {formatRoleName(r)}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          /* Single role display */
-                          <div className="w-full text-xs text-gray-300 bg-indigo-800 dark:bg-gray-700 px-3 py-2.5 rounded-lg h-10 flex items-center justify-center font-medium">
-                            {formatRoleName(
-                              typeof userInfo.role === "string"
-                                ? userInfo.role
-                                : userInfo.role[0]
-                            )}
-                          </div>
+                            {formatRoleName(r)}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      /* Single role display */
+                      <div className="w-full text-xs text-gray-300 bg-indigo-800 dark:bg-gray-700 px-3 py-2.5 rounded-lg h-10 flex items-center justify-center font-medium">
+                        {formatRoleName(
+                          typeof userInfo.role === "string"
+                            ? userInfo.role
+                            : userInfo.role[0]
                         )}
                       </div>
                     )}
-
-                    {/* Dark mode toggle */}
-                    <div className="w-full">
-                      <button
-                        onClick={() => setDarkMode(!darkMode)}
-                        className="w-full h-10 flex items-center justify-between bg-indigo-800 dark:bg-gray-700 hover:bg-indigo-700 dark:hover:bg-gray-600 text-white rounded-lg transition-all duration-200 px-3 py-2.5 group"
-                        title={
-                          darkMode
-                            ? "Switch to Light Mode"
-                            : "Switch to Dark Mode"
-                        }
-                      >
-                        <span className="text-xs font-medium text-gray-300 group-hover:text-white transition-colors duration-200">
-                          {darkMode ? "Light Mode" : "Dark Mode"}
-                        </span>
-                        <div className="text-gray-300 group-hover:text-white transition-colors duration-200">
-                          {darkMode ? (
-                            <FaSun className="w-4 h-4" />
-                          ) : (
-                            <FaMoon className="w-4 h-4" />
-                          )}
-                        </div>
-                      </button>
-                    </div>
                   </div>
                 )}
-              </div>
 
-              {/* Dark mode toggle for collapsed sidebar */}
-              {!open && (
-                <div className="flex justify-center px-2 mt-4">
+                {/* Dark mode toggle */}
+                <div className="w-full">
                   <button
                     onClick={() => setDarkMode(!darkMode)}
-                    className="w-10 h-10 flex items-center justify-center bg-indigo-800 dark:bg-gray-700 hover:bg-indigo-700 dark:hover:bg-gray-600 text-white rounded-lg transition-all duration-200"
+                    className="w-full h-10 flex items-center justify-between bg-indigo-800 dark:bg-gray-700 hover:bg-indigo-700 dark:hover:bg-gray-600 text-white rounded-lg transition-all duration-200 px-3 py-2.5 group"
                     title={
                       darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"
                     }
                   >
-                    {darkMode ? (
-                      <FaSun className="w-5 h-5" />
-                    ) : (
-                      <FaMoon className="w-5 h-5" />
-                    )}
+                    <span className="text-xs font-medium text-gray-300 group-hover:text-white transition-colors duration-200">
+                      {darkMode ? "Light Mode" : "Dark Mode"}
+                    </span>
+                    <div className="text-gray-300 group-hover:text-white transition-colors duration-200">
+                      {darkMode ? (
+                        <FaSun className="w-4 h-4" />
+                      ) : (
+                        <FaMoon className="w-4 h-4" />
+                      )}
+                    </div>
                   </button>
                 </div>
-              )}
+              </div>
+            )}
+          </div>
 
-              {/* Menu items */}
-              <div className="flex flex-col justify-between flex-1 mt-6 overflow-y-auto">
-                <nav>
-                  {currentMenu.map((item, index) => {
-                    // More precise active state detection
-                    const isActive =
-                      // Exact match for home path
-                      (item.path === "/" && pathname === "/") ||
-                      // For dashboard root paths like "/dashboard/user"
-                      (item.path.includes("/dashboard/") &&
-                        !item.path.split("/").slice(3).join("/") &&
-                        pathname === item.path) ||
-                      // For specific subpaths, ensure exact match or direct parent
-                      (item.path !== "/" &&
-                        pathname !== "/dashboard/user" &&
-                        pathname.startsWith(item.path) &&
-                        // Check if this is the most specific match
-                        currentMenu.every(
-                          (otherItem) =>
-                            otherItem === item ||
-                            !pathname.startsWith(otherItem.path) ||
-                            otherItem.path.length < item.path.length
-                        ));
+          {/* Dark mode toggle for collapsed sidebar */}
+          {!open && (
+            <div className="flex justify-center px-2 mt-4">
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className="w-10 h-10 flex items-center justify-center bg-indigo-800 dark:bg-gray-700 hover:bg-indigo-700 dark:hover:bg-gray-600 text-white rounded-lg transition-all duration-200"
+                title={
+                  darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"
+                }
+              >
+                {darkMode ? (
+                  <FaSun className="w-5 h-5" />
+                ) : (
+                  <FaMoon className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+          )}
 
-                    return (
-                      <Link
-                        key={index}
-                        to={item.path}
-                        className={`flex items-center px-4 py-3 
+          {/* Menu items */}
+          <div className="flex flex-col justify-between flex-1 mt-6 overflow-y-auto">
+            <nav>
+              {currentMenu.map((item, index) => {
+                // More precise active state detection
+                const isActive =
+                  // Exact match for home path
+                  (item.path === "/" && pathname === "/") ||
+                  // For dashboard root paths like "/dashboard/user"
+                  (item.path.includes("/dashboard/") &&
+                    !item.path.split("/").slice(3).join("/") &&
+                    pathname === item.path) ||
+                  // For specific subpaths, ensure exact match or direct parent
+                  (item.path !== "/" &&
+                    pathname !== "/dashboard/user" &&
+                    pathname.startsWith(item.path) &&
+                    // Check if this is the most specific match
+                    currentMenu.every(
+                      (otherItem) =>
+                        otherItem === item ||
+                        !pathname.startsWith(otherItem.path) ||
+                        otherItem.path.length < item.path.length
+                    ));
+
+                return (
+                  <Link
+                    key={index}
+                    to={item.path}
+                    className={`flex items-center px-4 py-3 
             ${isActive ? "bg-indigo-800 dark:bg-gray-700" : ""} 
             text-white transition-colors duration-300 transform 
             hover:bg-indigo-800 dark:hover:bg-gray-700 hover:text-white`}
-                        title={item.description}
-                      >
-                        <div
-                          className={`${
-                            open ? "min-w-[28px]" : "w-full"
-                          } flex ${open ? "" : "justify-center"}`}
-                        >
-                          {item.src}
-                        </div>
-                        {open && (
-                          <span className="mx-4 font-medium">{item.title}</span>
-                        )}
-                      </Link>
-                    );
-                  })}
-                </nav>
-
-                {/* Logout button */}
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center px-4 py-3 text-white transition-colors duration-300 transform hover:bg-indigo-800 dark:hover:bg-gray-700 hover:text-white mb-4"
-                  title="Log out of your account"
-                >
-                  <div
-                    className={`${open ? "min-w-[28px]" : "w-full"} flex ${
-                      open ? "" : "justify-center"
-                    }`}
+                    title={item.description}
                   >
-                    <FiLogOut className="w-5 h-5" />
-                  </div>
-                  {open && <span className="mx-4 font-medium">Logout</span>}
-                </button>
-              </div>
-            </aside>
+                    <div
+                      className={`${open ? "min-w-[28px]" : "w-full"} flex ${
+                        open ? "" : "justify-center"
+                      }`}
+                    >
+                      {item.src}
+                    </div>
+                    {open && (
+                      <span className="mx-4 font-medium">{item.title}</span>
+                    )}
+                  </Link>
+                );
+              })}
+            </nav>
 
-            {/* Main content */}
-            <div className="flex-1 h-full overflow-y-auto bg-gray-50 dark:bg-gray-900">
-              <Outlet />
-            </div>
+            {/* Logout button */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center px-4 py-3 text-white transition-colors duration-300 transform hover:bg-indigo-800 dark:hover:bg-gray-700 hover:text-white mb-4"
+              title="Log out of your account"
+            >
+              <div
+                className={`${open ? "min-w-[28px]" : "w-full"} flex ${
+                  open ? "" : "justify-center"
+                }`}
+              >
+                <FiLogOut className="w-5 h-5" />
+              </div>
+              {open && <span className="mx-4 font-medium">Logout</span>}
+            </button>
           </div>
+        </aside>
+
+        {/* Main content */}
+        <div className="flex-1 h-full overflow-y-auto bg-gray-50 dark:bg-gray-900">
+          <Outlet />
         </div>
-      ) : (
-        <AccountUnderVerification />
-      )}
-    </>
+      </div>
+    </div>
   );
 };
 
