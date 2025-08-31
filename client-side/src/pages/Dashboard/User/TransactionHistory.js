@@ -26,19 +26,31 @@ const TransactionHistory = () => {
   const [filterAmountMax, setFilterAmountMax] = useState("");
 
   const getTimeShiftedDate = (originalDate, referenceDate) => {
-    if (!referenceDate) return originalDate;
+    // Validate inputs
+    if (!originalDate) return new Date();
+    if (!referenceDate) return new Date(originalDate);
 
-    const today = new Date();
-    const reference = new Date(referenceDate);
-    const original = new Date(originalDate);
+    try {
+      const today = new Date();
+      const reference = new Date(referenceDate);
+      const original = new Date(originalDate);
 
-    // Calculate the difference between today and reference date
-    const timeDifference = today.getTime() - reference.getTime();
+      // Check if dates are valid
+      if (isNaN(reference.getTime()) || isNaN(original.getTime())) {
+        return new Date(originalDate);
+      }
 
-    // Add this difference to the original date
-    const shiftedDate = new Date(original.getTime() + timeDifference);
+      // Calculate the difference between today and reference date
+      const timeDifference = today.getTime() - reference.getTime();
 
-    return shiftedDate;
+      // Add this difference to the original date
+      const shiftedDate = new Date(original.getTime() + timeDifference);
+
+      return shiftedDate;
+    } catch (error) {
+      console.error("Error in getTimeShiftedDate:", error);
+      return new Date(originalDate);
+    }
   };
 
   // Fetch all data in a single useEffect
@@ -90,14 +102,30 @@ const TransactionHistory = () => {
 
           // Transform transaction dates to appear current
           const transformedTransactions = transactionsRes.data.transactions.map(
-            (transaction) => ({
-              ...transaction,
-              date: getTimeShiftedDate(
-                transaction.date,
-                referenceDate
-              ).toISOString(),
-              originalDate: transaction.date, // Keep original for reference
-            })
+            (transaction) => {
+              try {
+                const shiftedDate = getTimeShiftedDate(
+                  transaction.date,
+                  referenceDate
+                );
+                return {
+                  ...transaction,
+                  date: shiftedDate.toISOString(),
+                  originalDate: transaction.date, // Keep original for reference
+                };
+              } catch (error) {
+                console.error(
+                  "Error transforming transaction date:",
+                  error,
+                  transaction
+                );
+                return {
+                  ...transaction,
+                  date: new Date().toISOString(),
+                  originalDate: transaction.date,
+                };
+              }
+            }
           );
 
           setTransactions(transformedTransactions);
@@ -118,15 +146,32 @@ const TransactionHistory = () => {
 
         if (historyRes.data && historyRes.data.success) {
           const transformedData = historyRes.data.transactions.map(
-            (transaction) => ({
-              date: getTimeShiftedDate(
-                transaction.date,
-                referenceDate
-              ).toISOString(),
-              income: transaction.credit || 0,
-              spending: Math.abs(transaction.debit) || 0,
-              originalDate: transaction.date,
-            })
+            (transaction) => {
+              try {
+                const shiftedDate = getTimeShiftedDate(
+                  transaction.date,
+                  referenceDate
+                );
+                return {
+                  date: shiftedDate.toISOString(),
+                  income: transaction.credit || 0,
+                  spending: Math.abs(transaction.debit) || 0,
+                  originalDate: transaction.date,
+                };
+              } catch (error) {
+                console.error(
+                  "Error transforming transaction history date:",
+                  error,
+                  transaction
+                );
+                return {
+                  date: new Date().toISOString(),
+                  income: transaction.credit || 0,
+                  spending: Math.abs(transaction.debit) || 0,
+                  originalDate: transaction.date,
+                };
+              }
+            }
           );
           setTransactionHistory(transformedData);
         } else {
