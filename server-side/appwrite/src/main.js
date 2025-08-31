@@ -965,17 +965,21 @@ export default async ({ req, res, log, error }) => {
         const userId = path.split("/")[2];
         
         const user = await usersCollection.findOne({ 
-          _id: new ObjectId(userId),
-          role: "loan_officer" 
+          _id: new ObjectId(userId) 
         });
 
-        if (!user) {
+        if (!user || !user.role?.includes("loan-officer")) {
           await client.close();
-          return corsResponse({ message: "Loan officer not found" }, 404);
+          return corsResponse({ message: "Access denied. Loan officer role required." }, 403);
         }
 
+        // Fetch loan officer profile data from separate collection
+        const loanOfficerProfile = await db.collection("loan-officers").findOne({
+          userId: userId,
+        });
+
         await client.close();
-        return corsResponse({ success: true, profile: user });
+        return corsResponse(loanOfficerProfile);
       } catch (authErr) {
         await client.close();
         return corsResponse({ message: "Unauthorized Access" }, 401);
