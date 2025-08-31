@@ -1222,17 +1222,6 @@ export default async ({ req, res, log, error }) => {
           .find(query)
           .toArray();
 
-        // Populate borrower details
-        for (let loan of activeLoans) {
-          if (loan.borrowerId) {
-            const borrower = await usersCollection.findOne({
-              _id: new ObjectId(loan.borrowerId),
-            });
-            loan.borrowerName = borrower ? borrower.name : "Unknown";
-            loan.borrowerEmail = borrower ? borrower.email : "Unknown";
-          }
-        }
-
         await client.close();
         return corsResponse(activeLoans);
       } catch (error) {
