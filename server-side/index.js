@@ -1718,11 +1718,8 @@ async function run() {
           query.dataType = dataType;
         }
 
-        console.log("Fetching super admin data with query:", query);
-
         const data = await superAdminDataCollection.find(query).toArray();
 
-        console.log("Fetched super admin data:", data);
         res.send(data);
       } catch (error) {
         console.error("Error fetching super admin data:", error);
@@ -1738,8 +1735,6 @@ async function run() {
         newData.updatedAt = new Date().toISOString();
 
         const result = await superAdminDataCollection.insertOne(newData);
-
-        console.log("Created new super admin data:", result);
         res.send(result);
       } catch (error) {
         console.error("Error creating super admin data:", error);

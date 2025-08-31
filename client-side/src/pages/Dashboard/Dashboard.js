@@ -51,7 +51,7 @@ const Dashboard = () => {
     if (region === "global" && user) {
       // Global region: use Firebase user info
       return {
-        displayName: user.displayName || user.email,
+        displayName: user.displayName || userInfo?.name,
         email: user.email,
         initial: user.displayName?.charAt(0) || user.email?.charAt(0),
       };
@@ -223,7 +223,7 @@ const Dashboard = () => {
         description: "View your transaction history",
       },
       {
-        title: "Budget Management",
+        title: "Budget",
         path: "/dashboard/user/budget-management",
         src: <FaMoneyBill className="w-5 h-5" />,
         description: "Manage your budget",
@@ -444,7 +444,8 @@ const Dashboard = () => {
           </button>
 
           {/* Logo */}
-          <div
+          <Link
+            to="/"
             className={`flex items-center gap-x-3 px-6 py-5 ${
               !open ? "justify-center" : ""
             }`}
@@ -468,11 +469,11 @@ const Dashboard = () => {
             {open && (
               <h1 className="text-xl font-bold text-white">DigiMoney Bank</h1>
             )}
-          </div>
+          </Link>
 
           {/* User info */}
           <div
-            className={`flex flex-col items-center mt-6 ${
+            className={`flex flex-col mt-1 items-center ${
               !open ? "px-2" : "px-4 w-full"
             }`}
           >
@@ -485,7 +486,7 @@ const Dashboard = () => {
 
             {/* User details - shown when sidebar is open */}
             {open && (
-              <div className="mt-3 text-center w-full space-y-3">
+              <div className="text-center w-full space-y-3">
                 <h4 className="text-sm font-medium text-white truncate">
                   {userDisplayInfo.displayName}
                 </h4>
@@ -499,7 +500,7 @@ const Dashboard = () => {
                       <select
                         value={activeRole}
                         onChange={(e) => handleRoleChange(e.target.value)}
-                        className="w-full text-xs bg-indigo-800 dark:bg-gray-700 text-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-10 appearance-none cursor-pointer transition-all duration-200"
+                        className="w-full text-xs bg-indigo-800 dark:bg-gray-700 text-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-0 focus:border-transparent h-10 appearance-none cursor-pointer transition-all duration-200"
                       >
                         {userInfo.role.map((r) => (
                           <option

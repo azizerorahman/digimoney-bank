@@ -57,7 +57,7 @@ export const csrDashboardData = {
       description: "Initiate account closure process",
       icon: "close",
       permission: "approval",
-      category: "Account Management",
+      category: "Management",
     },
     {
       id: "fraud-report",

@@ -56,7 +56,6 @@ const LoanPortfolio = () => {
     if (!loanOfficerData?.activeLoanPortfolio) return {};
 
     const loans = loanOfficerData.activeLoanPortfolio;
-    console.log("Calculating stats for loans:", loanOfficerData);
     const total = loans.length;
     const totalValue = loans.reduce(
       (sum, loan) => sum + (loan.originalAmount || 0),

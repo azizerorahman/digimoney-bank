@@ -91,8 +91,6 @@ const SuperAdminDashboard = () => {
     auditLogs: auditLogsData?.logs || [],
   };
 
-  console.log("SuperAdmin Processed Data:", processedData);
-
   // Helper functions
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-US", {

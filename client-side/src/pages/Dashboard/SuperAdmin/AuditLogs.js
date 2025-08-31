@@ -107,8 +107,6 @@ const AuditLogs = () => {
     return matchesSearch && matchesAction && matchesTimeRange;
   });
 
-  console.log("Filtered Audit Logs:", auditLogs);
-
   // Real-time data simulation
   useEffect(() => {
     const interval = setInterval(() => {
