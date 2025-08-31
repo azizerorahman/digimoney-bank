@@ -1332,106 +1332,171 @@ export default async ({ req, res, log, error }) => {
     // GET /credit-analysis - Get credit analysis data (Auth required)
     if (path === "/credit-analysis" && method === "GET") {
       try {
-        const decoded = verifyToken(headers.authorization);
+        const authHeader = headers.authorization;
+        if (!authHeader) {
+          await client.close();
+          return corsResponse(
+            { message: "Unauthorized access: No token provided" },
+            401
+          );
+        }
 
-        // Get total loan applications
-        const totalApplications = await db
+        const token = authHeader.split(" ")[1];
+        if (!token) {
+          await client.close();
+          return corsResponse(
+            { message: "Unauthorized access: Malformed token" },
+            401
+          );
+        }
+
+        let decoded;
+        try {
+          decoded = jwt.verify(token, process.env.SECRET_KEY);
+        } catch (jwtErr) {
+          await client.close();
+          return corsResponse(
+            { message: "Forbidden access: Invalid or expired token" },
+            403
+          );
+        }
+
+        const officerId = req.query?.officerId;
+        const status = req.query?.status;
+        const creditRating = req.query?.creditRating;
+
+        // Build query for loan applications
+        let query = {};
+        if (officerId) {
+          query.loanOfficerId = officerId;
+        }
+        if (status && status !== "all") {
+          query.status = status;
+        }
+
+        // Fetch loan applications with credit scores
+        const applications = await db
           .collection("loan-applications")
-          .countDocuments();
-
-        // Get approved applications
-        const approvedApplications = await db
-          .collection("loan-applications")
-          .countDocuments({ status: "approved" });
-
-        // Get pending applications
-        const pendingApplications = await db
-          .collection("loan-applications")
-          .countDocuments({ status: "pending" });
-
-        // Get rejected applications
-        const rejectedApplications = await db
-          .collection("loan-applications")
-          .countDocuments({ status: "rejected" });
-
-        // Calculate approval rate
-        const approvalRate =
-          totalApplications > 0
-            ? ((approvedApplications / totalApplications) * 100).toFixed(1)
-            : 0;
-
-        // Get average loan amount
-        const loanAmounts = await db
-          .collection("loan-applications")
-          .find({ status: "approved" })
+          .find({ ...query, creditScore: { $exists: true, $ne: null } })
+          .sort({ lastUpdated: -1 })
           .toArray();
 
-        const avgLoanAmount =
-          loanAmounts.length > 0
-            ? loanAmounts.reduce((sum, loan) => sum + (loan.amount || 0), 0) /
-              loanAmounts.length
-            : 0;
-
-        // Get monthly application trends (last 6 months)
-        const sixMonthsAgo = new Date();
-        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-        const monthlyTrends = await db
-          .collection("loan-applications")
-          .aggregate([
-            {
-              $match: {
-                createdAt: { $gte: sixMonthsAgo },
-              },
-            },
-            {
-              $group: {
-                _id: {
-                  year: { $year: "$createdAt" },
-                  month: { $month: "$createdAt" },
-                },
-                count: { $sum: 1 },
-                totalAmount: { $sum: "$amount" },
-                approved: {
-                  $sum: { $cond: [{ $eq: ["$status", "approved"] }, 1, 0] },
-                },
-              },
-            },
-            {
-              $sort: { "_id.year": 1, "_id.month": 1 },
-            },
-          ])
+        // Fetch risk assessments
+        const riskAssessments = await db
+          .collection("risk-assessments")
+          .find({})
           .toArray();
+        const riskData = riskAssessments[0] || {};
 
-        const creditAnalysis = {
-          overview: {
-            totalApplications,
-            approvedApplications,
-            pendingApplications,
-            rejectedApplications,
-            approvalRate: parseFloat(approvalRate),
-            avgLoanAmount: Math.round(avgLoanAmount),
+        // Process applications into credit analysis format
+        const creditAnalyses = applications.map((app) => {
+          const getCreditRating = (score) => {
+            if (score >= 750) return "excellent";
+            if (score >= 700) return "good";
+            if (score >= 650) return "fair";
+            return "poor";
+          };
+
+          const calculateRiskScore = (application) => {
+            let riskScore = 0;
+
+            // Credit score impact (40% weight)
+            if (application.creditScore < 650) riskScore += 40;
+            else if (application.creditScore < 700) riskScore += 25;
+            else if (application.creditScore < 750) riskScore += 10;
+
+            // DTI ratio impact (30% weight)
+            const dti = application.financials?.debtToIncome || 0;
+            if (dti > 45) riskScore += 30;
+            else if (dti > 35) riskScore += 20;
+            else if (dti > 25) riskScore += 10;
+
+            // Employment stability (20% weight)
+            const empYears = application.employment?.yearsEmployed || 0;
+            if (empYears < 1) riskScore += 20;
+            else if (empYears < 2) riskScore += 15;
+            else if (empYears < 3) riskScore += 5;
+
+            // Flags and trends (10% weight)
+            if (application.creditTrend === "down") riskScore += 10;
+            if (application.flags && application.flags.length > 0)
+              riskScore += application.flags.length * 5;
+
+            return Math.min(riskScore, 100);
+          };
+
+          return {
+            _id: app._id,
+            applicantName: app.applicantName,
+            applicationId: app.applicantId || app._id,
+            loanType: app.loanType?.toLowerCase() || "personal",
+            requestedAmount: app.amount || 0,
+            creditScore: app.creditScore,
+            creditRating: getCreditRating(app.creditScore),
+            creditTrend: app.creditTrend || "stable",
+            riskLevel: app.riskLevel || "Medium",
+            riskScore: calculateRiskScore(app),
+            debtToIncomeRatio: app.financials?.debtToIncome || 0,
+            annualIncome: app.employment?.income || 0,
+            employmentLength: app.employment?.yearsEmployed || 0,
+            analysisDate: app.lastUpdated || app.submittedDate,
+            status: app.status,
+            keyFactors:
+              app.flags?.map((flag) => ({
+                name: flag.type || "Risk Factor",
+                value: flag.message || "See details",
+                impact: flag.severity === "high" ? "negative" : "neutral",
+              })) || [],
+          };
+        });
+
+        // Filter by credit rating if specified
+        const filteredAnalyses =
+          creditRating && creditRating !== "all"
+            ? creditAnalyses.filter(
+                (analysis) => analysis.creditRating === creditRating
+              )
+            : creditAnalyses;
+
+        // Calculate statistics
+        const stats = {
+          total: applications.length,
+          excellent: creditAnalyses.filter(
+            (a) => a.creditRating === "excellent"
+          ).length,
+          good: creditAnalyses.filter((a) => a.creditRating === "good").length,
+          fair: creditAnalyses.filter((a) => a.creditRating === "fair").length,
+          poor: creditAnalyses.filter((a) => a.creditRating === "poor").length,
+          avgCreditScore:
+            applications.length > 0
+              ? Math.round(
+                  applications.reduce((sum, app) => sum + app.creditScore, 0) /
+                    applications.length
+                )
+              : 0,
+          riskDistribution: riskData.riskDistribution || {
+            low: 0,
+            medium: 0,
+            high: 0,
           },
-          monthlyTrends: monthlyTrends.map((trend) => ({
-            month: `${trend._id.year}-${String(trend._id.month).padStart(
-              2,
-              "0"
-            )}`,
-            applications: trend.count,
-            totalAmount: trend.totalAmount,
-            approved: trend.approved,
-            approvalRate:
-              trend.count > 0
-                ? ((trend.approved / trend.count) * 100).toFixed(1)
-                : 0,
-          })),
+          fraudAlerts: riskData.fraudAlerts?.length || 0,
         };
 
+        stats.approvalRate =
+          stats.total > 0
+            ? Math.round(((stats.excellent + stats.good) / stats.total) * 100)
+            : 0;
+
         await client.close();
-        return corsResponse({ success: true, data: creditAnalysis });
-      } catch (authErr) {
+        return corsResponse({
+          analyses: filteredAnalyses,
+          statistics: stats,
+          riskAssessment: riskData,
+        });
+      } catch (error) {
+        log("Error fetching credit analysis data:", error.message);
         await client.close();
-        return corsResponse({ message: "Unauthorized Access" }, 401);
+        return corsResponse({ message: "Internal server error" }, 500);
       }
     }
 
