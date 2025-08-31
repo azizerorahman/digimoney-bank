@@ -27,10 +27,8 @@ const InsuranceCoverage = () => {
             },
           }
         );
-        console.log("Insurance data fetched successfully:", res.data);
         if (res.data && res.data.success) {
           setInsuranceData(res.data.insurance);
-          console.log("Insurance data set:", res.data.insurance);
         } else {
           toast.error("Failed to fetch insurance data");
         }
