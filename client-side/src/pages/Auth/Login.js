@@ -205,27 +205,6 @@ const Login = () => {
           <h2 className="text-white dark:text-white/90 text-lg font-semibold">
             Login to your account
           </h2>
-          {region && (
-            <div className="mt-2 px-3 py-1 bg-accent/20 rounded-full">
-              <span className="text-accent text-sm font-medium">
-                Region: {region.charAt(0).toUpperCase() + region.slice(1)}
-              </span>
-            </div>
-          )}
-          {!region && (
-            <div className="mt-2 px-3 py-1 bg-yellow-500/20 rounded-full">
-              <span className="text-yellow-300 text-sm font-medium">
-                Please select a region first
-              </span>
-            </div>
-          )}
-          {region && (
-            <div className="mt-2 text-center">
-              <span className="text-white/60 text-xs">
-                Your account can be accessed from any region
-              </span>
-            </div>
-          )}
         </div>
         <form
           onSubmit={handleSubmit(onSubmit)}
