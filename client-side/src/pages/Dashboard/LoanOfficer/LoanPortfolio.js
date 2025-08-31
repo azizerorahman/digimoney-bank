@@ -92,7 +92,7 @@ const LoanPortfolio = () => {
         0
       ),
     };
-  }, [loanOfficerData?.activeLoanPortfolio]);
+  }, [loanOfficerData]);
 
   if (userLoading || loading) {
     return (

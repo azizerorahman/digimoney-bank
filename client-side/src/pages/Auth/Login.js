@@ -92,6 +92,7 @@ const Login = () => {
         }
 
         const result = await response.json();
+        console.log("Backend login result:", result);
 
         if (result.success && result.accessToken) {
           localStorage.setItem("accessToken", result.accessToken);

@@ -7,7 +7,7 @@ import AnimatedSection from "../../../components/AnimatedSection";
 const AuditLogs = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterAction, setFilterAction] = useState("all");
-  const [filterTimeRange, setFilterTimeRange] = useState("24h");
+  const [filterTimeRange, setFilterTimeRange] = useState("30d");
   const [realTimeData, setRealTimeData] = useState({});
 
   // Fetch SuperAdmin data using custom hooks
@@ -19,7 +19,6 @@ const AuditLogs = () => {
   } = useSuperAdminData("auditLogs");
 
   const {
-    data: systemOverviewData,
     loading: systemOverviewLoading,
     error: systemOverviewError,
     fetchData: fetchSystemOverview,
@@ -107,6 +106,8 @@ const AuditLogs = () => {
 
     return matchesSearch && matchesAction && matchesTimeRange;
   });
+
+  console.log("Filtered Audit Logs:", auditLogs);
 
   // Real-time data simulation
   useEffect(() => {

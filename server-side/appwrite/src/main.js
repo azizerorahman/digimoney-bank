@@ -79,6 +79,7 @@ export default async ({ req, res, log, error }) => {
           customers: "/customers",
           creditAnalysis: "/credit-analysis",
           communicationLogs: "/communication-logs",
+          superAdminData: "/super-admin-data",
         },
       });
     }
@@ -99,6 +100,16 @@ export default async ({ req, res, log, error }) => {
     const budgetsCollection = db.collection("budgets");
     const investmentsCollection = db.collection("investment-portfolios");
     const recipientsCollection = db.collection("recipients");
+    const loanOfficersCollection = db.collection("loan-officers");
+    const loanApplicationsCollection = db.collection("loan-applications");
+    const loansCollection = db.collection("loans");
+    const insuranceCollection = db.collection("insurances");
+    const customersCollection = db.collection("customers");
+    const activeLoansCollection = db.collection("active-loans");
+    const repaymentSchedulesCollection = db.collection("repayment-schedules");
+    const riskAssessmentsCollection = db.collection("risk-assessments");
+    const communicationLogsCollection = db.collection("communication-logs");
+    const superAdminDataCollection = db.collection("super-admin");
 
     log("Database connected successfully");
 
@@ -712,44 +723,152 @@ export default async ({ req, res, log, error }) => {
         const decoded = verifyToken(headers.authorization);
         const { query, currentUserId } = req.query;
 
-        let searchQuery = {
-          verified: true,
-          _id: { $ne: new ObjectId(currentUserId) },
-        };
-
-        if (query && query.length >= 3) {
-          const searchRegex = new RegExp(query, "i");
-          searchQuery.$or = [
-            { name: { $regex: searchRegex } },
-            { email: { $regex: searchRegex } },
-          ];
-        }
-
-        const users = await usersCollection
-          .find(searchQuery, {
-            projection: { name: 1, email: 1, _id: 1 },
-          })
-          .toArray();
-
-        const recipients = [];
-        for (const user of users) {
-          const userAccounts = await accountsCollection
-            .find({ userId: user._id.toString() })
+        if (!query || query.length < 3) {
+          // Return all recipients if no search query
+          const allUsers = await usersCollection
+            .find(
+              {
+                verified: true,
+                _id: { $ne: new ObjectId(currentUserId) }, // Exclude current user
+              },
+              {
+                projection: {
+                  name: 1,
+                  email: 1,
+                  _id: 1,
+                },
+              }
+            )
             .toArray();
-          userAccounts.forEach((account) => {
-            recipients.push({
-              userId: user._id,
-              name: user.name,
-              email: user.email,
-              accountNumber: account.accountNumber,
-              accountName: account.accountName,
-              accountType: account.type,
-            });
+
+          // Get accounts for each user
+          const recipientsWithAccounts = await Promise.all(
+            allUsers.map(async (user) => {
+              const accounts = await accountsCollection
+                .find({ userId: user._id.toString() })
+                .toArray();
+
+              return accounts.map((account) => ({
+                id: user._id.toString(),
+                accountNumber: account.accountNumber,
+                name: user.name,
+                email: user.email,
+                bank: "DigiMoney Bank", // Since it's intra-bank
+                type: account.type,
+                accountId: account._id.toString(),
+              }));
+            })
+          );
+
+          const flattenedRecipients = recipientsWithAccounts.flat();
+          await client.close();
+          return corsResponse({
+            success: true,
+            recipients: flattenedRecipients,
           });
         }
 
+        // Search functionality
+        const searchRegex = new RegExp(query, "i");
+        const users = await usersCollection
+          .find(
+            {
+              verified: true,
+              _id: { $ne: new ObjectId(currentUserId) }, // Exclude current user
+              $or: [
+                { name: { $regex: searchRegex } },
+                { email: { $regex: searchRegex } },
+              ],
+            },
+            {
+              projection: {
+                name: 1,
+                email: 1,
+                _id: 1,
+              },
+            }
+          )
+          .toArray();
+
+        // Get accounts for matching users and also search by account number
+        const accountMatches = await accountsCollection
+          .find({
+            $or: [
+              { accountNumber: { $regex: searchRegex } },
+              { accountName: { $regex: searchRegex } },
+            ],
+          })
+          .toArray();
+
+        // Get user details for account matches
+        const accountUserIds = accountMatches.map((acc) => acc.userId);
+        const accountUsers = await usersCollection
+          .find(
+            {
+              _id: { $in: accountUserIds.map((id) => new ObjectId(id)) },
+              verified: true,
+              _id: { $ne: new ObjectId(currentUserId) },
+            },
+            {
+              projection: {
+                name: 1,
+                email: 1,
+                _id: 1,
+              },
+            }
+          )
+          .toArray();
+
+        // Combine user search results with their accounts
+        const userRecipients = await Promise.all(
+          users.map(async (user) => {
+            const accounts = await accountsCollection
+              .find({ userId: user._id.toString() })
+              .toArray();
+
+            return accounts.map((account) => ({
+              id: user._id.toString(),
+              accountNumber: account.accountNumber,
+              name: user.name,
+              email: user.email,
+              bank: "DigiMoney Bank",
+              type: account.type,
+              accountId: account._id.toString(),
+            }));
+          })
+        );
+
+        // Add account match results
+        const accountRecipients = accountMatches
+          .filter((account) => account.userId !== currentUserId)
+          .map((account) => {
+            const user = accountUsers.find(
+              (u) => u._id.toString() === account.userId
+            );
+            return user
+              ? {
+                  id: user._id.toString(),
+                  accountNumber: account.accountNumber,
+                  name: user.name,
+                  email: user.email,
+                  bank: "DigiMoney Bank",
+                  type: account.type,
+                  accountId: account._id.toString(),
+                }
+              : null;
+          })
+          .filter(Boolean);
+
+        // Combine and deduplicate results
+        const allRecipients = [...userRecipients.flat(), ...accountRecipients];
+        const uniqueRecipients = allRecipients.filter(
+          (recipient, index, self) =>
+            index ===
+            self.findIndex((r) => r.accountNumber === recipient.accountNumber)
+        );
+
         await client.close();
-        return corsResponse({ success: true, recipients });
+        return corsResponse({ success: true, recipients: uniqueRecipients });
       } catch (authErr) {
         await client.close();
         return corsResponse({ message: "Unauthorized Access" }, 401);
@@ -1649,6 +1768,275 @@ export default async ({ req, res, log, error }) => {
       }
     }
 
+    // ==================== SUPER ADMIN DATA ENDPOINTS ====================
+
+    // GET /super-admin-data - Get super admin data (Auth required)
+    if (path === "/super-admin-data" && method === "GET") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+
+        const dataType = req.query?.dataType;
+
+        let query = {};
+        if (dataType) {
+          query.dataType = dataType;
+        }
+
+        const data = await superAdminDataCollection.find(query).toArray();
+
+        await client.close();
+        return corsResponse(data);
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // POST /super-admin-data - Create super admin data (Auth required)
+    if (path === "/super-admin-data" && method === "POST") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+
+        const newData = {
+          ...body,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        const result = await superAdminDataCollection.insertOne(newData);
+
+        await client.close();
+        return corsResponse(result);
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // PUT /super-admin-data/:id - Update super admin data by ID (Auth required)
+    if (path.match(/^\/super-admin-data\/[a-f\d]{24}$/i) && method === "PUT") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+
+        const id = path.split("/")[2];
+        const updateData = {
+          ...body,
+          updatedAt: new Date().toISOString(),
+        };
+
+        const result = await superAdminDataCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updateData }
+        );
+
+        if (result.matchedCount === 0) {
+          await client.close();
+          return corsResponse({ message: "Data not found" }, 404);
+        }
+
+        await client.close();
+        return corsResponse(result);
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // PUT /super-admin-data/type/:dataType - Update super admin data by type (Auth required)
+    if (path.match(/^\/super-admin-data\/type\/[^\/]+$/) && method === "PUT") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+
+        const dataType = path.split("/")[3];
+        const updateData = {
+          ...body,
+          updatedAt: new Date().toISOString(),
+        };
+
+        const result = await superAdminDataCollection.updateOne(
+          { dataType: dataType },
+          { $set: updateData }
+        );
+
+        if (result.matchedCount === 0) {
+          await client.close();
+          return corsResponse({ message: "Data type not found" }, 404);
+        }
+
+        await client.close();
+        return corsResponse(result);
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // PATCH /super-admin-data/type/:dataType - Partially update super admin data by type (Auth required)
+    if (
+      path.match(/^\/super-admin-data\/type\/[^\/]+$/) &&
+      method === "PATCH"
+    ) {
+      try {
+        const decoded = verifyToken(headers.authorization);
+
+        const dataType = path.split("/")[3];
+        const patchData = {
+          ...body,
+          updatedAt: new Date().toISOString(),
+        };
+
+        const result = await superAdminDataCollection.updateOne(
+          { dataType: dataType },
+          { $set: patchData }
+        );
+
+        if (result.matchedCount === 0) {
+          await client.close();
+          return corsResponse({ message: "Data type not found" }, 404);
+        }
+
+        await client.close();
+        return corsResponse(result);
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // DELETE /super-admin-data/:id - Delete super admin data by ID (Auth required)
+    if (
+      path.match(/^\/super-admin-data\/[a-f\d]{24}$/i) &&
+      method === "DELETE"
+    ) {
+      try {
+        const decoded = verifyToken(headers.authorization);
+
+        const id = path.split("/")[2];
+        const result = await superAdminDataCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
+        if (result.deletedCount === 0) {
+          await client.close();
+          return corsResponse({ message: "Data not found" }, 404);
+        }
+
+        await client.close();
+        return corsResponse({ message: "Data deleted successfully" });
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // POST /super-admin-data/audit-log - Add audit log entry (Auth required)
+    if (path === "/super-admin-data/audit-log" && method === "POST") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+
+        const newLogEntry = {
+          ...body,
+          id: `AUDIT-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+        };
+
+        const result = await superAdminDataCollection.updateOne(
+          { dataType: "auditLogs" },
+          {
+            $push: { logs: newLogEntry },
+            $set: { updatedAt: new Date().toISOString() },
+          }
+        );
+
+        if (result.matchedCount === 0) {
+          await client.close();
+          return corsResponse(
+            { message: "Audit logs collection not found" },
+            404
+          );
+        }
+
+        await client.close();
+        return corsResponse({
+          message: "Audit log entry added successfully",
+          logEntry: newLogEntry,
+        });
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // POST /super-admin-data/security-event - Add security event (Auth required)
+    if (path === "/super-admin-data/security-event" && method === "POST") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+
+        const newSecurityEvent = {
+          ...body,
+          id: `SEC-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+        };
+
+        const result = await superAdminDataCollection.updateOne(
+          { dataType: "complianceAndSecurity" },
+          {
+            $push: { recentSecurityEvents: newSecurityEvent },
+            $set: { updatedAt: new Date().toISOString() },
+          }
+        );
+
+        if (result.matchedCount === 0) {
+          await client.close();
+          return corsResponse(
+            { message: "Compliance and security collection not found" },
+            404
+          );
+        }
+
+        await client.close();
+        return corsResponse({
+          message: "Security event added successfully",
+          securityEvent: newSecurityEvent,
+        });
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // PATCH /super-admin-data/system-metrics - Update system metrics (Auth required)
+    if (path === "/super-admin-data/system-metrics" && method === "PATCH") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+
+        const metrics = body;
+        const result = await superAdminDataCollection.updateOne(
+          { dataType: "systemOverview" },
+          {
+            $set: {
+              ...metrics,
+              updatedAt: new Date().toISOString(),
+            },
+          }
+        );
+
+        if (result.matchedCount === 0) {
+          await client.close();
+          return corsResponse(
+            { message: "System overview collection not found" },
+            404
+          );
+        }
+
+        await client.close();
+        return corsResponse({ message: "System metrics updated successfully" });
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
     // Default response for unknown endpoints
     await client.close();
     return corsResponse(
@@ -1694,6 +2082,12 @@ export default async ({ req, res, log, error }) => {
           "/communication-logs",
           "/loan-application/:id/status",
           "/loan-officer-stats/:userId",
+          "/super-admin-data",
+          "/super-admin-data/:id",
+          "/super-admin-data/type/:dataType",
+          "/super-admin-data/audit-log",
+          "/super-admin-data/security-event",
+          "/super-admin-data/system-metrics",
         ],
       },
       404

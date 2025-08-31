@@ -358,7 +358,7 @@ const FinancialReports = () => {
         {/* Capital Adequacy */}
         <AnimatedSection delay={400}>
           <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl shadow-2xl rounded-2xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 p-6 sm:p-8 lg:p-10 transition-all duration-500 hover:shadow-3xl">
-            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white mb-8 text-center">
+            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white mb-8">
               Capital Adequacy
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">

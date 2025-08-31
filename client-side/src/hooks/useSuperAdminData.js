@@ -32,6 +32,8 @@ const useSuperAdminData = (dataType = null, autoFetch = true) => {
           headers: getAuthHeaders(),
         });
 
+        console.log("Fetched SuperAdmin data:", response.data);
+
         if (response.data) {
           if (
             queryDataType &&
