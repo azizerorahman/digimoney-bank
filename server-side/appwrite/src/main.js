@@ -961,37 +961,99 @@ export default async ({ req, res, log, error }) => {
     // GET /loan-officer-profile/:userId - Get loan officer profile (Auth required)
     if (path.match(/^\/loan-officer-profile\/[^\/]+$/) && method === "GET") {
       try {
-        const decoded = verifyToken(headers.authorization);
+        const authHeader = headers.authorization;
+        if (!authHeader) {
+          await client.close();
+          return corsResponse(
+            { message: "Unauthorized access: No token provided" },
+            401
+          );
+        }
+
+        const token = authHeader.split(" ")[1];
+        if (!token) {
+          await client.close();
+          return corsResponse(
+            { message: "Unauthorized access: Malformed token" },
+            401
+          );
+        }
+
+        let decoded;
+        try {
+          decoded = jwt.verify(token, process.env.SECRET_KEY);
+        } catch (jwtErr) {
+          await client.close();
+          return corsResponse(
+            { message: "Forbidden access: Invalid or expired token" },
+            403
+          );
+        }
+
         const userId = path.split("/")[2];
-        
-        const user = await usersCollection.findOne({ 
-          _id: new ObjectId(userId) 
+
+        const user = await usersCollection.findOne({
+          _id: new ObjectId(userId),
         });
 
         if (!user || !user.role?.includes("loan-officer")) {
           await client.close();
-          return corsResponse({ message: "Access denied. Loan officer role required." }, 403);
+          return corsResponse(
+            { message: "Access denied. Loan officer role required." },
+            403
+          );
         }
 
         // Fetch loan officer profile data from separate collection
-        const loanOfficerProfile = await db.collection("loan-officers").findOne({
-          userId: userId,
-        });
+        const loanOfficerProfile = await db
+          .collection("loan-officers")
+          .findOne({
+            userId: userId,
+          });
 
         await client.close();
         return corsResponse(loanOfficerProfile);
-      } catch (authErr) {
+      } catch (error) {
+        log("Error fetching loan officer profile:", error.message);
         await client.close();
-        return corsResponse({ message: "Unauthorized Access" }, 401);
+        return corsResponse({ message: "Internal server error" }, 500);
       }
     }
 
     // GET /loan-applications - Get all loan applications (Auth required)
     if (path === "/loan-applications" && method === "GET") {
       try {
-        const decoded = verifyToken(headers.authorization);
-        
-        const loanApplications = await db.collection("loan-applications")
+        const authHeader = headers.authorization;
+        if (!authHeader) {
+          await client.close();
+          return corsResponse(
+            { message: "Unauthorized access: No token provided" },
+            401
+          );
+        }
+
+        const token = authHeader.split(" ")[1];
+        if (!token) {
+          await client.close();
+          return corsResponse(
+            { message: "Unauthorized access: Malformed token" },
+            401
+          );
+        }
+
+        let decoded;
+        try {
+          decoded = jwt.verify(token, process.env.SECRET_KEY);
+        } catch (jwtErr) {
+          await client.close();
+          return corsResponse(
+            { message: "Forbidden access: Invalid or expired token" },
+            403
+          );
+        }
+
+        const loanApplications = await db
+          .collection("loan-applications")
           .find({})
           .sort({ createdAt: -1 })
           .toArray();
@@ -999,19 +1061,22 @@ export default async ({ req, res, log, error }) => {
         // Populate applicant details
         for (let application of loanApplications) {
           if (application.applicantId) {
-            const applicant = await usersCollection.findOne({ 
-              _id: new ObjectId(application.applicantId) 
+            const applicant = await usersCollection.findOne({
+              _id: new ObjectId(application.applicantId),
             });
             application.applicantName = applicant ? applicant.name : "Unknown";
-            application.applicantEmail = applicant ? applicant.email : "Unknown";
+            application.applicantEmail = applicant
+              ? applicant.email
+              : "Unknown";
           }
         }
 
         await client.close();
         return corsResponse({ success: true, applications: loanApplications });
-      } catch (authErr) {
+      } catch (error) {
+        log("Error fetching loan applications:", error.message);
         await client.close();
-        return corsResponse({ message: "Unauthorized Access" }, 401);
+        return corsResponse({ message: "Internal server error" }, 500);
       }
     }
 
@@ -1021,7 +1086,8 @@ export default async ({ req, res, log, error }) => {
         const decoded = verifyToken(headers.authorization);
         const applicationId = path.split("/")[2];
 
-        const application = await db.collection("loan-applications")
+        const application = await db
+          .collection("loan-applications")
           .findOne({ _id: new ObjectId(applicationId) });
 
         if (!application) {
@@ -1040,17 +1106,45 @@ export default async ({ req, res, log, error }) => {
     // GET /active-loans - Get active loans (Auth required)
     if (path === "/active-loans" && method === "GET") {
       try {
-        const decoded = verifyToken(headers.authorization);
-        
-        const activeLoans = await db.collection("loans")
+        const authHeader = headers.authorization;
+        if (!authHeader) {
+          await client.close();
+          return corsResponse(
+            { message: "Unauthorized access: No token provided" },
+            401
+          );
+        }
+
+        const token = authHeader.split(" ")[1];
+        if (!token) {
+          await client.close();
+          return corsResponse(
+            { message: "Unauthorized access: Malformed token" },
+            401
+          );
+        }
+
+        let decoded;
+        try {
+          decoded = jwt.verify(token, process.env.SECRET_KEY);
+        } catch (jwtErr) {
+          await client.close();
+          return corsResponse(
+            { message: "Forbidden access: Invalid or expired token" },
+            403
+          );
+        }
+
+        const activeLoans = await db
+          .collection("loans")
           .find({ status: "active" })
           .toArray();
 
         // Populate borrower details
         for (let loan of activeLoans) {
           if (loan.borrowerId) {
-            const borrower = await usersCollection.findOne({ 
-              _id: new ObjectId(loan.borrowerId) 
+            const borrower = await usersCollection.findOne({
+              _id: new ObjectId(loan.borrowerId),
             });
             loan.borrowerName = borrower ? borrower.name : "Unknown";
             loan.borrowerEmail = borrower ? borrower.email : "Unknown";
@@ -1059,9 +1153,10 @@ export default async ({ req, res, log, error }) => {
 
         await client.close();
         return corsResponse({ success: true, loans: activeLoans });
-      } catch (authErr) {
+      } catch (error) {
+        log("Error fetching active loans:", error.message);
         await client.close();
-        return corsResponse({ message: "Unauthorized Access" }, 401);
+        return corsResponse({ message: "Internal server error" }, 500);
       }
     }
 
@@ -1069,12 +1164,12 @@ export default async ({ req, res, log, error }) => {
     if (path === "/customers" && method === "GET") {
       try {
         const decoded = verifyToken(headers.authorization);
-        
+
         const customers = await usersCollection
           .find({ role: { $in: ["user", "customer"] } })
-          .project({ 
-            password: 0, 
-            encryptedPassword: 0 
+          .project({
+            password: 0,
+            encryptedPassword: 0,
           })
           .toArray();
 
@@ -1084,7 +1179,10 @@ export default async ({ req, res, log, error }) => {
             .find({ userId: customer._id.toString() })
             .toArray();
           customer.accounts = accounts;
-          customer.totalBalance = accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
+          customer.totalBalance = accounts.reduce(
+            (sum, acc) => sum + (acc.balance || 0),
+            0
+          );
         }
 
         await client.close();
@@ -1101,11 +1199,14 @@ export default async ({ req, res, log, error }) => {
         const decoded = verifyToken(headers.authorization);
         const customerId = path.split("/")[2];
 
-        const customer = await usersCollection.findOne({ 
-          _id: new ObjectId(customerId) 
-        }, { 
-          projection: { password: 0, encryptedPassword: 0 } 
-        });
+        const customer = await usersCollection.findOne(
+          {
+            _id: new ObjectId(customerId),
+          },
+          {
+            projection: { password: 0, encryptedPassword: 0 },
+          }
+        );
 
         if (!customer) {
           await client.close();
@@ -1124,8 +1225,9 @@ export default async ({ req, res, log, error }) => {
     if (path === "/repayment-schedules" && method === "GET") {
       try {
         const decoded = verifyToken(headers.authorization);
-        
-        const repaymentSchedules = await db.collection("repayment-schedules")
+
+        const repaymentSchedules = await db
+          .collection("repayment-schedules")
           .find({})
           .toArray();
 
@@ -1140,17 +1242,46 @@ export default async ({ req, res, log, error }) => {
     // GET /risk-assessments - Get risk assessments (Auth required)
     if (path === "/risk-assessments" && method === "GET") {
       try {
-        const decoded = verifyToken(headers.authorization);
-        
-        const riskAssessments = await db.collection("risk-assessments")
+        const authHeader = headers.authorization;
+        if (!authHeader) {
+          await client.close();
+          return corsResponse(
+            { message: "Unauthorized access: No token provided" },
+            401
+          );
+        }
+
+        const token = authHeader.split(" ")[1];
+        if (!token) {
+          await client.close();
+          return corsResponse(
+            { message: "Unauthorized access: Malformed token" },
+            401
+          );
+        }
+
+        let decoded;
+        try {
+          decoded = jwt.verify(token, process.env.SECRET_KEY);
+        } catch (jwtErr) {
+          await client.close();
+          return corsResponse(
+            { message: "Forbidden access: Invalid or expired token" },
+            403
+          );
+        }
+
+        const riskAssessments = await db
+          .collection("risk-assessments")
           .find({})
           .toArray();
 
         await client.close();
         return corsResponse({ success: true, assessments: riskAssessments });
-      } catch (authErr) {
+      } catch (error) {
+        log("Error fetching risk assessments:", error.message);
         await client.close();
-        return corsResponse({ message: "Unauthorized Access" }, 401);
+        return corsResponse({ message: "Internal server error" }, 500);
       }
     }
 
@@ -1160,60 +1291,73 @@ export default async ({ req, res, log, error }) => {
         const decoded = verifyToken(headers.authorization);
 
         // Get total loan applications
-        const totalApplications = await db.collection("loan-applications").countDocuments();
-        
+        const totalApplications = await db
+          .collection("loan-applications")
+          .countDocuments();
+
         // Get approved applications
-        const approvedApplications = await db.collection("loan-applications")
+        const approvedApplications = await db
+          .collection("loan-applications")
           .countDocuments({ status: "approved" });
-        
+
         // Get pending applications
-        const pendingApplications = await db.collection("loan-applications")
+        const pendingApplications = await db
+          .collection("loan-applications")
           .countDocuments({ status: "pending" });
-        
+
         // Get rejected applications
-        const rejectedApplications = await db.collection("loan-applications")
+        const rejectedApplications = await db
+          .collection("loan-applications")
           .countDocuments({ status: "rejected" });
 
         // Calculate approval rate
-        const approvalRate = totalApplications > 0 ? 
-          ((approvedApplications / totalApplications) * 100).toFixed(1) : 0;
+        const approvalRate =
+          totalApplications > 0
+            ? ((approvedApplications / totalApplications) * 100).toFixed(1)
+            : 0;
 
         // Get average loan amount
-        const loanAmounts = await db.collection("loan-applications")
+        const loanAmounts = await db
+          .collection("loan-applications")
           .find({ status: "approved" })
           .toArray();
-        
-        const avgLoanAmount = loanAmounts.length > 0 ? 
-          loanAmounts.reduce((sum, loan) => sum + (loan.amount || 0), 0) / loanAmounts.length : 0;
+
+        const avgLoanAmount =
+          loanAmounts.length > 0
+            ? loanAmounts.reduce((sum, loan) => sum + (loan.amount || 0), 0) /
+              loanAmounts.length
+            : 0;
 
         // Get monthly application trends (last 6 months)
         const sixMonthsAgo = new Date();
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-        const monthlyTrends = await db.collection("loan-applications")
+        const monthlyTrends = await db
+          .collection("loan-applications")
           .aggregate([
             {
               $match: {
-                createdAt: { $gte: sixMonthsAgo }
-              }
+                createdAt: { $gte: sixMonthsAgo },
+              },
             },
             {
               $group: {
                 _id: {
                   year: { $year: "$createdAt" },
-                  month: { $month: "$createdAt" }
+                  month: { $month: "$createdAt" },
                 },
                 count: { $sum: 1 },
                 totalAmount: { $sum: "$amount" },
                 approved: {
-                  $sum: { $cond: [{ $eq: ["$status", "approved"] }, 1, 0] }
-                }
-              }
+                  $sum: { $cond: [{ $eq: ["$status", "approved"] }, 1, 0] },
+                },
+              },
             },
             {
-              $sort: { "_id.year": 1, "_id.month": 1 }
-            }
-          ]).toArray();
+              $sort: { "_id.year": 1, "_id.month": 1 },
+            },
+          ])
+          .toArray();
 
         const creditAnalysis = {
           overview: {
@@ -1222,15 +1366,21 @@ export default async ({ req, res, log, error }) => {
             pendingApplications,
             rejectedApplications,
             approvalRate: parseFloat(approvalRate),
-            avgLoanAmount: Math.round(avgLoanAmount)
+            avgLoanAmount: Math.round(avgLoanAmount),
           },
-          monthlyTrends: monthlyTrends.map(trend => ({
-            month: `${trend._id.year}-${String(trend._id.month).padStart(2, '0')}`,
+          monthlyTrends: monthlyTrends.map((trend) => ({
+            month: `${trend._id.year}-${String(trend._id.month).padStart(
+              2,
+              "0"
+            )}`,
             applications: trend.count,
             totalAmount: trend.totalAmount,
             approved: trend.approved,
-            approvalRate: trend.count > 0 ? ((trend.approved / trend.count) * 100).toFixed(1) : 0
-          }))
+            approvalRate:
+              trend.count > 0
+                ? ((trend.approved / trend.count) * 100).toFixed(1)
+                : 0,
+          })),
         };
 
         await client.close();
@@ -1244,18 +1394,47 @@ export default async ({ req, res, log, error }) => {
     // GET /communication-logs - Get communication logs (Auth required)
     if (path === "/communication-logs" && method === "GET") {
       try {
-        const decoded = verifyToken(headers.authorization);
-        
-        const communicationLogs = await db.collection("communication-logs")
+        const authHeader = headers.authorization;
+        if (!authHeader) {
+          await client.close();
+          return corsResponse(
+            { message: "Unauthorized access: No token provided" },
+            401
+          );
+        }
+
+        const token = authHeader.split(" ")[1];
+        if (!token) {
+          await client.close();
+          return corsResponse(
+            { message: "Unauthorized access: Malformed token" },
+            401
+          );
+        }
+
+        let decoded;
+        try {
+          decoded = jwt.verify(token, process.env.SECRET_KEY);
+        } catch (jwtErr) {
+          await client.close();
+          return corsResponse(
+            { message: "Forbidden access: Invalid or expired token" },
+            403
+          );
+        }
+
+        const communicationLogs = await db
+          .collection("communication-logs")
           .find({})
           .sort({ createdAt: -1 })
           .toArray();
 
         await client.close();
         return corsResponse({ success: true, logs: communicationLogs });
-      } catch (authErr) {
+      } catch (error) {
+        log("Error fetching communication logs:", error.message);
         await client.close();
-        return corsResponse({ message: "Unauthorized Access" }, 401);
+        return corsResponse({ message: "Internal server error" }, 500);
       }
     }
 
@@ -1263,21 +1442,22 @@ export default async ({ req, res, log, error }) => {
     if (path === "/communication-logs" && method === "POST") {
       try {
         const decoded = verifyToken(headers.authorization);
-        
+
         const logData = {
           ...body,
           createdAt: new Date(),
-          officerId: decoded.uId
+          officerId: decoded.uId,
         };
 
-        const result = await db.collection("communication-logs")
+        const result = await db
+          .collection("communication-logs")
           .insertOne(logData);
 
         await client.close();
-        return corsResponse({ 
-          success: true, 
+        return corsResponse({
+          success: true,
           message: "Communication log created successfully",
-          logId: result.insertedId 
+          logId: result.insertedId,
         });
       } catch (authErr) {
         await client.close();
@@ -1286,7 +1466,10 @@ export default async ({ req, res, log, error }) => {
     }
 
     // PATCH /loan-application/:id/status - Update loan application status (Auth required)
-    if (path.match(/^\/loan-application\/[a-f\d]{24}\/status$/i) && method === "PATCH") {
+    if (
+      path.match(/^\/loan-application\/[a-f\d]{24}\/status$/i) &&
+      method === "PATCH"
+    ) {
       try {
         const decoded = verifyToken(headers.authorization);
         const applicationId = path.split("/")[2];
@@ -1300,14 +1483,15 @@ export default async ({ req, res, log, error }) => {
         const updateData = {
           status,
           updatedAt: new Date(),
-          processedBy: decoded.uId
+          processedBy: decoded.uId,
         };
 
         if (notes) {
           updateData.notes = notes;
         }
 
-        const result = await db.collection("loan-applications")
+        const result = await db
+          .collection("loan-applications")
           .updateOne(
             { _id: new ObjectId(applicationId) },
             { $set: updateData }
@@ -1319,9 +1503,9 @@ export default async ({ req, res, log, error }) => {
         }
 
         await client.close();
-        return corsResponse({ 
-          success: true, 
-          message: "Application status updated successfully" 
+        return corsResponse({
+          success: true,
+          message: "Application status updated successfully",
         });
       } catch (authErr) {
         await client.close();
@@ -1334,24 +1518,21 @@ export default async ({ req, res, log, error }) => {
       try {
         const decoded = verifyToken(headers.authorization);
         const userId = path.split("/")[2];
-        
+
         // Update or create loan officer stats
         const statsData = {
           ...body,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
 
-        const result = await db.collection("loan-officer-stats")
-          .updateOne(
-            { userId },
-            { $set: statsData },
-            { upsert: true }
-          );
+        const result = await db
+          .collection("loan-officer-stats")
+          .updateOne({ userId }, { $set: statsData }, { upsert: true });
 
         await client.close();
-        return corsResponse({ 
-          success: true, 
-          message: "Loan officer stats updated successfully" 
+        return corsResponse({
+          success: true,
+          message: "Loan officer stats updated successfully",
         });
       } catch (authErr) {
         await client.close();
