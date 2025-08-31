@@ -57,6 +57,8 @@ const useLoanOfficerData = (userInfo) => {
         }
       );
 
+      console.log("activeLoansResponse:", activeLoansResponse);
+
       const activeLoans = activeLoansResponse.ok
         ? await activeLoansResponse.json()
         : [];
@@ -130,6 +132,8 @@ const useLoanOfficerData = (userInfo) => {
         creditScoreData: {}, // Will be populated as needed
         repaymentSchedules: {}, // Will be populated as needed
       };
+
+      console.log("activeLoans:", activeLoans);
 
       setData(loanOfficerData);
     } catch (err) {

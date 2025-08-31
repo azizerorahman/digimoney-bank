@@ -1201,9 +1201,25 @@ export default async ({ req, res, log, error }) => {
           );
         }
 
+        // Parse query parameters
+        const officerId = req.query?.officerId;
+        const status = req.query?.status;
+        const loanType = req.query?.loanType;
+
+        let query = {};
+        if (officerId) {
+          query.loanOfficerId = officerId;
+        }
+        if (status && status !== "all") {
+          query.status = status;
+        }
+        if (loanType && loanType !== "all") {
+          query.loanType = loanType;
+        }
+
         const activeLoans = await db
-          .collection("loans")
-          .find({ status: "active" })
+          .collection("active-loans")
+          .find(query)
           .toArray();
 
         // Populate borrower details
