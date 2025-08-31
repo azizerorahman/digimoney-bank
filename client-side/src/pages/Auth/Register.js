@@ -433,7 +433,6 @@ const Register = () => {
         try {
           // If we created a Firebase user but later steps failed, delete the user
           await firebaseUser.delete();
-          console.log("Rolled back Firebase user creation");
         } catch (rollbackError) {
           console.error("Rollback failed:", rollbackError);
           toast.error("Registration failed partially. Please contact support.");

@@ -66,7 +66,7 @@ const MoneyTransfer = () => {
         if (accountsRes.data && accountsRes.data.success) {
           setAccounts(accountsRes.data.accounts);
         } else {
-          console.log("No accounts found or API error");
+          console.error("No accounts found or API error");
         }
 
         const transfersRes = await axios.get(

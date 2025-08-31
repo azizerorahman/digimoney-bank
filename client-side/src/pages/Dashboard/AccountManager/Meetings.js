@@ -194,7 +194,6 @@ const CalendarMeetings = () => {
       status: "Pending",
     };
 
-    console.log("New Meeting Scheduled:", newMeeting);
     alert(
       `Meeting ${newMeetingId} scheduled successfully with ${newMeeting.customerName}`
     );

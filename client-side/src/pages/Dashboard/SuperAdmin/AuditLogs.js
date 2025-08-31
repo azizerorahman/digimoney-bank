@@ -25,16 +25,6 @@ const AuditLogs = () => {
     fetchData: fetchSystemOverview,
   } = useSuperAdminData("systemOverview");
 
-  // Debug logging
-  console.log("AuditLogs Debug:", {
-    auditLogsData,
-    systemOverviewData,
-    auditLogsLoading,
-    systemOverviewLoading,
-    auditLogsError,
-    systemOverviewError,
-  });
-
   // Loading and error states
   const isLoading = auditLogsLoading || systemOverviewLoading;
   const hasError = auditLogsError || systemOverviewError;

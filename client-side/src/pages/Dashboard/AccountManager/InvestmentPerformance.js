@@ -67,8 +67,6 @@ const InvestmentPerformance = () => {
 
     const handleSubmit = (e) => {
       e.preventDefault();
-      console.log("Meeting scheduled:", meetingData);
-      // Add your meeting creation logic here
 
       // Reset form
       setMeetingData({
@@ -257,8 +255,6 @@ const InvestmentPerformance = () => {
 
     const handleReportSubmit = (e) => {
       e.preventDefault();
-      console.log("Generating report:", reportData);
-      // Add your report generation logic here
       onClose();
     };
 

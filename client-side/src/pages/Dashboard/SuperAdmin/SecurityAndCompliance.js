@@ -25,13 +25,6 @@ const SecurityAndCompliance = () => {
     error: configError,
   } = useSuperAdminData("complianceAndSecurity");
 
-  // Debug logging
-  console.log("SecurityAndCompliance Debug:", {
-    superAdminData,
-    configLoading,
-    configError,
-  });
-
   // Process data with proper fallbacks and validation
   const securityData = Array.isArray(superAdminData)
     ? superAdminData.find(

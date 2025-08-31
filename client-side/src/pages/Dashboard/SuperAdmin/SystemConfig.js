@@ -26,13 +26,6 @@ const SystemConfig = () => {
     fetchData: fetchSystemConfig,
   } = useSuperAdminData("systemConfiguration");
 
-  // Debug logging
-  console.log("SystemConfig Debug:", {
-    systemConfigData,
-    configLoading,
-    configError,
-  });
-
   // Process data with proper fallbacks and validation
   const systemConfig = Array.isArray(systemConfigData)
     ? systemConfigData.find(

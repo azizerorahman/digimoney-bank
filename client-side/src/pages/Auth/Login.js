@@ -16,13 +16,6 @@ const Login = () => {
   const region = localStorage.getItem("region");
   const passwordRef = useRef(null);
 
-  // Debug logging
-  useEffect(() => {
-    console.log("Login component loaded:");
-    console.log("- Region:", region);
-    console.log("- API URL:", process.env.REACT_APP_API_URL);
-  }, [region]);
-
   const {
     register,
     handleSubmit,
@@ -146,32 +139,20 @@ const Login = () => {
   }, [user, region, handleBackendLogin]);
 
   const onSubmit = async (data) => {
-    console.log("Form submitted with data:", { email: data.email, region });
-
     if (!region) {
       toast.error("Please select a region first");
       return;
     }
 
     if (region === "global") {
-      // For global region, use Firebase + backend authentication
       passwordRef.current = data.password;
-      console.log("Using Firebase authentication for global region");
       try {
         await signInWithEmailAndPassword(data.email, data.password);
         // Backend login will be handled in useEffect when user state changes
       } catch (firebaseError) {
-        console.log(
-          "Firebase auth failed, trying direct backend for global user:",
-          firebaseError
-        );
-        // If Firebase fails, try direct backend login (account might exist in backend but not Firebase)
         await handleBackendLogin(data.email, data.password);
       }
     } else if (region === "china") {
-      // For China region, try direct backend authentication
-      // This will now also check for global accounts that can be accessed from China
-      console.log("Using direct backend authentication for China region");
       await handleBackendLogin(data.email, data.password);
     } else {
       toast.error("Please select a valid region (global or china)");

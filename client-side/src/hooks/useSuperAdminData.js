@@ -33,8 +33,6 @@ const useSuperAdminData = (dataType = null, autoFetch = true) => {
         });
 
         if (response.data) {
-            console.log("Fetched SuperAdmin data:", response.data);
-          // If fetching specific dataType, return the first matching document
           if (
             queryDataType &&
             Array.isArray(response.data) &&

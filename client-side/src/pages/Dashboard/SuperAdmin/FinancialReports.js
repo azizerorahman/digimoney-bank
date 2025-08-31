@@ -11,16 +11,6 @@ const FinancialReports = () => {
     fetchData,
   } = useSuperAdminData("financialReporting");
 
-  // Debug logging
-  console.log("FinancialReports Debug:", {
-    financialReportingData,
-    loading,
-    error,
-    dataType: "financialReporting",
-    isUsingFallbackData: !financialReportingData,
-  });
-
-  // Process financial data with proper fallbacks based on the JSON data structure
   const financialData = financialReportingData;
 
   // Helper functions

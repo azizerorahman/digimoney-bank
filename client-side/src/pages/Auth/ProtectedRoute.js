@@ -34,20 +34,6 @@ const ProtectedRoute = ({ children, role }) => {
 
   // If not authenticated or error in user info, redirect to login
   if (!isAuthenticated() || !userInfo || error) {
-    console.log("Authentication failed:", {
-      region,
-      user: !!user,
-      accessToken: !!accessToken,
-      uId: !!uId,
-      userInfo: !!userInfo,
-      error,
-    });
-
-    // Manual logout - clear all localStorage data
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("activeRole");
-
     toast.error("Session expired. Please log in again.");
     return <Navigate to={"/login"} state={{ from: location }} replace />;
   }

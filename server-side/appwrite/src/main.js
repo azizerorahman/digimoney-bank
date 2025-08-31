@@ -73,6 +73,12 @@ export default async ({ req, res, log, error }) => {
           investments: "/investment-portfolios",
           loans: "/loans",
           insurances: "/insurances",
+          loanOfficerProfile: "/loan-officer-profile/:userId",
+          loanApplications: "/loan-applications",
+          activeLoans: "/active-loans",
+          customers: "/customers",
+          creditAnalysis: "/credit-analysis",
+          communicationLogs: "/communication-logs",
         },
       });
     }
@@ -950,6 +956,405 @@ export default async ({ req, res, log, error }) => {
       }
     }
 
+    // ==================== LOAN OFFICER ENDPOINTS ====================
+
+    // GET /loan-officer-profile/:userId - Get loan officer profile (Auth required)
+    if (path.match(/^\/loan-officer-profile\/[^\/]+$/) && method === "GET") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+        const userId = path.split("/")[2];
+        
+        const user = await usersCollection.findOne({ 
+          _id: new ObjectId(userId),
+          role: "loan_officer" 
+        });
+
+        if (!user) {
+          await client.close();
+          return corsResponse({ message: "Loan officer not found" }, 404);
+        }
+
+        await client.close();
+        return corsResponse({ success: true, profile: user });
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // GET /loan-applications - Get all loan applications (Auth required)
+    if (path === "/loan-applications" && method === "GET") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+        
+        const loanApplications = await db.collection("loan-applications")
+          .find({})
+          .sort({ createdAt: -1 })
+          .toArray();
+
+        // Populate applicant details
+        for (let application of loanApplications) {
+          if (application.applicantId) {
+            const applicant = await usersCollection.findOne({ 
+              _id: new ObjectId(application.applicantId) 
+            });
+            application.applicantName = applicant ? applicant.name : "Unknown";
+            application.applicantEmail = applicant ? applicant.email : "Unknown";
+          }
+        }
+
+        await client.close();
+        return corsResponse({ success: true, applications: loanApplications });
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // GET /loan-application/:id - Get specific loan application (Auth required)
+    if (path.match(/^\/loan-application\/[a-f\d]{24}$/i) && method === "GET") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+        const applicationId = path.split("/")[2];
+
+        const application = await db.collection("loan-applications")
+          .findOne({ _id: new ObjectId(applicationId) });
+
+        if (!application) {
+          await client.close();
+          return corsResponse({ message: "Application not found" }, 404);
+        }
+
+        await client.close();
+        return corsResponse({ success: true, application });
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // GET /active-loans - Get active loans (Auth required)
+    if (path === "/active-loans" && method === "GET") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+        
+        const activeLoans = await db.collection("loans")
+          .find({ status: "active" })
+          .toArray();
+
+        // Populate borrower details
+        for (let loan of activeLoans) {
+          if (loan.borrowerId) {
+            const borrower = await usersCollection.findOne({ 
+              _id: new ObjectId(loan.borrowerId) 
+            });
+            loan.borrowerName = borrower ? borrower.name : "Unknown";
+            loan.borrowerEmail = borrower ? borrower.email : "Unknown";
+          }
+        }
+
+        await client.close();
+        return corsResponse({ success: true, loans: activeLoans });
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // GET /customers - Get all customers (Auth required)
+    if (path === "/customers" && method === "GET") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+        
+        const customers = await usersCollection
+          .find({ role: { $in: ["user", "customer"] } })
+          .project({ 
+            password: 0, 
+            encryptedPassword: 0 
+          })
+          .toArray();
+
+        // Get account information for each customer
+        for (let customer of customers) {
+          const accounts = await accountsCollection
+            .find({ userId: customer._id.toString() })
+            .toArray();
+          customer.accounts = accounts;
+          customer.totalBalance = accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
+        }
+
+        await client.close();
+        return corsResponse({ success: true, customers });
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // GET /customer/:id - Get specific customer (Auth required)
+    if (path.match(/^\/customer\/[a-f\d]{24}$/i) && method === "GET") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+        const customerId = path.split("/")[2];
+
+        const customer = await usersCollection.findOne({ 
+          _id: new ObjectId(customerId) 
+        }, { 
+          projection: { password: 0, encryptedPassword: 0 } 
+        });
+
+        if (!customer) {
+          await client.close();
+          return corsResponse({ message: "Customer not found" }, 404);
+        }
+
+        await client.close();
+        return corsResponse({ success: true, customer });
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // GET /repayment-schedules - Get repayment schedules (Auth required)
+    if (path === "/repayment-schedules" && method === "GET") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+        
+        const repaymentSchedules = await db.collection("repayment-schedules")
+          .find({})
+          .toArray();
+
+        await client.close();
+        return corsResponse({ success: true, schedules: repaymentSchedules });
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // GET /risk-assessments - Get risk assessments (Auth required)
+    if (path === "/risk-assessments" && method === "GET") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+        
+        const riskAssessments = await db.collection("risk-assessments")
+          .find({})
+          .toArray();
+
+        await client.close();
+        return corsResponse({ success: true, assessments: riskAssessments });
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // GET /credit-analysis - Get credit analysis data (Auth required)
+    if (path === "/credit-analysis" && method === "GET") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+
+        // Get total loan applications
+        const totalApplications = await db.collection("loan-applications").countDocuments();
+        
+        // Get approved applications
+        const approvedApplications = await db.collection("loan-applications")
+          .countDocuments({ status: "approved" });
+        
+        // Get pending applications
+        const pendingApplications = await db.collection("loan-applications")
+          .countDocuments({ status: "pending" });
+        
+        // Get rejected applications
+        const rejectedApplications = await db.collection("loan-applications")
+          .countDocuments({ status: "rejected" });
+
+        // Calculate approval rate
+        const approvalRate = totalApplications > 0 ? 
+          ((approvedApplications / totalApplications) * 100).toFixed(1) : 0;
+
+        // Get average loan amount
+        const loanAmounts = await db.collection("loan-applications")
+          .find({ status: "approved" })
+          .toArray();
+        
+        const avgLoanAmount = loanAmounts.length > 0 ? 
+          loanAmounts.reduce((sum, loan) => sum + (loan.amount || 0), 0) / loanAmounts.length : 0;
+
+        // Get monthly application trends (last 6 months)
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+        const monthlyTrends = await db.collection("loan-applications")
+          .aggregate([
+            {
+              $match: {
+                createdAt: { $gte: sixMonthsAgo }
+              }
+            },
+            {
+              $group: {
+                _id: {
+                  year: { $year: "$createdAt" },
+                  month: { $month: "$createdAt" }
+                },
+                count: { $sum: 1 },
+                totalAmount: { $sum: "$amount" },
+                approved: {
+                  $sum: { $cond: [{ $eq: ["$status", "approved"] }, 1, 0] }
+                }
+              }
+            },
+            {
+              $sort: { "_id.year": 1, "_id.month": 1 }
+            }
+          ]).toArray();
+
+        const creditAnalysis = {
+          overview: {
+            totalApplications,
+            approvedApplications,
+            pendingApplications,
+            rejectedApplications,
+            approvalRate: parseFloat(approvalRate),
+            avgLoanAmount: Math.round(avgLoanAmount)
+          },
+          monthlyTrends: monthlyTrends.map(trend => ({
+            month: `${trend._id.year}-${String(trend._id.month).padStart(2, '0')}`,
+            applications: trend.count,
+            totalAmount: trend.totalAmount,
+            approved: trend.approved,
+            approvalRate: trend.count > 0 ? ((trend.approved / trend.count) * 100).toFixed(1) : 0
+          }))
+        };
+
+        await client.close();
+        return corsResponse({ success: true, data: creditAnalysis });
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // GET /communication-logs - Get communication logs (Auth required)
+    if (path === "/communication-logs" && method === "GET") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+        
+        const communicationLogs = await db.collection("communication-logs")
+          .find({})
+          .sort({ createdAt: -1 })
+          .toArray();
+
+        await client.close();
+        return corsResponse({ success: true, logs: communicationLogs });
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // POST /communication-logs - Create communication log (Auth required)
+    if (path === "/communication-logs" && method === "POST") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+        
+        const logData = {
+          ...body,
+          createdAt: new Date(),
+          officerId: decoded.uId
+        };
+
+        const result = await db.collection("communication-logs")
+          .insertOne(logData);
+
+        await client.close();
+        return corsResponse({ 
+          success: true, 
+          message: "Communication log created successfully",
+          logId: result.insertedId 
+        });
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // PATCH /loan-application/:id/status - Update loan application status (Auth required)
+    if (path.match(/^\/loan-application\/[a-f\d]{24}\/status$/i) && method === "PATCH") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+        const applicationId = path.split("/")[2];
+        const { status, notes } = body;
+
+        if (!status) {
+          await client.close();
+          return corsResponse({ message: "Status is required" }, 400);
+        }
+
+        const updateData = {
+          status,
+          updatedAt: new Date(),
+          processedBy: decoded.uId
+        };
+
+        if (notes) {
+          updateData.notes = notes;
+        }
+
+        const result = await db.collection("loan-applications")
+          .updateOne(
+            { _id: new ObjectId(applicationId) },
+            { $set: updateData }
+          );
+
+        if (result.matchedCount === 0) {
+          await client.close();
+          return corsResponse({ message: "Application not found" }, 404);
+        }
+
+        await client.close();
+        return corsResponse({ 
+          success: true, 
+          message: "Application status updated successfully" 
+        });
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
+    // PATCH /loan-officer-stats/:userId - Update loan officer stats (Auth required)
+    if (path.match(/^\/loan-officer-stats\/[^\/]+$/) && method === "PATCH") {
+      try {
+        const decoded = verifyToken(headers.authorization);
+        const userId = path.split("/")[2];
+        
+        // Update or create loan officer stats
+        const statsData = {
+          ...body,
+          updatedAt: new Date()
+        };
+
+        const result = await db.collection("loan-officer-stats")
+          .updateOne(
+            { userId },
+            { $set: statsData },
+            { upsert: true }
+          );
+
+        await client.close();
+        return corsResponse({ 
+          success: true, 
+          message: "Loan officer stats updated successfully" 
+        });
+      } catch (authErr) {
+        await client.close();
+        return corsResponse({ message: "Unauthorized Access" }, 401);
+      }
+    }
+
     // Default response for unknown endpoints
     await client.close();
     return corsResponse(
@@ -983,6 +1388,18 @@ export default async ({ req, res, log, error }) => {
           "/investment-portfolios",
           "/loans",
           "/insurances",
+          "/loan-officer-profile/:userId",
+          "/loan-applications",
+          "/loan-application/:id",
+          "/active-loans",
+          "/customers",
+          "/customer/:id",
+          "/repayment-schedules",
+          "/risk-assessments",
+          "/credit-analysis",
+          "/communication-logs",
+          "/loan-application/:id/status",
+          "/loan-officer-stats/:userId",
         ],
       },
       404
