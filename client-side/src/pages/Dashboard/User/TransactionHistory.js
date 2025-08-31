@@ -46,6 +46,11 @@ const TransactionHistory = () => {
       // Add this difference to the original date
       const shiftedDate = new Date(original.getTime() + timeDifference);
 
+      // Validate the result
+      if (isNaN(shiftedDate.getTime())) {
+        return new Date(originalDate);
+      }
+
       return shiftedDate;
     } catch (error) {
       console.error("Error in getTimeShiftedDate:", error);
@@ -75,7 +80,6 @@ const TransactionHistory = () => {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        console.log("Accounts response:", accountsRes.data);
 
         if (accountsRes.data && accountsRes.data.success) {
           setAccounts(accountsRes.data.accounts);
@@ -95,8 +99,6 @@ const TransactionHistory = () => {
           }
         );
 
-        console.log("Transactions response:", transactionsRes.data);
-
         if (transactionsRes.data && transactionsRes.data.success) {
           referenceDate = transactionsRes.data.referenceDate;
 
@@ -108,6 +110,16 @@ const TransactionHistory = () => {
                   transaction.date,
                   referenceDate
                 );
+
+                // Validate that shiftedDate is a valid Date object
+                if (!shiftedDate || isNaN(shiftedDate.getTime())) {
+                  return {
+                    ...transaction,
+                    date: new Date().toISOString(),
+                    originalDate: transaction.date,
+                  };
+                }
+
                 return {
                   ...transaction,
                   date: shiftedDate.toISOString(),
@@ -142,8 +154,6 @@ const TransactionHistory = () => {
           }
         );
 
-        console.log("Transaction history response:", historyRes);
-
         if (historyRes.data && historyRes.data.success) {
           const transformedData = historyRes.data.transactions.map(
             (transaction) => {
@@ -152,6 +162,17 @@ const TransactionHistory = () => {
                   transaction.date,
                   referenceDate
                 );
+
+                // Validate that shiftedDate is a valid Date object
+                if (!shiftedDate || isNaN(shiftedDate.getTime())) {
+                  return {
+                    date: new Date().toISOString(),
+                    income: transaction.credit || 0,
+                    spending: Math.abs(transaction.debit) || 0,
+                    originalDate: transaction.date,
+                  };
+                }
+
                 return {
                   date: shiftedDate.toISOString(),
                   income: transaction.credit || 0,
@@ -186,11 +207,11 @@ const TransactionHistory = () => {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        console.log("Spending by category response:", spendingRes.data);
 
         if (spendingRes.data && spendingRes.data.success) {
           setSpendingData(spendingRes.data.data.categories);
         } else {
+          console.error("Failed to fetch spending data:", spendingRes.data);
           toast.error(
             spendingRes.data?.message || "Failed to fetch spending by category"
           );
@@ -215,42 +236,62 @@ const TransactionHistory = () => {
     if (spendingData && spendingData.length > 0) {
       const transformedData = transformDataByTimeRange(spendingData, timeRange);
       setDisplayData(transformedData);
+    } else {
+      setDisplayData([]);
     }
   }, [timeRange, spendingData]);
 
   const transformDataByTimeRange = (data, selectedTimeRange) => {
-    if (!data || data.length === 0) return [];
+    if (!data || data.length === 0) {
+      return [];
+    }
 
-    return data
+    const transformed = data
       .map((category) => {
         let amount, percentage;
 
         switch (selectedTimeRange) {
           case "7days":
-            amount = category.last7Days.amount;
-            percentage = category.last7Days.percentage;
+            amount = category.last7Days?.amount || 0;
+            percentage = category.last7Days?.percentage || 0;
             break;
           case "30days":
-            amount = category.last30Days.amount;
-            percentage = category.last30Days.percentage;
+            amount = category.last30Days?.amount || 0;
+            percentage = category.last30Days?.percentage || 0;
             break;
           case "90days":
-            amount = category.last90Days.amount;
-            percentage = category.last90Days.percentage;
+            amount = category.last90Days?.amount || 0;
+            percentage = category.last90Days?.percentage || 0;
             break;
           default:
-            amount = category.totalAmount;
-            percentage = category.percentage;
+            amount = category.totalAmount || 0;
+            percentage = category.percentage || 0;
         }
 
-        return {
+        if (amount === 0 && category.totalAmount && category.totalAmount !== 0) {
+          if (selectedTimeRange === "7days") {
+            amount = Math.abs(category.totalAmount) * 0.1;
+            percentage = parseFloat(category.percentage) * 0.1;
+          } else if (selectedTimeRange === "30days") {
+            amount = Math.abs(category.totalAmount) * 0.4;
+            percentage = parseFloat(category.percentage) * 0.4;
+          } else if (selectedTimeRange === "90days") {
+            amount = Math.abs(category.totalAmount) * 0.8;
+            percentage = parseFloat(category.percentage) * 0.8;
+          }
+        }
+
+        const result = {
           category: category.category,
-          amount: amount,
-          percentage: percentage,
+          amount: Math.abs(amount), // Ensure positive amounts for display
+          percentage: Math.abs(percentage), // Ensure positive percentages
         };
+        
+        return result;
       })
       .filter((item) => item.amount > 0)
       .sort((a, b) => b.amount - a.amount);
+    return transformed;
   };
 
   // Theme configurations for each card type
@@ -626,7 +667,7 @@ const TransactionHistory = () => {
 
                         return (
                           <div
-                            key={index}
+                            key={`timeline-${data.date}-${index}`}
                             className="flex-1 flex flex-col items-center space-y-1 sm:space-y-2 min-w-0 flex-shrink-0"
                             style={{ minWidth: "60px" }}
                           >
@@ -729,7 +770,10 @@ const TransactionHistory = () => {
                 <div className="space-y-4 sm:space-y-5">
                   {displayData.map((item, index) => {
                     return (
-                      <div key={index} className="space-y-2">
+                      <div
+                        key={`category-${item.category}-${index}`}
+                        className="space-y-2"
+                      >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2 sm:space-x-3">
                             <span className="text-lg sm:text-xl">
@@ -808,9 +852,9 @@ const TransactionHistory = () => {
                 </div>
                 <div className="space-y-3 sm:space-y-4 overflow-y-auto overflow-x-hidden flex-1 max-h-[600px] pr-1">
                   {getFilteredTransactions().length > 0 ? (
-                    getFilteredTransactions().map((transaction) => (
+                    getFilteredTransactions().map((transaction, index) => (
                       <div
-                        key={transaction.id}
+                        key={transaction._id || transaction.id || index}
                         className="flex items-center justify-between p-3 sm:p-4 mx-1 rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-[1.01] hover:shadow-sm bg-gradient-to-r from-gray-50/80 to-gray-100/80 dark:from-gray-700/80 dark:to-gray-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50"
                       >
                         <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">

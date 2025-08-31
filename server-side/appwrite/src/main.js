@@ -932,8 +932,15 @@ export default async ({ req, res, log, error }) => {
         const uId = req.query?.uId || decoded.uId;
         const insurance = await db
           .collection("insurances")
-          .find({ userId: uId })
-          .toArray();
+          .findOne({ userId: uId });
+
+        if (!insurance) {
+          await client.close();
+          return corsResponse(
+            { success: false, message: "No insurance found" },
+            404
+          );
+        }
 
         await client.close();
         return corsResponse({ success: true, insurance });

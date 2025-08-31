@@ -55,9 +55,6 @@ const MoneyTransfer = () => {
       setLoading(true);
       try {
         const token = localStorage.getItem("accessToken");
-
-        // Fetch accounts
-        console.log("Fetching accounts for user:", uId);
         const accountsRes = await axios.get(
           `${process.env.REACT_APP_API_URL}/accounts`,
           {
@@ -67,17 +64,11 @@ const MoneyTransfer = () => {
         );
 
         if (accountsRes.data && accountsRes.data.success) {
-          console.log(
-            "Fetched accounts from backend:",
-            accountsRes.data.accounts
-          );
           setAccounts(accountsRes.data.accounts);
         } else {
           console.log("No accounts found or API error");
         }
 
-        // Fetch recent transfers
-        console.log("Fetching recent transfers for user:", uId);
         const transfersRes = await axios.get(
           `${process.env.REACT_APP_API_URL}/transactions`,
           {
@@ -108,15 +99,11 @@ const MoneyTransfer = () => {
             }))
             .sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort by date, most recent first
 
-          console.log("Fetched transfers from backend:", transfers);
           setRecentTransfers(transfers);
         } else {
-          console.log("No transfers found or API error");
           setRecentTransfers([]);
         }
 
-        // Fetch recent recipients
-        console.log("Fetching recent recipients for user:", uId);
         const recipientsRes = await axios.get(
           `${process.env.REACT_APP_API_URL}/recipients`,
           {
@@ -136,14 +123,11 @@ const MoneyTransfer = () => {
               accountType: recipient.type || "Checking",
               email: recipient.email,
             }));
-          console.log("Fetched recipients from backend:", recipients);
           setRecentRecipients(recipients);
         } else {
-          console.log("No recipients found or API error");
           setRecentRecipients([]);
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
         toast.error("Failed to load data");
       } finally {
         setLoading(false);
@@ -783,8 +767,6 @@ const MoneyTransferForm = ({ onTransferComplete, userAccounts = [] }) => {
         }
       } catch (error) {
         console.error("Failed to load recipients:", error);
-        // Don't show error toast on component mount, just log it
-        console.log("Recipients will be loaded when searching");
       }
     };
 
@@ -805,7 +787,6 @@ const MoneyTransferForm = ({ onTransferComplete, userAccounts = [] }) => {
   ];
 
   const searchAccounts = async (query) => {
-    console.log("Searching for:", query);
     if (query.length < 3) return [];
 
     try {
@@ -823,12 +804,10 @@ const MoneyTransferForm = ({ onTransferComplete, userAccounts = [] }) => {
       );
 
       if (response.data && response.data.success) {
-        console.log("Search results:", response.data.recipients);
         return response.data.recipients;
       }
       return [];
     } catch (error) {
-      console.error("Search error:", error);
       toast.error("Failed to search recipients");
       return [];
     }
@@ -849,15 +828,12 @@ const MoneyTransferForm = ({ onTransferComplete, userAccounts = [] }) => {
   };
 
   const handleAccountSearch = async (query) => {
-    console.log("handleAccountSearch called with:", query);
     setSearchQuery(query);
     if (query.length >= 3) {
       const results = await searchAccounts(query);
       setSearchResults(results);
-      console.log("Setting search results:", results);
     } else {
       setSearchResults([]);
-      console.log("Query too short, clearing results");
     }
   };
 
@@ -1015,7 +991,6 @@ const MoneyTransferForm = ({ onTransferComplete, userAccounts = [] }) => {
         }
       } catch (error) {
         setIsProcessing(false);
-        console.error("Transfer error:", error);
         toast.error("Transfer failed. Please try again.");
       }
     }

@@ -477,7 +477,7 @@ const UserDashboard = ({ userInfo }) => {
                   <div className="space-y-3 md:space-y-4">
                     {accounts.map((account) => (
                       <div
-                        key={account.id}
+                        key={account._id || account.id}
                         className={`flex items-center justify-between p-3 md:p-4 rounded-xl cursor-pointer transition-all duration-500 group ${
                           selectedAccount?._id === account._id
                             ? "bg-gradient-to-br from-[#6160DC]/10 to-[#8B7EFF]/5 dark:from-[#8B7EFF]/20 dark:to-[#6160DC]/10 ring-2 ring-[#6160DC] dark:ring-[#8B7EFF] shadow-lg hover:shadow-xl hover:shadow-[#6160DC]/20 dark:hover:shadow-[#8B7EFF]/20"
