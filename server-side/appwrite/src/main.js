@@ -1052,22 +1052,66 @@ export default async ({ req, res, log, error }) => {
           );
         }
 
+        log("Fetching loan applications from database...");
+
+        // Parse query parameters
+        const officerId = req.query?.officerId;
+        const status = req.query?.status;
+        const loanType = req.query?.loanType;
+        const page = parseInt(req.query?.page) || 1;
+        const limit = parseInt(req.query?.limit) || 10;
+
+        let query = {};
+        if (officerId) {
+          query.loanOfficerId = officerId;
+          log(`Filtering by loanOfficerId: ${officerId}`);
+        }
+        if (status && status !== "all") {
+          query.status = status;
+          log(`Filtering by status: ${status}`);
+        }
+        if (loanType && loanType !== "all") {
+          query.loanType = loanType;
+          log(`Filtering by loanType: ${loanType}`);
+        }
+
+        const skip = (page - 1) * limit;
+        log(`Query filters:`, query);
+
         const loanApplications = await db
           .collection("loan-applications")
-          .find({})
-          .sort({ createdAt: -1 })
+          .find(query)
+          .sort({ submittedDate: -1 })
+          .skip(skip)
+          .limit(limit)
           .toArray();
+
+        log(`Found ${loanApplications.length} loan applications`);
 
         // Populate applicant details
         for (let application of loanApplications) {
           if (application.applicantId) {
-            const applicant = await usersCollection.findOne({
-              _id: new ObjectId(application.applicantId),
-            });
-            application.applicantName = applicant ? applicant.name : "Unknown";
-            application.applicantEmail = applicant
-              ? applicant.email
-              : "Unknown";
+            try {
+              log(
+                `Populating applicant details for application ${application._id}`
+              );
+              const applicant = await usersCollection.findOne({
+                _id: new ObjectId(application.applicantId),
+              });
+              application.applicantName = applicant
+                ? applicant.name
+                : "Unknown";
+              application.applicantEmail = applicant
+                ? applicant.email
+                : "Unknown";
+            } catch (objIdError) {
+              log(
+                `Error with ObjectId for applicant ${application.applicantId}:`,
+                objIdError.message
+              );
+              application.applicantName = "Unknown";
+              application.applicantEmail = "Unknown";
+            }
           }
         }
 
@@ -1075,8 +1119,18 @@ export default async ({ req, res, log, error }) => {
         return corsResponse({ success: true, applications: loanApplications });
       } catch (error) {
         log("Error fetching loan applications:", error.message);
+        log("Error stack:", error.stack);
         await client.close();
-        return corsResponse({ message: "Internal server error" }, 500);
+        return corsResponse(
+          {
+            message: "Internal server error",
+            error:
+              process.env.NODE_ENV === "development"
+                ? error.message
+                : "Something went wrong",
+          },
+          500
+        );
       }
     }
 
