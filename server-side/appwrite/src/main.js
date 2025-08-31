@@ -1115,8 +1115,20 @@ export default async ({ req, res, log, error }) => {
           }
         }
 
+        const total = await db
+          .collection("loan-applications")
+          .countDocuments(query);
+
         await client.close();
-        return corsResponse({ success: true, applications: loanApplications });
+        return corsResponse({
+          applications: loanApplications,
+          pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit),
+          },
+        });
       } catch (error) {
         log("Error fetching loan applications:", error.message);
         log("Error stack:", error.stack);
@@ -1206,7 +1218,7 @@ export default async ({ req, res, log, error }) => {
         }
 
         await client.close();
-        return corsResponse({ success: true, loans: activeLoans });
+        return corsResponse(activeLoans);
       } catch (error) {
         log("Error fetching active loans:", error.message);
         await client.close();
@@ -1331,7 +1343,7 @@ export default async ({ req, res, log, error }) => {
           .toArray();
 
         await client.close();
-        return corsResponse({ success: true, assessments: riskAssessments });
+        return corsResponse(riskAssessments);
       } catch (error) {
         log("Error fetching risk assessments:", error.message);
         await client.close();
@@ -1484,7 +1496,7 @@ export default async ({ req, res, log, error }) => {
           .toArray();
 
         await client.close();
-        return corsResponse({ success: true, logs: communicationLogs });
+        return corsResponse(communicationLogs);
       } catch (error) {
         log("Error fetching communication logs:", error.message);
         await client.close();
