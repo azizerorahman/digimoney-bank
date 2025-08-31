@@ -1088,33 +1088,6 @@ export default async ({ req, res, log, error }) => {
 
         log(`Found ${loanApplications.length} loan applications`);
 
-        // Populate applicant details
-        for (let application of loanApplications) {
-          if (application.applicantId) {
-            try {
-              log(
-                `Populating applicant details for application ${application._id}`
-              );
-              const applicant = await usersCollection.findOne({
-                _id: new ObjectId(application.applicantId),
-              });
-              application.applicantName = applicant
-                ? applicant.name
-                : "Unknown";
-              application.applicantEmail = applicant
-                ? applicant.email
-                : "Unknown";
-            } catch (objIdError) {
-              log(
-                `Error with ObjectId for applicant ${application.applicantId}:`,
-                objIdError.message
-              );
-              application.applicantName = "Unknown";
-              application.applicantEmail = "Unknown";
-            }
-          }
-        }
-
         const total = await db
           .collection("loan-applications")
           .countDocuments(query);

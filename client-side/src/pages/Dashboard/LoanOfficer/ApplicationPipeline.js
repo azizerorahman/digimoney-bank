@@ -521,6 +521,7 @@ const ApplicationPipeline = () => {
                     className="group relative p-6 sm:p-8 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200/60 dark:border-gray-700/60 hover:border-blue-300/60 dark:hover:border-blue-600/60 transition-all duration-500 hover:shadow-xl hover:shadow-blue-100/50 dark:hover:shadow-blue-900/30 hover:-translate-y-1 overflow-hidden"
                   >
                     {/* Subtle gradient overlay */}
+                    {console.log("Rendering application:", application)}
                     <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-blue-50/30 dark:to-blue-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
                     {/* Content */}
