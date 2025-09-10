@@ -5,6 +5,7 @@ import { RiBarChartHorizontalLine } from "react-icons/ri";
 import { FiLogOut } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useAuthState } from "react-firebase-hooks/auth";
+import { signOut } from "firebase/auth";
 import auth from "../../firebase.init";
 import useUserInfo from "../../hooks/useUserInfo";
 import LoadingSpinner from "../../components/Loading";
@@ -179,20 +180,28 @@ const Dashboard = () => {
   };
 
   // Handle logout with toast notification
-  const handleLogout = () => {
-    // Manual logout - clear all localStorage data
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("activeRole");
+  const handleLogout = async () => {
+    try {
+      // Sign out from Firebase
+      await signOut(auth);
 
-    toast.info("You have been logged out", {
-      position: "top-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-    });
+      // Manual logout - clear all localStorage data
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("activeRole");
 
-    // Navigate to login page
-    navigate("/login");
+      toast.info("You have been logged out", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+      });
+
+      // Navigate to login page
+      navigate("/login");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Error signing out. Please try again.");
+    }
   };
 
   // Define menu items for different roles

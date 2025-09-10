@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { signOut } from "firebase/auth";
 import auth from "../firebase.init";
@@ -14,6 +14,7 @@ const NavBar = ({ setDarkMode, darkMode }) => {
   const navRef = useRef(null);
   const dropdownRef = useRef(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Handle scroll effect for header background
   useEffect(() => {
@@ -72,11 +73,24 @@ const NavBar = ({ setDarkMode, darkMode }) => {
   };
 
   // Handle logout
-  const logout = () => {
-    signOut(auth);
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("activeRole");
+  const logout = async () => {
+    try {
+      // Close dropdown first
+      setAvatarDropdownOpen(false);
+
+      // Sign out from Firebase
+      await signOut(auth);
+
+      // Clear localStorage
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("activeRole");
+
+      // Navigate to home page
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   // Check if link is active
