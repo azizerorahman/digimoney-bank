@@ -28,3 +28,6 @@ package-lock.json
 .firebase
 .firebaserc
 firebase-debug.log
+
+netlify.toml
+public/_redirects
