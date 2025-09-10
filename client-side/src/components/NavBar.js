@@ -75,6 +75,8 @@ const NavBar = ({ setDarkMode, darkMode }) => {
   const logout = () => {
     signOut(auth);
     localStorage.removeItem("accessToken");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("activeRole");
   };
 
   // Check if link is active

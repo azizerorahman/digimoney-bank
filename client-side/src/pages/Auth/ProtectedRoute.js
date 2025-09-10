@@ -13,11 +13,6 @@ const ProtectedRoute = ({ children, role }) => {
   const { userInfo, isLoading, error } = useUserInfo(uId);
   const location = useLocation();
 
-  // Show loading while checking authentication
-  if (loading || isLoading) {
-    return <LoadingSpinner fullscreen overlay />;
-  }
-
   // Check authentication based on region
   const isAuthenticated = () => {
     if (region === "global") {
@@ -32,10 +27,24 @@ const ProtectedRoute = ({ children, role }) => {
     }
   };
 
-  // If not authenticated or error in user info, redirect to login
-  if (!isAuthenticated() || !userInfo || error) {
-    toast.error("Session expired. Please log in again.");
-    return <Navigate to={"/login"} state={{ from: location }} replace />;
+  // Show loading only while Firebase is loading
+  if (loading) {
+    return <LoadingSpinner fullscreen overlay />;
+  }
+
+  // If not authenticated, redirect to unauthorized page immediately
+  if (!isAuthenticated()) {
+    return <Navigate to={"/unauthorized"} state={{ from: location }} replace />;
+  }
+
+  // Show loading while fetching user info (only if authenticated)
+  if (isLoading) {
+    return <LoadingSpinner fullscreen overlay />;
+  }
+
+  // If error in user info or no user info, redirect to unauthorized page
+  if (!userInfo || error) {
+    return <Navigate to={"/unauthorized"} state={{ from: location }} replace />;
   }
 
   // If role is specified, check if user has that role

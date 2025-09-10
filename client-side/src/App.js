@@ -10,6 +10,8 @@ import Footer from "./components/Footer";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import LoadingSpinner from "./components/Loading";
 import ProtectedRoute from "./pages/Auth/ProtectedRoute";
+import UnauthorizedAccess from "./pages/Auth/UnauthorizedAccess";
+import NotFound from "./pages/NotFound";
 
 // User components
 import User from "./pages/Dashboard/User/";
@@ -66,11 +68,30 @@ import auth from "./firebase.init";
 function App() {
   // Use React Router's location
   const location = useLocation();
-  const hideNFPaths = ["/login", "/register", "/dashboard"];
-  const showNF = !hideNFPaths.some((path) => location.pathname.includes(path));
+
+  // Define valid routes to detect 404s
+  const validRoutes = [
+    "/",
+    "/login",
+    "/register",
+    "/dashboard",
+    "/unauthorized",
+  ];
+
+  // Check if current path starts with any valid route or dashboard subroutes
+  const isValidRoute =
+    validRoutes.some((route) => location.pathname === route) ||
+    location.pathname.startsWith("/dashboard/");
+
+  // Hide NavBar and Footer for specific paths or 404 pages
+  const hideNFPaths = ["/login", "/register", "/dashboard", "/unauthorized"];
+  const shouldHideNF =
+    hideNFPaths.some((path) => location.pathname.includes(path)) ||
+    !isValidRoute;
+  const showNF = !shouldHideNF;
 
   const [user] = useAuthState(auth);
-  const uId = localStorage.getItem("userId");
+  const uId = user ? localStorage.getItem("userId") : null;
   const { userInfo, isLoading } = useUserInfo(uId);
 
   // Dark mode state management
@@ -253,10 +274,7 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route
-              index
-              element={<Navigate to="customer-profile" replace />}
-            />
+            <Route index element={<Navigate to="customer-profile" replace />} />
             <Route path="customer-profile" element={<CSRCustomerProfile />} />
             <Route path="quick-actions" element={<QuickActions />} />
             <Route path="service-requests" element={<ServiceRequests />} />
@@ -264,11 +282,14 @@ function App() {
           </Route>
 
           {/* Catch-all for invalid dashboard routes */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
 
+        {/* Unauthorized access route */}
+        <Route path="/unauthorized" element={<UnauthorizedAccess />} />
+
         {/* Catch-all for invalid routes */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
 
       {showNF && <Footer />}
